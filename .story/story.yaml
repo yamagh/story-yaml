@@ -7,7 +7,7 @@ epics:
         as: ユーザー
         i want: VS CodeのYAMLエディタで各種要素（エピック、ストーリー、タスク、サブタスク）のスニペットを利用したい
         so that: 迅速にYAML形式の構造化ストーリーを作成できるように
-        status: ToDo
+        status: Done
         acceptance criteria:
           - ユーザーはYAMLファイルの編集中にスニペット候補を呼び出せる（例 Ctrl + Space による補完）
           - 各スニペットは以下の種類に対応している
