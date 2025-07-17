@@ -45,7 +45,7 @@ development_flow:
           depends_on: []
           outputs:
             - .story/idea.yaml
-          command: %idea |自然言語)
+          command: %idea
 
         - step: 1.2
           name: ユーザーストーリー
