@@ -27,7 +27,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上でYAML形式ストーリーをテーブル形式でプレビューしたい
         so that: ストーリーの構造を表形式で確認できるように
-        status: ToDo
+        status: Done
         acceptance criteria:
           - ユーザーはVS CodeのWebView上でYAML形式ストーリーのテーブル形式プレビューを確認できる
           - テーブルにはエピック、ストーリー、タスクの情報が含まれる
