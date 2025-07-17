@@ -17,6 +17,12 @@
         "command": "story-yaml.helloWorld",
         "title": "Hello World"
       }
+    ],
+    "snippets": [
+      {
+        "language": "yaml",
+        "path": "./snippets/story.json"
+      }
     ]
   },
   "scripts": {

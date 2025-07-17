@@ -1,0 +1,43 @@
+{
+  "epic": {
+    "prefix": "epic",
+    "body": [
+      "epics:",
+      "  - title: ${1:エピックの簡潔なタイトル}",
+      "    description: |",
+      "      ${2:エピックについての詳細な説明}",
+      "    stories:",
+      "      - ${3}"
+    ],
+    "description": "新しいエピックを作成します"
+  },
+  "story": {
+    "prefix": "story",
+    "body": [
+      "- title: ${1:ストーリーの簡潔なタイトル}",
+      "  as: ${2:役割}",
+      "  i want: ${3:やりたいこと}",
+      "  so that: ${4:理由}",
+      "  status: ToDo",
+      "  points: ${5:1}",
+      "  acceptance criteria:",
+      "    - ${6:受け入れ基準１}",
+      "  sub tasks:",
+      "    - ${7:サブタスク１}"
+    ],
+    "description": "新しいストーリーを作成します"
+  },
+  "task": {
+    "prefix": "task",
+    "body": [
+      "tasks:",
+      "  - title: ${1:タスクの簡潔なタイトル}",
+      "    description: |",
+      "      ${2:タスクについての詳細な説明}",
+      "    status: ToDo",
+      "    acceptance criteria:",
+      "      - ${3:完了基準１}"
+    ],
+    "description": "新しいタスクを作成します"
+  }
+}
