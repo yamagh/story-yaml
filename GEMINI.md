@@ -171,7 +171,7 @@ glossary:
       ストーリー駆動開発は、ユーザーストーリーをYAML形式で構造化したDSL（ドメイン固有言語）に基づく開発手法である。
       ユーザーはツールやテキストエディタを用いて story.yaml を作成する。
       ユーザーとAIエージェントは、story.yaml を通じて共通理解できる構造化フォーマットに基づき、
-      ストーリーブレインストーミング、詳細化、受け入れ基準の策定を行う。
+      ストーリーブレインストーミング、詳細化、完了基準の策定を行う。
       エージェントは story.yaml を元に plan.yaml を出力し、さらに plan.yaml を元に実装とテストを行う。
       この一連のプロセス全体をストーリー駆動開発と呼ぶ。
     structure: |
@@ -187,10 +187,11 @@ glossary:
               so that: 理由
               status: ToDo # ToDo, WIP, Done のいずれか
               points: 1 # 任意の整数
-              acceptance criteria:
-                - 受け入れ基準１
-                - 受け入れ基準２
-                - 受け入れ基準３
+              sprint: Sprint 1
+              definition of done:
+                - 完了基準１
+                - 完了基準２
+                - 完了基準３
               sub tasks:
                 - サブタスク１
                 - サブタスク２
@@ -200,7 +201,7 @@ glossary:
           description: |
             タスクについての詳細な説明
           status: ToDo # ToDo, WIP, Done のいずれか
-          acceptance criteria:
+          definition of done:
             - 完了基準１
             - 完了基準２
             - 完了基準３

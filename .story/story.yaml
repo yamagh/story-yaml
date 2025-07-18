@@ -8,7 +8,7 @@ epics:
         i want: VS CodeのYAMLエディタで各種要素（エピック、ストーリー、タスク、サブタスク）のスニペットを利用したい
         so that: 迅速にYAML形式の構造化ストーリーを作成できるように
         status: Done
-        acceptance criteria:
+        definition of done:
           - ユーザーはYAMLファイルの編集中にスニペット候補を呼び出せる（例 Ctrl + Space による補完）
           - 各スニペットは以下の種類に対応している
             - エピック
@@ -28,7 +28,7 @@ epics:
         i want: VS CodeのWebView上でYAML形式ストーリーをテーブル形式でプレビューしたい
         so that: ストーリーの構造を表形式で確認できるように
         status: Done
-        acceptance criteria:
+        definition of done:
           - ユーザーはVS CodeのWebView上でYAML形式ストーリーのテーブル形式プレビューを確認できる
           - テーブルにはエピック、ストーリー、タスクの情報が含まれる
           - テーブルの列は Type(Epic,Story,Taskのいずれか)、title, status, points を表示する
@@ -42,66 +42,69 @@ epics:
         i want: VS CodeのWebView上でストーリーをクリックして詳細を表示したい
         so that: YAML形式ストーリーを直接参照することなく詳細を確認できるように
         status: Done
-        acceptance criteria:
+        definition of done:
           - ユーザーはVS CodeのWebView上でストーリーをクリックして詳細を表示できる
           - 詳細には説明、ステータス、ポイントなどが含まれる
           - ポップアップまたは展開セクションは簡単に閉じられる
           - テーブル表示の場合、詳細は右側のカラムに表示される
-          - ホワイトボード風表示の場合、詳細はポップアップで表示される
       - title: 新規アイテムの追加
         as: ユーザー
         i want: VS CodeのWebView上で新しいエピック、ストーリー、タスクを追加したい
         so that: YAML形式ストーリーを直接編集することなく、新しいアイテムを追加できるように
         status: ToDo
-        acceptance criteria:
+        definition of done:
           - ユーザーはVS CodeのWebView上で新しいエピック、ストーリー、タスクを追加できる
           - 新しいアイテムはプレビューに即時に表示される
           - YAML形式ストーリーは新しいアイテムを反映するように更新される
+          - WebView上にフォーム形式のUIが表示され、ユーザーはtitle、status、as、i want、so thatを入力できる
+          - 「新規追加」ボタンからEpic / Story / Taskを選択できるUIが提供されている（例：ドロップダウンやラジオボタン）
+          - StoryやTaskの追加時に、親EpicまたはStoryを選択できるUIがある（検索やドラッグ操作のサポートがある）
+          - 入力時にリアルタイムでバリデーションが行われ、不正な入力にはエラーメッセージが表示される
       - title: アイテムの編集
         as: ユーザー
         i want: VS CodeのWebView上でエピック、ストーリー、タスクを編集したい
         so that: YAML形式ストーリーを直接編集することなく、素早に変更できるように
         status: ToDo
-        acceptance criteria:
+        definition of done:
           - ユーザーはVS CodeのWebView上でエピック、ストーリー、タスクを編集できる
           - 編集内容はUIとYAML形式ストーリーの両方に反映される
+          - ユーザーはテーブル上のアイテムをダブルクリック、または「編集」ボタンを押すことで編集モードに切り替えられる。編集モードではテキストフィールドやセレクトボックスが表示され、保存/キャンセル操作が可能である
       - title: アイテムの削除
         as: ユーザー
         i want: VS CodeのWebView上でエピック、ストーリー、タスクを削除したい
         so that: 不要なコンテンツを視覚的に整理できるように
         status: ToDo
-        acceptance criteria:
+        definition of done:
           - ユーザーはVS CodeのWebView上でエピック、ストーリー、タスクを削除できる
           - 削除されたアイテムはUIとYAML形式ストーリーから消える
+          - ユーザーはアイテムを右クリックして表示されるコンテキストメニューから「削除」を選択できる
+          - Epicを削除する場合、配下のStoryやTaskも削除対象になることが明示され、確認ダイアログでユーザーの承認を求める
       - title: フィルタリング
         as: ユーザー
         i want: VS CodeのWebView上でストーリーをスプリントやステータスでフィルタリングしたい
         so that: 関心のあるストーリーだけを表示できるように
         status: ToDo
-        acceptance criteria:
-          - ユーザーはVS CodeのWebView上でスプリントでストーリーをフィルタリングできる
-          - ユーザーはVS CodeのWebView上でステータス（例：To Do、In Progress）でストーリーをフィルタリングできる
-          - フィルタリングされたストーリーのみが表示される
+        definition of done:
+          - ユーザーはステータス（ToDo、In Progress、Doneなど）でストーリーを絞り込める。チェックボックスやドロップダウンによる複数選択が可能
+          - ユーザーはスプリントでストーリーを絞り込める。スプリント名一覧から選択可能
+          - ユーザーはタグやラベルでストーリーを絞り込める。複数タグのAND/OR検索も検討されている
+          - ユーザーはタイトルや説明に含まれるキーワードでフリーテキスト検索ができる
+          - ユーザーは複数のフィルタ条件（ステータス＋スプリント＋タグなど）を組み合わせて絞り込みできる
+          - UI上にフィルター専用パネルがあり、サイドバーや画面上部に設置され操作しやすい
       - title: ドラッグ＆ドロップで並べ替え
         as: ユーザー
-        i want: VS CodeのWebView上でストーリーの順序をドラッグ＆ドロップで並べ替えたい
-        so that: YAML形式ストーリーを直接編集することなく、視覚的に変更できるように
+        i want: VS CodeのWebView上でエピックやストーリーの順序をドラッグ＆ドロップで並べ替えたい
+        so that: YAML形式エピックやストーリーを直接編集することなく、視覚的に変更できるように
         status: ToDo
-        acceptance criteria:
+        definition of done:
           - ユーザーはVS CodeのWebView上でストーリーをドラッグ＆ドロップで並べ替えできる
           - 並べ替えた順序はYAML形式ストーリーに反映される
-
-  - title: ストーリーのテーブル表示改善
-    description: |
-      テーブル表示の情報密度を向上させるため、Epic列を廃止し、代わりにType列（Epic, Story, Task）を導入する。
-      親子関係はインデントやアイコンで表現する。
-    stories:
-      - title: Epic列を廃止しType列を導入して情報密度を向上させる
-        as: ユーザー
-        i want: Epic列をなくし、代わりにType列を持つテーブルでストーリー一覧を確認したい
-        so that: 表示領域の圧迫を解消し、情報の密度を上げて一覧性を高めるため
-        status: ToDo
-        acceptance criteria:
-          - テーブルのデータ構造が変更され、Epicも行データとして含まれる
-          - UIに「Type」列が追加され、「Epic」「Story」「Task」の種別が表示される
-          - Epic、Story、Taskの親子関係が視覚的にわかるように、インデントやアイコンで階層が表現される
+          - 同一レベル（Epic同士、Story同士など）での並べ替えに対応している
+          - 階層構造（Storyを別のEpicに移動など）もドラッグ＆ドロップで変更可能である
+          - Shift + クリックなどで複数アイテムを選択し、まとめて移動できる
+          - マウス操作で上下に移動できるドラッグハンドルが表示されている
+          - 挿入位置にガイドライン（例：青線）が表示され、視覚的に位置が把握できる
+          - 並べ替え後、軽微なアニメーションで移動が完了したことがわかる
+          - 操作は「元に戻す」機能でキャンセルできる
+          - 並べ替えはWebView UIとYAMLファイルの両方に反映される
+          - YAMLファイルの `stories:` 配列順が変更を反映して更新される
