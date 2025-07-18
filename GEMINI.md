@@ -40,8 +40,12 @@ development_flow:
           name: ブレインストーミング
           purpose: 自然言語または既存のstory.yamlをもとにブレインストーミングを行い、構想をidea.yamlに出力する。
           ai_support:
-            - ユーザー視点での追加機能や新しいニーズの提案
-            - エンジニア視点での技術的改善点やリファクタリングの候補
+            - 具体的なストーリー例や改善案、分割案などを論理的に提示する
+            - 必要に応じてINVEST原則、Definition of Doneといったフレームワークに基づきチェックリストやアドバイスを提供する
+            - 表面的な回答だけでなく、「なぜそれが必要か？」「本当にこのストーリーで価値は生まれるか？」など、ユーザーの思考や会話を深める問いを投げかける
+            - 質問やフィードバックのやりとりによってユーザー自身の発見や気づきを促進する
+            - ユーザーやチームに偏らず、第三者的な視点でバランスよく意見やアドバイスする
+            - ベストプラクティスや過去事例など幅広い知識から根拠を示して説明する
           depends_on: []
           outputs:
             - .story/idea.yaml
@@ -58,63 +62,20 @@ development_flow:
           outputs:
             - .story/story.yaml
           command: %synthesize
-          structure: |
-            ```story.yaml
-            epics:
-              - title: エピックの簡潔なタイトル
-                description: |
-                  エピックについての詳細な説明
-                stories:
-                  - title: ストーリーの簡潔なタイトル
-                    as: 役割
-                    i want: やりたいこと
-                    so that: 理由
-                    status: ToDo # ToDo, WIP, Done のいずれか
-                    points: 1 # 任意の整数
-                    acceptance criteria:
-                      - 受け入れ基準１
-                      - 受け入れ基準２
-                      - 受け入れ基準３
-                    sub tasks:
-                      - サブタスク１
-                      - サブタスク２
-                      - サブタスク３
-            tasks:
-              - title: タスクの簡潔なタイトル
-                description: |
-                  タスクについての詳細な説明
-                status: ToDo # ToDo, WIP, Done のいずれか
-                acceptance criteria:
-                  - 完了基準１
-                  - 完了基準２
-                  - 完了基準３
-            ```
-    - step: 2
-      name: 実装計画（技術設計）
-      substeps:
-        - step: 2.1
-          name: 計画
-          purpose: ストーリーをもとに実装計画を立てる
-          depends_on:
-            - .story/story.md
-          outputs:
-            - .story/plan.md
-          command: %plan
-          ai_support:
-            - コンポーネント設計（UI/API/DB/モデル）
-            - 技術スタックの整合性確認
 
-        - step: 2.2
-          name: 作業計画
-          purpose: 計画をもとにステップバイステップのタスクの洗い出しと優先度付けを行い、tasks.yaml にまとめる。
-          depends_on:
-            - .story/plan.md
-          outputs:
-            - .story/tasks.yaml
-          command: %task
-          ai_support:
-            - 計画を元にタスクを実装可能な粒度のタスクに分解
-            - タスクの依存関係や順序整理
+    - step: 2
+      name: 計画
+      purpose: ストーリーをもとに実装計画を立てる
+      command: %plan
+      depends_on:
+        - .story/story.md
+      outputs:
+        - .story/plan.md
+      ai_support:
+        - ゴール/要件から逆算して必要なタスクの洗い出しと優先度付け
+        - 現状の課題やリソースを把握し、実装したい範囲（スコープ）を明確に設定
+        - いきなり全体計画を漠然と立てるのではなく、まずスモールスタート（小さなゴールの設定）を行い、進捗状況や効果を見ながら段階的にスコープや難易度を拡張する計画立案
+        - 実装計画の精度を上げるために、過去の事例や既存のリソース・データベースを検索・分析し、「どういう実装が最適か」を確認
 
     - step: 3
       name: 実装とテストの統合管理
@@ -129,7 +90,7 @@ development_flow:
             - コードに必要なドキュメントとコメントを出力する
             - 画面やUIに関するテストコードは不要。人間に依頼する。
           depends_on:
-            - .story/tasks.yaml
+            - .story/plan.yaml
           outputs:
             - src/
             - src/test/
@@ -213,3 +174,34 @@ glossary:
       ストーリーブレインストーミング、詳細化、受け入れ基準の策定を行う。
       エージェントは story.yaml を元に plan.yaml を出力し、さらに plan.yaml を元に実装とテストを行う。
       この一連のプロセス全体をストーリー駆動開発と呼ぶ。
+    structure: |
+      ```story.yaml
+      epics:
+        - title: エピックの簡潔なタイトル
+          description: |
+            エピックについての詳細な説明
+          stories:
+            - title: ストーリーの簡潔なタイトル
+              as: 役割
+              i want: やりたいこと
+              so that: 理由
+              status: ToDo # ToDo, WIP, Done のいずれか
+              points: 1 # 任意の整数
+              acceptance criteria:
+                - 受け入れ基準１
+                - 受け入れ基準２
+                - 受け入れ基準３
+              sub tasks:
+                - サブタスク１
+                - サブタスク２
+                - サブタスク３
+      tasks:
+        - title: タスクの簡潔なタイトル
+          description: |
+            タスクについての詳細な説明
+          status: ToDo # ToDo, WIP, Done のいずれか
+          acceptance criteria:
+            - 完了基準１
+            - 完了基準２
+            - 完了基準３
+      ```

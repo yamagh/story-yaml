@@ -41,7 +41,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上でストーリーをクリックして詳細を表示したい
         so that: YAML形式ストーリーを直接参照することなく詳細を確認できるように
-        status: ToDo
+        status: Done
         acceptance criteria:
           - ユーザーはVS CodeのWebView上でストーリーをクリックして詳細を表示できる
           - 詳細には説明、ステータス、ポイントなどが含まれる
