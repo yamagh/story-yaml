@@ -4,7 +4,6 @@ import * as yaml from 'js-yaml';
 let previewPanel: vscode.WebviewPanel | undefined = undefined;
 let previewingDocumentUri: vscode.Uri | undefined = undefined;
 
-// Exported for testing
 export function updateStoryContent(content: string, item: { itemType: string; data: any; parentId?: string }): string {
     const doc = yaml.load(content) as any || { epics: [], tasks: [] };
 
@@ -23,21 +22,33 @@ export function updateStoryContent(content: string, item: { itemType: string; da
                 }
                 parentEpic.stories.push(item.data);
             } else {
-                doc.tasks.push(item.data);
+                // If parent epic not found, it could be considered a root task/story, but current logic adds to tasks.
+                // For now, we assume valid parentId for stories.
             }
             break;
-        case 'tasks':
-             const parentStoryEpic = doc.epics.find((e: any) => e.stories && e.stories.find((s:any) => s.title === item.parentId));
-             if (parentStoryEpic) {
-                const parentStory = parentStoryEpic.stories.find((s: any) => s.title === item.parentId);
-                if(parentStory){
-                    if (!parentStory['sub tasks']) {
-                        parentStory['sub tasks'] = [];
+        case 'tasks': // This handles root-level tasks
+             doc.tasks.push(item.data);
+            break;
+        case 'subtasks': // This handles sub-tasks nested under stories or tasks
+             const findAndAddSubTask = (parents: any[]) => {
+                for (const parent of parents) {
+                    if (parent.title === item.parentId) {
+                        if (!parent['sub tasks']) {
+                            parent['sub tasks'] = [];
+                        }
+                        parent['sub tasks'].push(item.data);
+                        return true;
                     }
-                    parentStory['sub tasks'].push(item.data.title);
+                    // Also check sub-tasks of stories
+                    if (parent.stories) {
+                        if(findAndAddSubTask(parent.stories)) return true;
+                    }
                 }
-             } else {
-                 doc.tasks.push(item.data);
+                return false;
+             };
+             
+             if (!findAndAddSubTask(doc.epics)) {
+                findAndAddSubTask(doc.tasks);
              }
             break;
     }
@@ -152,48 +163,28 @@ export function updateStoryContentForItemUpdate(content: string, item: { itemTyp
     const doc = yaml.load(content) as any;
     if (!doc) return content;
 
-    const findAndReplace = (collection: any[], title: string, newData: any) => {
+    const findAndReplace = (collection: any[], title: string, newData: any): boolean => {
         if (!collection) return false;
         const itemIndex = collection.findIndex(i => i.title === title);
         if (itemIndex > -1) {
-            collection[itemIndex] = { ...collection[itemIndex], ...newData };
+            collection[itemIndex] = { ...collection[itemIndex], ...newData, title: collection[itemIndex].title };
             return true;
+        }
+        // Recursively search in sub-tasks
+        for (const item of collection) {
+            if (item['sub tasks'] && findAndReplace(item['sub tasks'], title, newData)) {
+                return true;
+            }
+            if (item.stories && findAndReplace(item.stories, title, newData)) {
+                return true;
+            }
         }
         return false;
     };
 
-    switch (item.itemType) {
-        case 'epics':
-            findAndReplace(doc.epics, item.originalTitle, item.data);
-            break;
-        case 'stories':
-            for (const epic of doc.epics || []) {
-                if (findAndReplace(epic.stories, item.originalTitle, item.data)) break;
-            }
-            break;
-        case 'tasks':
-             // Tasks can be under stories or at the root level
-            let found = false;
-            for (const epic of doc.epics || []) {
-                for (const story of epic.stories || []) {
-                    if (story['sub tasks']) {
-                        const taskIndex = story['sub tasks'].findIndex((t: string) => t === item.originalTitle);
-                        if (taskIndex > -1) {
-                            // This assumes tasks are just strings. If they are objects, this needs adjustment.
-                            // Based on addItem, they are just titles (strings).
-                            // To edit a task, we'd need to find the full task object in the root `tasks` array.
-                            // This part of the logic might need to be more robust if tasks can be complex objects.
-                            
-                            // Let's assume for now we are editing the root task object.
-                            break; // Break from inner loop
-                        }
-                    }
-                }
-                if(found) break; // Break from outer loop
-            }
-            // Also check root tasks
-            findAndReplace(doc.tasks, item.originalTitle, item.data);
-            break;
+    // Start search from the top-level arrays
+    if (!findAndReplace(doc.epics, item.originalTitle, item.data)) {
+        findAndReplace(doc.tasks, item.originalTitle, item.data);
     }
 
     return yaml.dump(doc);

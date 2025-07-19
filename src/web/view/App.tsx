@@ -9,7 +9,7 @@ const App = () => {
     const [formState, setFormState] = useState<{
         visible: boolean;
         isEditing: boolean;
-        type: 'epics' | 'stories' | 'tasks' | null;
+        type: 'epics' | 'stories' | 'tasks' | 'subtasks' | null;
         parentId: string | null;
         itemData?: any;
     }>({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
@@ -48,7 +48,7 @@ const App = () => {
         setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
     };
 
-    const showForm = (type: 'epics' | 'stories' | 'tasks', parentId: string | null = null, isEditing = false) => {
+    const showForm = (type: 'epics' | 'stories' | 'tasks' | 'subtasks', parentId: string | null = null, isEditing = false) => {
         const itemData = isEditing ? selectedItem : undefined;
         setSelectedItem(null);
         setFormState({ visible: true, isEditing, type, parentId, itemData });
@@ -62,6 +62,19 @@ const App = () => {
     const renderTable = () => {
         if (!storyData) return <tbody><tr><td colSpan={5}>Loading story data...</td></tr></tbody>;
         const { epics = [], tasks = [] } = storyData;
+
+        const renderSubTasks = (subTasks: any[], parentTitle: string) => {
+            if (!subTasks) return null;
+            return subTasks.map((sub: any) => (
+                <tr key={sub.title} className="subtask" onClick={(e) => { e.stopPropagation(); handleSelectRow(sub, 'SubTask'); }}>
+                    <td>SubTask</td>
+                    <td>{sub.title}</td>
+                    <td>{sub.status}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            ));
+        };
 
         if (epics.length === 0 && tasks.length === 0) {
             return <tbody><tr><td colSpan={5}>No items in story.yaml. Click "Add New Epic" to start.</td></tr></tbody>;
@@ -79,24 +92,30 @@ const App = () => {
                             <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td>
                         </tr>
                         {epic.stories?.map((story: any) => (
-                            <tr key={story.title} className="story" onClick={() => handleSelectRow(story, 'Story')}>
-                                <td>Story</td>
-                                <td>{story.title}</td>
-                                <td>{story.status}</td>
-                                <td>{story.points}</td>
-                                <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('tasks', story.title); }}>+</button></td>
-                            </tr>
+                            <React.Fragment key={story.title}>
+                                <tr className="story" onClick={() => handleSelectRow(story, 'Story')}>
+                                    <td>Story</td>
+                                    <td>{story.title}</td>
+                                    <td>{story.status}</td>
+                                    <td>{story.points}</td>
+                                    <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', story.title); }}>+</button></td>
+                                </tr>
+                                {renderSubTasks(story['sub tasks'], story.title)}
+                            </React.Fragment>
                         ))}
                     </React.Fragment>
                 ))}
                 {tasks.map((task: any) => (
-                     <tr key={task.title} className="task" onClick={() => handleSelectRow(task, 'Task')}>
-                        <td>Task</td>
-                        <td>{task.title}</td>
-                        <td>{task.status}</td>
-                        <td></td>
-                        <td></td>
-                    </tr>
+                     <React.Fragment key={task.title}>
+                        <tr className="task" onClick={() => handleSelectRow(task, 'Task')}>
+                            <td>Task</td>
+                            <td>{task.title}</td>
+                            <td>{task.status}</td>
+                            <td>{task.points}</td>
+                            <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', task.title); }}>+</button></td>
+                        </tr>
+                        {renderSubTasks(task['sub tasks'], task.title)}
+                    </React.Fragment>
                 ))}
             </tbody>
         );
@@ -104,8 +123,7 @@ const App = () => {
 
     const handleEdit = () => {
         if (selectedItem) {
-            const itemType = (selectedItem.type.toLowerCase() + 's') as 'epics' | 'stories' | 'tasks';
-            // The form will be populated with selectedItem data
+            const itemType = (selectedItem.type.toLowerCase().replace(' ', '') + 's') as 'epics' | 'stories' | 'tasks' | 'subtasks';
             showForm(itemType, null, true); 
         }
     };
@@ -113,7 +131,7 @@ const App = () => {
     const renderDetails = () => {
         if (!selectedItem) return <p>Click on an item to see details or add a new item.</p>;
 
-        const { type, title, description, status, points, as, 'i want': iWant, 'so that': soThat, 'definition of done': dod } = selectedItem;
+        const { type, title, description, status, points, as, 'i want': iWant, 'so that': soThat, 'definition of done': dod, sprint } = selectedItem;
 
         return (
             <div className="details-view">
@@ -121,7 +139,8 @@ const App = () => {
                 <h3>{type}: {title}</h3>
                 {description && <p><strong>Description:</strong> {description}</p>}
                 {status && <p><strong>Status:</strong> {status}</p>}
-                {type === 'Story' && points !== undefined && <p><strong>Points:</strong> {points}</p>}
+                {points !== undefined && <p><strong>Points:</strong> {points}</p>}
+                {sprint && <p><strong>Sprint:</strong> {sprint}</p>}
                 
                 {type === 'Story' && (
                     <>
@@ -146,66 +165,82 @@ const App = () => {
     const renderForm = () => {
         if (!formState.visible) return null;
 
-        const { isEditing, itemData } = formState;
+        const { isEditing, itemData, type } = formState;
         const data = itemData || {};
 
         const handleSubmit = (e: React.FormEvent) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
             const newOrUpdatedData: any = {
-                // Title is the key, so it cannot be changed in edit mode.
                 title: isEditing ? data.title : formData.get('title'),
                 description: formData.get('description'),
                 status: formData.get('status'),
-                'definition of done': (formData.get('dod') as string).split(/\r\n|\n|\r/).filter(line => line.trim() !== '')
             };
 
-            if (formState.type === 'stories') {
+            if (type === 'stories' || type === 'tasks') {
+                 newOrUpdatedData.points = parseInt(formData.get('points') as string, 10) || 0;
+                 newOrUpdatedData.sprint = formData.get('sprint');
+                 newOrUpdatedData['definition of done'] = (formData.get('dod') as string).split(/\r\n|\n|\r/).filter(line => line.trim() !== '');
+            }
+            
+            if (type === 'stories') {
                 newOrUpdatedData.as = formData.get('as');
                 newOrUpdatedData['i want'] = formData.get('i-want');
                 newOrUpdatedData['so that'] = formData.get('so-that');
-                newOrUpdatedData.points = parseInt(formData.get('points') as string, 10) || 0;
-                newOrUpdatedData.sprint = formData.get('sprint');
             }
             
             if (isEditing) {
                 handleUpdateItem({
-                    itemType: formState.type,
-                    // Pass original title to identify the item
-                    originalTitle: data.title,
+                    itemType: type,
+                    originalTitle: data.title, 
                     data: newOrUpdatedData
                 });
             } else {
                 handleAddItem({
-                    itemType: formState.type,
+                    itemType: type,
                     parentId: formState.parentId,
                     data: newOrUpdatedData
                 });
             }
         };
 
+        const typeName = type?.slice(0, -1);
+
         return (
             <form className="form-container" onSubmit={handleSubmit}>
-                <h3>{isEditing ? `Edit ${formState.type?.slice(0, -1)}` : `Add New ${formState.type?.slice(0, -1)}`}</h3>
+                <h3>{isEditing ? `Edit ${typeName}` : `Add New ${typeName}`}</h3>
                 <label>Title: <input name="title" required defaultValue={data.title || ''} readOnly={isEditing} /></label>
-                {formState.type === 'stories' && (
+                
+                { (type === 'stories' || type === 'tasks' || type === 'subtasks' || type === 'epics') &&
+                    <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
+                }
+
+                { (type === 'stories' || type === 'tasks' || type === 'subtasks') &&
+                    <label>Status:
+                        <select name="status" defaultValue={data.status || 'ToDo'}>
+                            <option>ToDo</option>
+                            <option>WIP</option>
+                            <option>Done</option>
+                        </select>
+                    </label>
+                }
+                
+                {type === 'stories' && (
                     <div id="story-fields">
                         <label>As a: <input name="as" defaultValue={data.as || ''} /></label>
                         <label>I want: <input name="i-want" defaultValue={data['i want'] || ''} /></label>
                         <label>So that: <input name="so-that" defaultValue={data['so that'] || ''} /></label>
-                        <label>Points: <input name="points" type="number" defaultValue={data.points || '0'} /></label>
-                        <label>Sprint: <input name="sprint" defaultValue={data.sprint || ''} /></label>
                     </div>
                 )}
-                <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
-                <label>Status:
-                    <select name="status" defaultValue={data.status || 'ToDo'}>
-                        <option>ToDo</option>
-                        <option>WIP</option>
-                        <option>Done</option>
-                    </select>
-                </label>
-                <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={data['definition of done']?.join('\n') || ''}></textarea></label>
+
+                { (type === 'stories' || type === 'tasks') &&
+                    <>
+                        <label>Points: <input name="points" type="number" defaultValue={data.points || '0'} /></label>
+                        <label>Sprint: <input name="sprint" defaultValue={data.sprint || ''} /></label>
+                        <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={data['definition of done']?.join('\n') || ''}></textarea></label>
+                    </>
+                }
+
                 <div className="form-actions">
                     <button type="submit">Save</button>
                     <button type="button" onClick={() => setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined })}>Cancel</button>
