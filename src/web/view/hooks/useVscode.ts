@@ -31,5 +31,9 @@ export function useVscode() {
         vscode.postMessage({ command: 'updateItem', item });
     };
 
-    return { storyData, addItem, updateItem, setStoryData };
+    const postMessage = (message: any) => {
+        vscode.postMessage(message);
+    };
+
+    return { storyData, addItem, updateItem, setStoryData, postMessage };
 }

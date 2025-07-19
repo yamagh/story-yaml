@@ -98,4 +98,33 @@ export class StoryYamlService {
         }
         return false;
     }
+
+    public static deleteItemFromStoryFile(content: string, itemToDelete: { title: string }): string {
+        const doc = yaml.load(content) as StoryFile;
+        if (!doc) return content;
+
+        const removeItem = (collection: any[], title: string): boolean => {
+            if (!collection) return false;
+            const itemIndex = collection.findIndex(i => i.title === title);
+            if (itemIndex > -1) {
+                collection.splice(itemIndex, 1);
+                return true;
+            }
+            for (const currentItem of collection) {
+                if (currentItem.stories && removeItem(currentItem.stories, title)) {
+                    return true;
+                }
+                if (currentItem['sub tasks'] && removeItem(currentItem['sub tasks'], title)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        if (!removeItem(doc.epics, itemToDelete.title)) {
+            removeItem(doc.tasks, itemToDelete.title);
+        }
+
+        return yaml.dump(doc);
+    }
 }

@@ -57,6 +57,10 @@ export class WebviewPanelManager {
                         await this.updateItemInStoryFile(message.item);
                         this.update();
                         return;
+                    case 'deleteItem':
+                        await this.deleteItemFromStoryFile(message.item);
+                        this.update();
+                        return;
                 }
             },
             null,
@@ -102,6 +106,14 @@ export class WebviewPanelManager {
     private async updateItemInStoryFile(item: { itemType: ItemType; originalTitle: string; data: Partial<ItemData>; }) {
         if (!this._document) return;
         const newContent = StoryYamlService.updateStoryContentForItemUpdate(this._document.getText(), item);
+        const edit = new vscode.WorkspaceEdit();
+        edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
+        await vscode.workspace.applyEdit(edit);
+    }
+
+    private async deleteItemFromStoryFile(item: { title: string }) {
+        if (!this._document) return;
+        const newContent = StoryYamlService.deleteItemFromStoryFile(this._document.getText(), item);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
         await vscode.workspace.applyEdit(edit);
