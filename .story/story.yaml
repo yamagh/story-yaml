@@ -52,7 +52,7 @@ epics:
         i want: VS CodeのWebView上で新しいエピック、ストーリー、タスクを追加したい
         so that: YAML形式ストーリーを直接編集することなく、新しいアイテムを追加できるように
         status: Done
-        definition of done:
+        definition of WIP:
           - ユーザーはVS CodeのWebView上で新しいエピック、ストーリー、タスクを追加できる
           - ユーザーは「新規追加」ボタンで Epic を追加できる
           - ユーザーはテーブルの Epic の行の「＋」ボタンで Story を追加できる
