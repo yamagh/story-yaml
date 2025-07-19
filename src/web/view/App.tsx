@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import './App.css';
 import { Epic, Story, Task, SubTask, Status } from '../types';
 import { useVscode } from './hooks/useVscode';
+import { ItemForm } from './components/ItemForm';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type Item = Epic | Story | Task | SubTask;
@@ -15,99 +16,8 @@ interface FormState {
     itemData?: Item;
 }
 
-// --- Form Components ---
-
-interface FormProps {
-    data: Partial<Item>;
-    onSubmit: (e: React.FormEvent) => void;
-    onCancel: () => void;
-}
-
-const EpicForm: React.FC<FormProps> = ({ data, onSubmit, onCancel }) => (
-    <form className="form-container" onSubmit={onSubmit}>
-        <h3>{data.title ? 'Edit Epic' : 'Add New Epic'}</h3>
-        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
-        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
-        <div className="form-actions">
-            <button type="submit">Save</button>
-            <button type="button" onClick={onCancel}>Cancel</button>
-        </div>
-    </form>
-);
-
-const StoryForm: React.FC<FormProps> = ({ data, onSubmit, onCancel }) => (
-    <form className="form-container" onSubmit={onSubmit}>
-        <h3>{data.title ? 'Edit Story' : 'Add New Story'}</h3>
-        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
-        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
-        <label>Status:
-            <select name="status" defaultValue={(data as Story).status || 'ToDo'}>
-                <option>ToDo</option>
-                <option>WIP</option>
-                <option>Done</option>
-            </select>
-        </label>
-        <div id="story-fields">
-            <label>As a: <input name="as" defaultValue={(data as Story).as || ''} /></label>
-            <label>I want: <input name="i-want" defaultValue={(data as Story)['i want'] || ''} /></label>
-            <label>So that: <input name="so-that" defaultValue={(data as Story)['so that'] || ''} /></label>
-        </div>
-        <label>Points: <input name="points" type="number" defaultValue={(data as Story).points || '0'} /></label>
-        <label>Sprint: <input name="sprint" defaultValue={(data as Story).sprint || ''} /></label>
-        <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={(data as Story)['definition of done']?.join('\n') || ''}></textarea></label>
-        <div className="form-actions">
-            <button type="submit">Save</button>
-            <button type="button" onClick={onCancel}>Cancel</button>
-        </div>
-    </form>
-);
-
-const TaskForm: React.FC<FormProps> = ({ data, onSubmit, onCancel }) => (
-    <form className="form-container" onSubmit={onSubmit}>
-        <h3>{data.title ? 'Edit Task' : 'Add New Task'}</h3>
-        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
-        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
-        <label>Status:
-            <select name="status" defaultValue={(data as Task).status || 'ToDo'}>
-                <option>ToDo</option>
-                <option>WIP</option>
-                <option>Done</option>
-            </select>
-        </label>
-        <label>Points: <input name="points" type="number" defaultValue={(data as Task).points || '0'} /></label>
-        <label>Sprint: <input name="sprint" defaultValue={(data as Task).sprint || ''} /></label>
-        <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={(data as Task)['definition of done']?.join('\n') || ''}></textarea></label>
-        <div className="form-actions">
-            <button type="submit">Save</button>
-            <button type="button" onClick={onCancel}>Cancel</button>
-        </div>
-    </form>
-);
-
-const SubtaskForm: React.FC<FormProps> = ({ data, onSubmit, onCancel }) => (
-    <form className="form-container" onSubmit={onSubmit}>
-        <h3>{data.title ? 'Edit Subtask' : 'Add New Subtask'}</h3>
-        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
-        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
-        <label>Status:
-            <select name="status" defaultValue={(data as SubTask).status || 'ToDo'}>
-                <option>ToDo</option>
-                <option>WIP</option>
-                <option>Done</option>
-            </select>
-        </label>
-        <div className="form-actions">
-            <button type="submit">Save</button>
-            <button type="button" onClick={onCancel}>Cancel</button>
-        </div>
-    </form>
-);
-
-
-// --- Main App Component ---
-
 const App = () => {
-    const { storyData, addItem, updateItem, setStoryData } = useVscode();
+    const { storyData, addItem, updateItem } = useVscode();
     const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
     const [formState, setFormState] = useState<FormState>({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
 
@@ -280,19 +190,15 @@ const App = () => {
     };
 
     const renderForm = () => {
-        if (!formState.visible) return null;
-        const props = {
-            data: formState.itemData || {},
-            onSubmit: handleFormSubmit,
-            onCancel: handleCancelForm
-        };
-        switch (formState.type) {
-            case 'epics': return <EpicForm {...props} />;
-            case 'stories': return <StoryForm {...props} />;
-            case 'tasks': return <TaskForm {...props} />;
-            case 'subtasks': return <SubtaskForm {...props} />;
-            default: return null;
-        }
+        if (!formState.visible || !formState.type) return null;
+        return (
+            <ItemForm
+                formType={formState.type}
+                data={formState.itemData || {}}
+                onSubmit={handleFormSubmit}
+                onCancel={handleCancelForm}
+            />
+        );
     };
 
     return (
@@ -321,5 +227,6 @@ const App = () => {
 };
 
 export default App;
+
 
 

@@ -88,9 +88,9 @@
     *   [x] `App.tsx` でこのカスタムフックを利用するように変更する。
 
 2.  **フォームコンポーネントの共通化 (`ItemForm.tsx`)**
-    *   [ ] `src/web/view/components/ItemForm.tsx` を作成する。
-    *   [ ] `EpicForm`, `StoryForm`, `TaskForm`, `SubtaskForm` を統合し、`props` (例: `formType`, `initialData`) に応じて表示するフィールドを動的に変更する汎用フォームを実装する。
-    *   [ ] `App.tsx` 内のフォーム呼び出しを `ItemForm` に置き換える。
+    *   [x] `src/web/view/components/ItemForm.tsx` を作成する。
+    *   [x] `EpicForm`, `StoryForm`, `TaskForm`, `SubtaskForm` を統合し、`props` (例: `formType`, `initialData`) に応じて表示するフィールドを動的に変更する汎用フォームを実装する。
+    *   [x] `App.tsx` 内のフォーム呼び出しを `ItemForm` に置き換える。
 
 3.  **詳細表示コンポーネントの分離 (`ItemDetails.tsx`)**
     *   [ ] `src/web/view/components/ItemDetails.tsx` を作成する。
