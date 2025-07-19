@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { StoryFile, Item } from '../types';
+import { StoryFile, Item } from '../../types';
 
 const vscode = acquireVsCodeApi();
 

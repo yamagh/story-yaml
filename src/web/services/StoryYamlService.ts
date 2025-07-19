@@ -31,11 +31,13 @@ export class StoryYamlService {
                 const findAndAddSubTask = (parents: (Epic | Story | Task)[]) => {
                     for (const parent of parents) {
                         if (parent.title === item.parentId) {
-                            if (!parent['sub tasks']) {
-                                parent['sub tasks'] = [];
+                            if ('sub tasks' in parent) {
+                                if (!parent['sub tasks']) {
+                                    parent['sub tasks'] = [];
+                                }
+                                parent['sub tasks'].push(item.data as SubTask);
+                                return true;
                             }
-                            parent['sub tasks'].push(item.data as SubTask);
-                            return true;
                         }
                         if ('stories' in parent && parent.stories) {
                             if (findAndAddSubTask(parent.stories)) return true;

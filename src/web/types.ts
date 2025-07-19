@@ -43,3 +43,5 @@ export interface StoryFile {
   epics: Epic[];
   tasks: Task[];
 }
+
+export type Item = Epic | Story | Task | SubTask;

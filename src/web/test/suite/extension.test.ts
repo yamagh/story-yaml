@@ -1,51 +1,54 @@
 import * as assert from 'assert';
 import * as yaml from 'js-yaml';
-import { updateStoryContent, updateStoryContentForItemUpdate } from '../../extension';
+import { StoryYamlService } from '../../services/StoryYamlService';
+import { Item, Epic, Story, Task, SubTask } from '../../types';
+
+type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 
 suite('Extension Logic Test Suite', () => {
 
     test('updateStoryContent should add a new epic', () => {
         const initialContent = '';
-        const newItem = {
+        const newItem: { itemType: ItemType; data: Partial<Item> } = {
             itemType: 'epics',
             data: { title: 'New Epic' }
         };
-        const updatedDoc = yaml.load(updateStoryContent(initialContent, newItem)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem as any)) as any;
         assert.strictEqual(updatedDoc.epics.length, 1);
         assert.strictEqual(updatedDoc.epics[0].title, 'New Epic');
     });
 
     test('updateStoryContent should add a new story to an epic', () => {
         const initialContent = yaml.dump({ epics: [{ title: 'Parent Epic', stories: [] }] });
-        const newItem = {
+        const newItem: { itemType: ItemType; parentId: string; data: Partial<Item> } = {
             itemType: 'stories',
             parentId: 'Parent Epic',
             data: { title: 'New Story' }
         };
-        const updatedDoc = yaml.load(updateStoryContent(initialContent, newItem)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem as any)) as any;
         assert.strictEqual(updatedDoc.epics[0].stories.length, 1);
         assert.strictEqual(updatedDoc.epics[0].stories[0].title, 'New Story');
     });
 
     test('updateStoryContent should add a new root task', () => {
         const initialContent = yaml.dump({ tasks: [] });
-        const newItem = {
+        const newItem: { itemType: ItemType; data: Partial<Item> } = {
             itemType: 'tasks',
             data: { title: 'New Root Task' }
         };
-        const updatedDoc = yaml.load(updateStoryContent(initialContent, newItem)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem as any)) as any;
         assert.strictEqual(updatedDoc.tasks.length, 1);
         assert.strictEqual(updatedDoc.tasks[0].title, 'New Root Task');
     });
 
     test('updateStoryContent should add a new sub-task to a story', () => {
         const initialContent = yaml.dump({ epics: [{ title: 'Epic', stories: [{ title: 'Parent Story', 'sub tasks': [] }] }] });
-        const newItem = {
+        const newItem: { itemType: ItemType; parentId: string; data: Partial<Item> } = {
             itemType: 'subtasks',
             parentId: 'Parent Story',
             data: { title: 'New Sub-task', status: 'ToDo' }
         };
-        const updatedDoc = yaml.load(updateStoryContent(initialContent, newItem)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem as any)) as any;
         const subTasks = updatedDoc.epics[0].stories[0]['sub tasks'];
         assert.strictEqual(subTasks.length, 1);
         assert.strictEqual(subTasks[0].title, 'New Sub-task');
@@ -78,45 +81,45 @@ suite('Item Update Logic Test Suite', () => {
 
     test('should update an existing epic', () => {
         const initialContent = yaml.dump(initialDoc);
-        const itemToUpdate = {
+        const itemToUpdate: { itemType: ItemType; originalTitle: string; data: Partial<Item> } = {
             itemType: 'epics',
             originalTitle: 'Epic To Edit',
             data: { description: 'Updated epic description' }
         };
-        const updatedDoc = yaml.load(updateStoryContentForItemUpdate(initialContent, itemToUpdate)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
         assert.strictEqual(updatedDoc.epics[0].description, 'Updated epic description');
     });
 
     test('should update an existing story', () => {
         const initialContent = yaml.dump(initialDoc);
-        const itemToUpdate = {
+        const itemToUpdate: { itemType: ItemType; originalTitle: string; data: Partial<Item> } = {
             itemType: 'stories',
             originalTitle: 'Story to Edit',
             data: { status: 'WIP' }
         };
-        const updatedDoc = yaml.load(updateStoryContentForItemUpdate(initialContent, itemToUpdate)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
         assert.strictEqual(updatedDoc.epics[0].stories[0].status, 'WIP');
     });
 
     test('should update an existing root task', () => {
         const initialContent = yaml.dump(initialDoc);
-        const itemToUpdate = {
+        const itemToUpdate: { itemType: ItemType; originalTitle: string; data: Partial<Item> } = {
             itemType: 'tasks',
             originalTitle: 'Task to Edit',
             data: { status: 'Done' }
         };
-        const updatedDoc = yaml.load(updateStoryContentForItemUpdate(initialContent, itemToUpdate)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
         assert.strictEqual(updatedDoc.tasks[0].status, 'Done');
     });
 
     test('should update a nested sub-task', () => {
         const initialContent = yaml.dump(initialDoc);
-        const itemToUpdate = {
+        const itemToUpdate: { itemType: ItemType; originalTitle: string; data: Partial<Item> } = {
             itemType: 'subtasks',
             originalTitle: 'Sub-task to Edit',
-            data: { status: 'In Progress' }
+            data: { status: 'WIP' }
         };
-        const updatedDoc = yaml.load(updateStoryContentForItemUpdate(initialContent, itemToUpdate)) as any;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
         assert.strictEqual(updatedDoc.epics[0].stories[0]['sub tasks'][0].status, 'In Progress');
     });
 });
