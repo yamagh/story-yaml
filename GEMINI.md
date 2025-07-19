@@ -125,7 +125,7 @@ development_flow:
             - エラーの要因を分析し修正案を提示する
 
     - step: 4
-      name: レビュー
+      name: 改善
       command: '%improve'
       substeps:
         - step: 4.1
