@@ -230,7 +230,7 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
                 p { margin-block: 0.5em; }
                 pre { white-space: pre-wrap; word-wrap: break-word; }
                 #add-item-container { margin-bottom: 10px; }
-                #add-item-form { display: none; margin-top: 10px; padding: 10px; border: 1px solid #ccc; }
+                #add-item-form { display: none; padding: 10px; }
                 #add-item-form label { display: block; margin-bottom: 5px; }
                 #add-item-form input, #add-item-form textarea, #add-item-form select { width: 95%; margin-bottom: 10px; }
             </style>
@@ -239,43 +239,6 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
             <div id="table-container">
                 <div id="add-item-container">
                     <button id="add-epic-btn">Add New Epic</button>
-                    <form id="add-item-form">
-                        <h3 id="form-title">Add New Item</h3>
-                        <input type="hidden" id="itemType" name="itemType">
-                        <input type="hidden" id="parentId" name="parentId">
-
-                        <label for="title">Title:</label>
-                        <input type="text" id="title" name="title" required>
-
-                        <div id="story-fields">
-                            <label for="as">As a:</label>
-                            <input type="text" id="as" name="as">
-                            <label for="i-want">I want:</label>
-                            <input type="text" id="i-want" name="i-want">
-                            <label for="so-that">So that:</label>
-                            <input type="text" id="so-that" name="so-that">
-                            <label for="points">Points:</label>
-                            <input type="number" id="points" name="points" value="0">
-                             <label for="sprint">Sprint:</label>
-                            <input type="text" id="sprint" name="sprint">
-                        </div>
-
-                        <label for="description">Description:</label>
-                        <textarea id="description" name="description" rows="3"></textarea>
-
-                        <label for="status">Status:</label>
-                        <select id="status" name="status">
-                            <option value="ToDo">ToDo</option>
-                            <option value="WIP">WIP</option>
-                            <option value="Done">Done</option>
-                        </select>
-
-                        <label for="dod">Definition of Done (one per line):</label>
-                        <textarea id="dod" name="dod" rows="3"></textarea>
-
-                        <button type="submit">Save</button>
-                        <button type="button" id="cancel-add-btn">Cancel</button>
-                    </form>
                 </div>
                 <table>
                     <thead>
@@ -292,12 +255,51 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
                 </table>
             </div>
             <div id="details-container">
-                <h2>Details</h2>
-                <p>Click on an item in the table to see details here.</p>
+                <div id="details-view">
+                    <h2>Details</h2>
+                    <p>Click on an item in the table to see details here.</p>
+                </div>
+                <form id="add-item-form">
+                    <h3 id="form-title">Add New Item</h3>
+                    <input type="hidden" id="itemType" name="itemType">
+                    <input type="hidden" id="parentId" name="parentId">
+
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" name="title" required>
+
+                    <div id="story-fields">
+                        <label for="as">As a:</label>
+                        <input type="text" id="as" name="as">
+                        <label for="i-want">I want:</label>
+                        <input type="text" id="i-want" name="i-want">
+                        <label for="so-that">So that:</label>
+                        <input type="text" id="so-that" name="so-that">
+                        <label for="points">Points:</label>
+                        <input type="number" id="points" name="points" value="0">
+                         <label for="sprint">Sprint:</label>
+                        <input type="text" id="sprint" name="sprint">
+                    </div>
+
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="3"></textarea>
+
+                    <label for="status">Status:</label>
+                    <select id="status" name="status">
+                        <option value="ToDo">ToDo</option>
+                        <option value="WIP">WIP</option>
+                        <option value="Done">Done</option>
+                    </select>
+
+                    <label for="dod">Definition of Done (one per line):</label>
+                    <textarea id="dod" name="dod" rows="3"></textarea>
+
+                    <button type="submit">Save</button>
+                    <button type="button" id="cancel-add-btn">Cancel</button>
+                </form>
             </div>
             <script>
                 const vscode = acquireVsCodeApi();
-                const detailsContainer = document.getElementById('details-container');
+                const detailsView = document.getElementById('details-view');
                 const addEpicBtn = document.getElementById('add-epic-btn');
                 const addItemForm = document.getElementById('add-item-form');
                 const cancelAddBtn = document.getElementById('cancel-add-btn');
@@ -306,11 +308,15 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
                 const parentIdInput = document.getElementById('parentId');
                 const storyFields = document.getElementById('story-fields');
 
+                function showDefaultDetails() {
+                    detailsView.innerHTML = '<h2>Details</h2><p>Click on an item in the table to see details here.</p>';
+                    detailsView.style.display = 'block';
+                    addItemForm.style.display = 'none';
+                }
+
                 function resetAndHideForm() {
                     addItemForm.reset();
-                    addItemForm.style.display = 'none';
-                    addEpicBtn.style.display = 'block';
-                    storyFields.style.display = 'none';
+                    showDefaultDetails();
                 }
 
                 function showForm(type, parentId = '') {
@@ -320,8 +326,8 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
                     
                     storyFields.style.display = (type === 'stories') ? 'block' : 'none';
 
+                    detailsView.style.display = 'none';
                     addItemForm.style.display = 'block';
-                    addEpicBtn.style.display = 'none';
                 }
 
                 addEpicBtn.addEventListener('click', () => showForm('epics'));
@@ -348,7 +354,7 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
                     const title = document.getElementById('title').value;
                     const description = document.getElementById('description').value;
                     const status = document.getElementById('status').value;
-                    const dod = document.getElementById('dod').value.split('\\n').filter(line => line.trim() !== '');
+                    const dod = document.getElementById('dod').value.split(/\\r\\n|\\n|\\r/).filter(line => line.trim() !== '');
 
                     let data = { title, description, status, 'definition of done': dod };
 
@@ -371,41 +377,43 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
                 });
 
                 function showDetails(data) {
-                    let detailsHtml = '<h2>' + (data.title || 'Details') + '</h2>';
+                    let detailsHtml = '<h2>' + escapeHtml(data.title || 'Details') + '</h2>';
                     
                     if (data.description) {
-                        detailsHtml += '<h3>Description</h3><pre>' + data.description + '</pre>';
+                        detailsHtml += '<h3>Description</h3><pre>' + escapeHtml(data.description) + '</pre>';
                     }
                     if (data.as) {
-                        detailsHtml += '<p><b>As a:</b> ' + data.as + '</p>';
+                        detailsHtml += '<p><b>As a:</b> ' + escapeHtml(data.as) + '</p>';
                     }
                     if (data['i want']) {
-                        detailsHtml += '<p><b>I want:</b> ' + data['i want'] + '</p>';
+                        detailsHtml += '<p><b>I want:</b> ' + escapeHtml(data['i want']) + '</p>';
                     }
                     if (data['so that']) {
-                        detailsHtml += '<p><b>So that:</b> ' + data['so that'] + '</p>';
+                        detailsHtml += '<p><b>So that:</b> ' + escapeHtml(data['so that']) + '</p>';
                     }
                     if (data.status) {
-                        detailsHtml += '<p><b>Status:</b> ' + data.status + '</p>';
+                        detailsHtml += '<p><b>Status:</b> ' + escapeHtml(data.status) + '</p>';
                     }
                     if (data.points) {
-                        detailsHtml += '<p><b>Points:</b> ' + data.points + '</p>';
+                        detailsHtml += '<p><b>Points:</b> ' + escapeHtml(data.points) + '</p>';
                     }
                     if (data['definition of done'] && data['definition of done'].length > 0) {
                         detailsHtml += '<h3>Definition of Done</h3><ul>';
                         data['definition of done'].forEach(ac => {
-                            detailsHtml += '<li>' + ac + '</li>';
+                            detailsHtml += '<li>' + escapeHtml(ac) + '</li>';
                         });
                         detailsHtml += '</ul>';
                     }
                     if (data['sub tasks'] && data['sub tasks'].length > 0) {
                         detailsHtml += '<h3>Sub Tasks</h3><ul>';
                         data['sub tasks'].forEach(st => {
-                            detailsHtml += '<li>' + st + '</li>';
+                            detailsHtml += '<li>' + escapeHtml(st) + '</li>';
                         });
                         detailsHtml += '</ul>';
                     }
-                    detailsContainer.innerHTML = detailsHtml;
+                    detailsView.innerHTML = detailsHtml;
+                    detailsView.style.display = 'block';
+                    addItemForm.style.display = 'none';
                 }
 
                 document.querySelectorAll('tr[data-details]').forEach(row => {
@@ -416,10 +424,13 @@ function getWebviewContent(data: any, webview: vscode.Webview): string {
                             showDetails(data);
                         } catch (e) {
                             console.error('Error parsing data-details attribute:', e);
-                            detailsContainer.innerHTML = '<h2>Error</h2><p>Could not parse item details.</p>';
+                            detailsView.innerHTML = '<h2>Error</h2><p>Could not parse item details.</p>';
                         }
                     });
                 });
+
+                // Initial state
+                showDefaultDetails();
             </script>
         </body>
         </html>
