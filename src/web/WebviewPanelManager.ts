@@ -1,10 +1,7 @@
 import * as vscode from 'vscode';
 import * as yaml from 'js-yaml';
-import { StoryFile, Epic, Story, Task, SubTask } from './types';
+import { StoryFile, WebviewMessage, ExtensionMessage } from './types';
 import { StoryYamlService } from './services/StoryYamlService';
-
-type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
-type ItemData = Epic | Story | Task | SubTask;
 
 export class WebviewPanelManager {
     private static readonly viewType = 'storyYamlPreview';
@@ -44,21 +41,21 @@ export class WebviewPanelManager {
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
         this._panel.webview.onDidReceiveMessage(
-            async message => {
+            async (message: WebviewMessage) => {
                 switch (message.command) {
                     case 'ready':
                         this.update();
                         return;
                     case 'addItem':
-                        await this.addItemToStoryFile(message.item);
+                        await this.addItemToStoryFile(message);
                         this.update();
                         return;
                     case 'updateItem':
-                        await this.updateItemInStoryFile(message.item);
+                        await this.updateItemInStoryFile(message);
                         this.update();
                         return;
                     case 'deleteItem':
-                        await this.deleteItemFromStoryFile(message.item);
+                        await this.deleteItemFromStoryFile(message);
                         this.update();
                         return;
                 }
@@ -73,8 +70,8 @@ export class WebviewPanelManager {
             return;
         }
         try {
-            const data = yaml.load(this._document.getText()) as StoryFile;
-            this._panel.webview.postMessage({ command: 'update', data });
+            const storyFile = yaml.load(this._document.getText()) as StoryFile;
+            this.postMessage({ command: 'update', storyFile });
         } catch (e) {
             if (e instanceof Error) {
                 vscode.window.showErrorMessage(`Error parsing YAML: ${e.message}`);
@@ -95,25 +92,29 @@ export class WebviewPanelManager {
         }
     }
 
-    private async addItemToStoryFile(item: { itemType: ItemType; data: ItemData; parentId?: string }) {
+    private postMessage(message: ExtensionMessage) {
+        this._panel?.webview.postMessage(message);
+    }
+
+    private async addItemToStoryFile(message: WebviewMessage & { command: 'addItem' }) {
         if (!this._document) return;
-        const newContent = StoryYamlService.updateStoryContent(this._document.getText(), item);
+        const newContent = StoryYamlService.updateStoryContent(this._document.getText(), message.item);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
         await vscode.workspace.applyEdit(edit);
     }
 
-    private async updateItemInStoryFile(item: { itemType: ItemType; originalTitle: string; data: Partial<ItemData>; }) {
+    private async updateItemInStoryFile(message: WebviewMessage & { command: 'updateItem' }) {
         if (!this._document) return;
-        const newContent = StoryYamlService.updateStoryContentForItemUpdate(this._document.getText(), item);
+        const newContent = StoryYamlService.updateStoryContentForItemUpdate(this._document.getText(), message.item);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
         await vscode.workspace.applyEdit(edit);
     }
 
-    private async deleteItemFromStoryFile(item: { title: string }) {
+    private async deleteItemFromStoryFile(message: WebviewMessage & { command: 'deleteItem' }) {
         if (!this._document) return;
-        const newContent = StoryYamlService.deleteItemFromStoryFile(this._document.getText(), item);
+        const newContent = StoryYamlService.deleteItemFromStoryFile(this._document.getText(), message.item);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
         await vscode.workspace.applyEdit(edit);

@@ -1,17 +1,35 @@
 import * as yaml from 'js-yaml';
-import { StoryFile, Epic, Story, Task, SubTask } from '../types';
+import { StoryFile, Epic, Story, Task, SubTask, Item } from '../types';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type ItemData = Epic | Story | Task | SubTask;
 
 export class StoryYamlService {
-    public static updateStoryContent(content: string, item: { itemType: ItemType; data: ItemData; parentId?: string }): string {
+    public static updateStoryContent(content: string, item: { itemType: string; parentTitle?: string; values: Omit<Item, 'stories' | 'sub tasks'> }): string {
         const doc = yaml.load(content) as StoryFile || { epics: [], tasks: [] };
 
         if (!doc.epics) doc.epics = [];
         if (!doc.tasks) doc.tasks = [];
 
-        this.addItem(doc, item);
+        const itemType = item.itemType as ItemType;
+        let data: ItemData;
+
+        switch (itemType) {
+            case 'epics':
+                data = { ...item.values, stories: [] };
+                break;
+            case 'stories':
+            case 'tasks':
+                data = { ...item.values, 'sub tasks': [], status: 'ToDo', ...item.values };
+                break;
+            case 'subtasks':
+                data = { status: 'ToDo', ...item.values };
+                break;
+            default:
+                return content;
+        }
+
+        this.addItem(doc, { itemType, data, parentId: item.parentTitle });
 
         return yaml.dump(doc);
     }
@@ -71,12 +89,14 @@ export class StoryYamlService {
         }
     }
 
-    public static updateStoryContentForItemUpdate(content: string, item: { itemType: ItemType; originalTitle: string; data: Partial<ItemData>; }): string {
+    public static updateStoryContentForItemUpdate(content: string, item: { originalTitle: string, updatedData: Item & { type: string } }): string {
         const doc = yaml.load(content) as StoryFile;
         if (!doc) return content;
 
-        this.findAndReplace(doc.epics, item.originalTitle, item.data);
-        this.findAndReplace(doc.tasks, item.originalTitle, item.data);
+        const { type, ...newData } = item.updatedData;
+
+        this.findAndReplace(doc.epics, item.originalTitle, newData);
+        this.findAndReplace(doc.tasks, item.originalTitle, newData);
 
         return yaml.dump(doc);
     }

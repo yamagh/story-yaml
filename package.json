@@ -34,6 +34,7 @@
   },
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js --folder-uri=.",
+    "test:unit": "vitest",
     "pretest": "npm run compile-web",
     "vscode:prepublish": "npm run package-web",
     "compile-web": "webpack",
@@ -51,10 +52,12 @@
     "@types/webpack-env": "^1.18.8",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "@vscode/test-web": "^0.0.71",
     "assert": "^2.1.0",
     "css-loader": "^7.1.2",
     "eslint": "^9.25.1",
+    "jsdom": "^26.1.0",
     "mocha": "^11.1.0",
     "process": "^0.11.10",
     "react": "^19.1.0",
@@ -62,6 +65,7 @@
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
     "webpack": "^5.99.7",
     "webpack-cli": "^6.0.1"
   },

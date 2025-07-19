@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useState } from 'react';
 import { Epic, Story, Task, SubTask } from '../../types';
-import { useVscode } from '../hooks/useVscode';
 import { ConfirmDialog } from './ConfirmDialog';
 
 type SelectedItem = (Epic | Story | Task | SubTask) & { type: string };
@@ -8,10 +7,10 @@ type SelectedItem = (Epic | Story | Task | SubTask) & { type: string };
 interface ItemDetailsProps {
     selectedItem: SelectedItem | null;
     onEdit: () => void;
+    onDelete: (item: { title: string }) => void;
 }
 
-export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onEdit }) => {
-    const { postMessage } = useVscode();
+export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onEdit, onDelete }) => {
     const [isConfirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = useCallback(() => {
@@ -21,13 +20,9 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
 
     const handleConfirmDelete = useCallback(() => {
         if (!selectedItem) return;
-        const { type, title } = selectedItem;
-        postMessage({
-            command: 'deleteItem',
-            item: { itemType: type.toLowerCase() + 's', title },
-        });
+        onDelete({ title: selectedItem.title });
         setConfirmOpen(false);
-    }, [selectedItem, postMessage]);
+    }, [selectedItem, onDelete]);
 
     if (!selectedItem) {
         return <p>Click on an item to see details or add a new item.</p>;

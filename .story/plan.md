@@ -7,6 +7,9 @@
 *   **メッセージングの型安全性:**
     *   WebViewと拡張機能間の通信（`postMessage`）で `any` 型が使用されており、メッセージの規約が暗黙的になっています。これにより、将来的な変更時に予期せぬエラーが発生するリスクがあります。
 
+*   **サービス層とメッセージング層の型不整合:**
+    *   `WebviewPanelManager` が `StoryYamlService` を呼び出す際に、`WebviewMessage` 型とサービスが期待する引数の型が一致していません。これにより、一時的な型アサーション (`as any`) が必要になり、型安全性が損なわれています。
+
 *   **状態管理の複雑化リスク:**
     *   `App.tsx` の状態管理は現在 `useState` で行われていますが、今後、検索、フィルタリング、複数選択などの機能が追加されると、状態ロジックが複雑化し、見通しが悪くなる可能性があります。
 
@@ -18,22 +21,26 @@
 ### フェーズ1: 型安全性の強化
 
 1.  **メッセージング規約の定義 (`types.ts`)**
-    *   [ ] `src/web/types.ts` に、WebViewと拡張機能間で送受信されるメッセージの型（`WebviewMessage` と `ExtensionMessage`）を定義します。
-    *   [ ] `postMessage` の引数や、メッセージハンドラでこれらの型を適用し、型安全な通信を実現します。
+    *   [x] `src/web/types.ts` に、WebViewと拡張機能間で送受信されるメッセージの型（`WebviewMessage` と `ExtensionMessage`）を定義します。
+    *   [x] `postMessage` の引数や、メッセージハンドラでこれらの型を適用し、型安全な通信を実現します。
+
+2.  **`StoryYamlService` のリファクタリング**
+    *   [x] `updateStoryContent` と `updateStoryContentForItemUpdate` メソッドの引数を、`WebviewMessage` の型と一致するように修正します。
+    *   [x] `WebviewPanelManager` 内の一時的な型アサーション (`as any`) を削除します。
 
 ### フェーズ2: フロントエンドの状態管理の改善
 
 1.  **状態管理ロジックのカスタムフック化 (`useStoryData.ts`)**
-    *   [ ] `src/web/view/hooks/useStoryData.ts` のような新しいカスタムフックを作成します。
-    *   [ ] `App.tsx` にあるアイテムの選択、フォームの表示管理、追加、更新、削除といったロジックを `useReducer` を用いてこのフックに集約します。
-    *   [ ] `App.tsx` は、このフックから提供される状態と関数を利用するだけの、よりシンプルなコンポーネントにします。
+    *   [x] `src/web/view/hooks/useStoryData.ts` のような新しいカスタムフックを作成します。
+    *   [x] `App.tsx` にあるアイテムの選択、フォームの表示管理、追加、更新、削除といったロジックを `useReducer` を用いてこのフックに集約します。
+    *   [x] `App.tsx` は、このフックから提供される状態と関数を利用するだけの、よりシンプルなコンポーネントにします。
 
 ### フェーズ3: テストの拡充
 
 1.  **`StoryYamlService` のユニットテスト作成**
-    *   [ ] `Jest` や `Vitest` のようなテストフレームワークを導入します。（`devbox add` で追加）
-    *   [ ] `src/web/services/StoryYamlService.test.ts` を作成します。
-    *   [ ] アイテムの追加、更新、削除（特にネストしたアイテム）など、主要なロジックの各ケースを網羅するユニットテストを記述します。
+    *   [x] `Jest` や `Vitest` のようなテストフレームワークを導入します。（`devbox add` で追加）
+    *   [x] `src/web/services/StoryYamlService.test.ts` を作成します。
+    *   [x] アイテムの追加、更新、削除（特にネストしたアイテム）など、主要なロジックの各ケースを網羅するユニットテストを記述します。
 
 ## 3. 新機能提案
 
