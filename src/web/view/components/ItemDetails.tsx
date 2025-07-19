@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Epic, Story, Task, SubTask } from '../../types';
 
 type SelectedItem = (Epic | Story | Task | SubTask) & { type: string };
@@ -8,7 +8,7 @@ interface ItemDetailsProps {
     onEdit: () => void;
 }
 
-export const ItemDetails: React.FC<ItemDetailsProps> = ({ selectedItem, onEdit }) => {
+export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onEdit }) => {
     if (!selectedItem) {
         return <p>Click on an item to see details or add a new item.</p>;
     }
@@ -45,4 +45,4 @@ export const ItemDetails: React.FC<ItemDetailsProps> = ({ selectedItem, onEdit }
             )}
         </div>
     );
-};
+});

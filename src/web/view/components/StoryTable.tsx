@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { StoryFile, SubTask, Epic, Story, Task } from '../../types';
 
 type Item = Epic | Story | Task | SubTask;
@@ -10,7 +10,7 @@ interface StoryTableProps {
     onShowForm: (type: ItemType, parentId: string | null) => void;
 }
 
-export const StoryTable: React.FC<StoryTableProps> = ({ storyData, onSelectRow, onShowForm }) => {
+export const StoryTable: React.FC<StoryTableProps> = memo(({ storyData, onSelectRow, onShowForm }) => {
     if (!storyData) return <tbody><tr><td colSpan={5}>Loading story data...</td></tr></tbody>;
     const { epics = [], tasks = [] } = storyData;
 
@@ -48,4 +48,4 @@ export const StoryTable: React.FC<StoryTableProps> = ({ storyData, onSelectRow, 
             ))}
         </tbody>
     );
-};
+});

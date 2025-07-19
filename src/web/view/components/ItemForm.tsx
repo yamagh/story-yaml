@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Item, Story, Task, SubTask } from '../../types';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
@@ -10,7 +10,7 @@ interface ItemFormProps {
     onCancel: () => void;
 }
 
-export const ItemForm: React.FC<ItemFormProps> = ({ formType, data, onSubmit, onCancel }) => {
+export const ItemForm: React.FC<ItemFormProps> = memo(({ formType, data, onSubmit, onCancel }) => {
     const isNew = !data.title;
     const title = `${isNew ? 'Add New' : 'Edit'} ${formType.charAt(0).toUpperCase() + formType.slice(1, -1)}`;
 
@@ -52,4 +52,4 @@ export const ItemForm: React.FC<ItemFormProps> = ({ formType, data, onSubmit, on
             </div>
         </form>
     );
-};
+});

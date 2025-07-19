@@ -109,5 +109,5 @@
 #### フェーズ4: 最適化
 
 1.  **Reactコンポーネントのメモ化**
-    *   [ ] `React.memo` を `StoryTable` や `ItemDetails` などのプレゼンテーショナルコンポーネントに適用する。
-    *   [ ] `useCallback` を `App.tsx` 内のイベントハンドラ関数に適用し、不要な再レンダリングを防ぐ。
+    *   [x] `React.memo` を `StoryTable` や `ItemDetails` などのプレゼンテーショナルコンポーネントに適用する。
+    *   [x] `useCallback` を `App.tsx` 内のイベントハンドラ関数に適用し、不要な再レンダリングを防ぐ。

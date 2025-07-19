@@ -60,38 +60,36 @@ const App = () => {
     const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
     const [formState, dispatchFormAction] = useReducer(formReducer, initialFormState);
 
-    const handleAddItem = (item: { itemType: ItemType | null; parentId: string | null; data: Partial<Item> }) => {
+    const handleAddItem = useCallback((item: { itemType: ItemType | null; parentId: string | null; data: Partial<Item> }) => {
         addItem(item);
         dispatchFormAction({ type: 'HIDE_FORM' });
-    };
+    }, [addItem]);
 
-    const handleUpdateItem = (item: { itemType: ItemType | null; originalTitle: string; data: Partial<Item> }) => {
+    const handleUpdateItem = useCallback((item: { itemType: ItemType | null; originalTitle: string; data: Partial<Item> }) => {
         updateItem(item);
         dispatchFormAction({ type: 'HIDE_FORM' });
-    };
+    }, [updateItem]);
 
-    const showForm = (type: ItemType, parentId: string | null = null) => {
+    const showForm = useCallback((type: ItemType, parentId: string | null = null) => {
         dispatchFormAction({ type: 'SHOW_ADD_FORM', payload: { type, parentId } });
         setSelectedItem(null);
-    };
+    }, []);
 
-    const handleSelectRow = (item: Item, type: string) => {
+    const handleSelectRow = useCallback((item: Item, type: string) => {
         dispatchFormAction({ type: 'HIDE_FORM' });
         setSelectedItem({ ...item, type });
-    };
+    }, []);
 
-
-
-    const handleEdit = () => {
+    const handleEdit = useCallback(() => {
         if (selectedItem) {
             const typeStr = selectedItem.type.toLowerCase().replace(' ', '');
             const itemType = (typeStr === 'story' ? 'stories' : typeStr + 's') as ItemType;
             dispatchFormAction({ type: 'SHOW_EDIT_FORM', payload: { type: itemType, itemData: selectedItem } });
             setSelectedItem(null);
         }
-    };
+    }, [selectedItem]);
     
-    const handleFormSubmit = (e: React.FormEvent) => {
+    const handleFormSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         const { isEditing, type, parentId, itemData } = formState;
         const formData = new FormData(e.target as HTMLFormElement);
@@ -122,11 +120,11 @@ const App = () => {
         } else {
             handleAddItem({ itemType: type, parentId: parentId, data: newOrUpdatedData });
         }
-    };
+    }, [formState, handleAddItem, handleUpdateItem]);
 
-    const handleCancelForm = () => {
+    const handleCancelForm = useCallback(() => {
         dispatchFormAction({ type: 'HIDE_FORM' });
-    };
+    }, []);
 
     const renderForm = () => {
         if (!formState.visible || !formState.type) return null;
