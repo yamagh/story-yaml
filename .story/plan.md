@@ -93,9 +93,9 @@
     *   [x] `App.tsx` 内のフォーム呼び出しを `ItemForm` に置き換える。
 
 3.  **詳細表示コンポーネントの分離 (`ItemDetails.tsx`)**
-    *   [ ] `src/web/view/components/ItemDetails.tsx` を作成する。
-    *   [ ] `renderDetails` 関数を `ItemDetails` コンポーネントとして分離する。
-    *   [ ] `App.tsx` から `ItemDetails` を呼び出すように変更する。
+    *   [x] `src/web/view/components/ItemDetails.tsx` を作成する。
+    *   [x] `renderDetails` 関数を `ItemDetails` コンポーネントとして分離する。
+    *   [x] `App.tsx` から `ItemDetails` を呼び出すように変更する。
 
 4.  **テーブルコンポーネントの分離 (`StoryTable.tsx`)**
     *   [ ] `src/web/view/components/StoryTable.tsx` を作成する。

@@ -3,6 +3,7 @@ import './App.css';
 import { Epic, Story, Task, SubTask, Status } from '../types';
 import { useVscode } from './hooks/useVscode';
 import { ItemForm } from './components/ItemForm';
+import { ItemDetails } from './components/ItemDetails';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type Item = Epic | Story | Task | SubTask;
@@ -118,22 +119,10 @@ const App = () => {
             <tbody>
                 {epics.map((epic) => (
                     <React.Fragment key={epic.title}>
-                        <tr className="epic" onClick={() => handleSelectRow(epic, 'Epic')}>
-                            <td>Epic</td>
-                            <td>{epic.title}</td>
-                            <td></td>
-                            <td></td>
-                            <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td>
-                        </tr>
+                        <tr className="epic" onClick={() => handleSelectRow(epic, 'Epic')}><td>Epic</td><td>{epic.title}</td><td></td><td></td><td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td></tr>
                         {epic.stories?.map((story) => (
                             <React.Fragment key={story.title}>
-                                <tr className="story" onClick={() => handleSelectRow(story, 'Story')}>
-                                    <td>Story</td>
-                                    <td>{story.title}</td>
-                                    <td>{story.status}</td>
-                                    <td>{story.points}</td>
-                                    <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', story.title); }}>+</button></td>
-                                </tr>
+                                <tr className="story" onClick={() => handleSelectRow(story, 'Story')}><td>Story</td><td>{story.title}</td><td>{story.status}</td><td>{story.points}</td><td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', story.title); }}>+</button></td></tr>
                                 {renderSubTasks(story['sub tasks'] || [])}
                             </React.Fragment>
                         ))}
@@ -141,51 +130,11 @@ const App = () => {
                 ))}
                 {tasks.map((task) => (
                      <React.Fragment key={task.title}>
-                        <tr className="task" onClick={() => handleSelectRow(task, 'Task')}>
-                            <td>Task</td>
-                            <td>{task.title}</td>
-                            <td>{task.status}</td>
-                            <td>{task.points}</td>
-                            <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', task.title); }}>+</button></td>
-                        </tr>
+                        <tr className="task" onClick={() => handleSelectRow(task, 'Task')}><td>Task</td><td>{task.title}</td><td>{task.status}</td><td>{task.points}</td><td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', task.title); }}>+</button></td></tr>
                         {renderSubTasks(task['sub tasks'] || [])}
                     </React.Fragment>
                 ))}
             </tbody>
-        );
-    };
-
-    const renderDetails = () => {
-        if (!selectedItem) return <p>Click on an item to see details or add a new item.</p>;
-        const { type, title, description } = selectedItem;
-        const status = 'status' in selectedItem ? selectedItem.status : undefined;
-        const points = 'points' in selectedItem ? selectedItem.points : undefined;
-        const sprint = 'sprint' in selectedItem ? selectedItem.sprint : undefined;
-        const as = 'as' in selectedItem ? selectedItem.as : undefined;
-        const iWant = 'i want' in selectedItem ? selectedItem['i want'] : undefined;
-        const soThat = 'so that' in selectedItem ? selectedItem['so that'] : undefined;
-        const dod = 'definition of done' in selectedItem ? selectedItem['definition of done'] : undefined;
-
-        return (
-            <div className="details-view">
-                <button onClick={handleEdit}>Edit</button>
-                <h3>{type}: {title}</h3>
-                {description && <p><strong>Description:</strong> {description}</p>}
-                {status && <p><strong>Status:</strong> {status}</p>}
-                {points !== undefined && <p><strong>Points:</strong> {points}</p>}
-                {sprint && <p><strong>Sprint:</strong> {sprint}</p>}
-                {type === 'Story' && (<>
-                    <p><strong>As a:</strong> {as}</p>
-                    <p><strong>I want:</strong> {iWant}</p>
-                    <p><strong>So that:</strong> {soThat}</p>
-                </>)}
-                {dod && dod.length > 0 && (
-                    <div>
-                        <strong>Definition of Done:</strong>
-                        <ul>{dod.map((item: string, index: number) => <li key={index}>{item}</li>)}</ul>
-                    </div>
-                )}
-            </div>
         );
     };
 
@@ -220,13 +169,14 @@ const App = () => {
                 </table>
             </div>
             <div className="panel details-panel">
-                {formState.visible ? renderForm() : renderDetails()}
+                {formState.visible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={handleEdit} />}
             </div>
         </div>
     );
 };
 
 export default App;
+
 
 
 
