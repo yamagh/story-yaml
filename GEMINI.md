@@ -51,7 +51,7 @@ development_flow:
           depends_on: []
           outputs:
             - .story/idea.yaml
-          command: %idea
+          command: '%idea'
 
         - step: 1.2
           name: ユーザーストーリー
@@ -63,11 +63,11 @@ development_flow:
             - .story/idea.yaml
           outputs:
             - .story/story.yaml
-          command: %synthesize
+          command: '%synthesize'
 
     - step: 2
       name: 計画
-      command: %plan
+      command: '%plan'
       substeps:
         - step: 2.1
           name: 実装計画
@@ -94,7 +94,7 @@ development_flow:
 
     - step: 3
       name: 実装とテストの統合管理
-      command: %dev
+      command: '%dev'
       substeps:
         - step: 3.1
           name: テストコードの作成
@@ -109,7 +109,7 @@ development_flow:
           outputs:
             - src/
             - src/test/
-          command: %implement
+          command: '%implement'
 
         - step: 3.2
           name: 実装とテスト
@@ -119,46 +119,44 @@ development_flow:
             - src/test/
           outputs:
             - test-report.log
-          command: %test
+          command: '%test'
           responsibility:
             - テストを自動実行しログを収集する
             - エラーの要因を分析し修正案を提示する
 
     - step: 4
-      name: 改善
-      command: %improve
+      name: レビュー
+      command: '%improve'
       substeps:
         - step: 4.1
-          name: リファクタリング
-          purpose: テストが通った実装に対して、保守性・可読性・再利用性を高めるためのコード改善を行う。
-          depends_on:
-            - src/
-            - src/test/
+          name: 改善計画
+          purpose: |
+            コードベース全体を次の観点でレビューし改善計画を立てる
+            - 技術的負債
+            - リファクタリング: コードのクリーンアップ、命名や責務の整理、重複の排除
+            - 最適化: パフォーマンスやリソース効率、応答速度を改善するためにアルゴリズムや実装の見直しを行う
+            - ベストプラクティス
+          depends_on: []
           outputs:
-            - src/
-          command: %refactor
+            - .story/plan.md
+          command: '%improve-plan'
           responsibility:
-            - コードをクリーンアップする
-            - 命名や責務を整理する
-            - 重複を排除する
-
+            - コードベース改善のための多角的なレビューと計画を行う
         - step: 4.2
-          name: 最適化
-          purpose: パフォーマンスやリソース効率、応答速度を改善するために、アルゴリズムや実装の見直しを行う。
+          name: 改善実行
+          purpose:
           depends_on:
-            - src/
-          outputs:
-            - src/
-          command: %optimize
+            - .story/plan.md
+          outputs: []
+          command: '%improve-execute'
           responsibility:
-            - パフォーマンスプロファイルを解析する
-            - ボトルネックを特定し改善案を提示する
+            - コードベースの改善を実行する
 
     - step: 5
       name: 不具合対応
       purpose: 指摘された不具合に対して、step 3 の実装・テスト・リファクタリング・最適化のフローを再適用して修正を行う。
       depends_on: []
-      command: %fix
+      command: '%fix'
       responsibility:
         - 不具合の原因を特定する
         - 修正内容に応じて step 3 の各プロセス（テストコード作成、実装、リファクタリング、最適化）を再実行する
@@ -173,7 +171,7 @@ development_flow:
       depends_on: []
       outputs:
         - docs/issue/
-      command: %issue
+      command: '%issue'
       responsibility:
         - 問題の背景、発生条件、現象を明確に記録する
         - 原因の特定および修正内容を記載する
