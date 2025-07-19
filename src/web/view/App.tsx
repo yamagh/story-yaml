@@ -49,11 +49,11 @@ const App = () => {
     };
 
     const renderTable = () => {
-        if (!storyData) return <tbody><tr><td colSpan={4}>Loading story data...</td></tr></tbody>;
+        if (!storyData) return <tbody><tr><td colSpan={5}>Loading story data...</td></tr></tbody>;
         const { epics = [], tasks = [] } = storyData;
 
         if (epics.length === 0 && tasks.length === 0) {
-            return <tbody><tr><td colSpan={4}>No items in story.yaml. Click "Add New Epic" to start.</td></tr></tbody>;
+            return <tbody><tr><td colSpan={5}>No items in story.yaml. Click "Add New Epic" to start.</td></tr></tbody>;
         }
 
         return (
@@ -62,16 +62,18 @@ const App = () => {
                     <React.Fragment key={epic.title}>
                         <tr className="epic" onClick={() => handleSelectRow(epic, 'Epic')}>
                             <td>Epic</td>
-                            <td>{epic.title} <button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td>
+                            <td>{epic.title}</td>
                             <td></td>
                             <td></td>
+                            <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td>
                         </tr>
                         {epic.stories?.map((story: any) => (
                             <tr key={story.title} className="story" onClick={() => handleSelectRow(story, 'Story')}>
                                 <td>Story</td>
-                                <td>{story.title} <button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('tasks', story.title); }}>+</button></td>
+                                <td>{story.title}</td>
                                 <td>{story.status}</td>
                                 <td>{story.points}</td>
+                                <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('tasks', story.title); }}>+</button></td>
                             </tr>
                         ))}
                     </React.Fragment>
@@ -81,6 +83,7 @@ const App = () => {
                         <td>Task</td>
                         <td>{task.title}</td>
                         <td>{task.status}</td>
+                        <td></td>
                         <td></td>
                     </tr>
                 ))}
@@ -189,6 +192,7 @@ const App = () => {
                             <th>Title</th>
                             <th>Status</th>
                             <th>Points</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     {renderTable()}
