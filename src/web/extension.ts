@@ -1,46 +1,46 @@
 import * as vscode from 'vscode';
 import * as yaml from 'js-yaml';
+import { StoryFile, Epic, Story, Task, SubTask } from './types';
 
 let previewPanel: vscode.WebviewPanel | undefined = undefined;
 let previewingDocumentUri: vscode.Uri | undefined = undefined;
 
-export function updateStoryContent(content: string, item: { itemType: string; data: any; parentId?: string }): string {
-    const doc = yaml.load(content) as any || { epics: [], tasks: [] };
+type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
+type ItemData = Epic | Story | Task | SubTask;
+
+export function updateStoryContent(content: string, item: { itemType: ItemType; data: ItemData; parentId?: string }): string {
+    const doc = yaml.load(content) as StoryFile || { epics: [], tasks: [] };
 
     if (!doc.epics) doc.epics = [];
     if (!doc.tasks) doc.tasks = [];
 
     switch (item.itemType) {
         case 'epics':
-            doc.epics.push(item.data);
+            doc.epics.push(item.data as Epic);
             break;
         case 'stories':
-            const parentEpic = doc.epics.find((e: any) => e.title === item.parentId);
+            const parentEpic = doc.epics.find((e) => e.title === item.parentId);
             if (parentEpic) {
                 if (!parentEpic.stories) {
                     parentEpic.stories = [];
                 }
-                parentEpic.stories.push(item.data);
-            } else {
-                // If parent epic not found, it could be considered a root task/story, but current logic adds to tasks.
-                // For now, we assume valid parentId for stories.
+                parentEpic.stories.push(item.data as Story);
             }
             break;
-        case 'tasks': // This handles root-level tasks
-             doc.tasks.push(item.data);
+        case 'tasks':
+             doc.tasks.push(item.data as Task);
             break;
-        case 'subtasks': // This handles sub-tasks nested under stories or tasks
-             const findAndAddSubTask = (parents: any[]) => {
+        case 'subtasks':
+             const findAndAddSubTask = (parents: (Epic | Story | Task)[]) => {
                 for (const parent of parents) {
                     if (parent.title === item.parentId) {
                         if (!parent['sub tasks']) {
                             parent['sub tasks'] = [];
                         }
-                        parent['sub tasks'].push(item.data);
+                        parent['sub tasks'].push(item.data as SubTask);
                         return true;
                     }
-                    // Also check sub-tasks of stories
-                    if (parent.stories) {
+                    if ('stories' in parent && parent.stories) {
                         if(findAndAddSubTask(parent.stories)) return true;
                     }
                 }
@@ -129,7 +129,7 @@ function setupPreviewPanel(context: vscode.ExtensionContext, document: vscode.Te
     }
 }
 
-async function addItemToStoryFile(item: { itemType: string; data: any; parentId?: string }) {
+async function addItemToStoryFile(item: { itemType: ItemType; data: ItemData; parentId?: string }) {
     if (!previewingDocumentUri) {
         vscode.window.showErrorMessage('No file is being previewed.');
         return;
@@ -144,7 +144,7 @@ async function addItemToStoryFile(item: { itemType: string; data: any; parentId?
     }
 }
 
-async function updateItemInStoryFile(item: { itemType: string; originalTitle: string; data: any; }) {
+async function updateItemInStoryFile(item: { itemType: ItemType; originalTitle: string; data: Partial<ItemData>; }) {
     if (!previewingDocumentUri) {
         vscode.window.showErrorMessage('No file is being previewed.');
         return;
@@ -159,31 +159,28 @@ async function updateItemInStoryFile(item: { itemType: string; originalTitle: st
     }
 }
 
-export function updateStoryContentForItemUpdate(content: string, item: { itemType: string; originalTitle: string; data: any; }): string {
-    const doc = yaml.load(content) as any;
+export function updateStoryContentForItemUpdate(content: string, item: { itemType: ItemType; originalTitle: string; data: Partial<ItemData>; }): string {
+    const doc = yaml.load(content) as StoryFile;
     if (!doc) return content;
 
-    const findAndReplace = (collection: any[], title: string, newData: any): boolean => {
+    const findAndReplace = (collection: (Epic | Story | Task | SubTask)[], title: string, newData: Partial<ItemData>): boolean => {
         if (!collection) return false;
         const itemIndex = collection.findIndex(i => i.title === title);
         if (itemIndex > -1) {
-            // Replace the item, allowing the title to be updated from newData
             collection[itemIndex] = { ...collection[itemIndex], ...newData };
             return true;
         }
-        // Recursively search in sub-tasks and stories
         for (const currentItem of collection) {
-            if (currentItem.stories && findAndReplace(currentItem.stories, title, newData)) {
+            if ('stories' in currentItem && currentItem.stories && findAndReplace(currentItem.stories, title, newData)) {
                 return true;
             }
-            if (currentItem['sub tasks'] && findAndReplace(currentItem['sub tasks'], title, newData)) {
+            if ('sub tasks' in currentItem && currentItem['sub tasks'] && findAndReplace(currentItem['sub tasks'], title, newData)) {
                 return true;
             }
         }
         return false;
     };
 
-    // Start search from the top-level arrays
     if (!findAndReplace(doc.epics, item.originalTitle, item.data)) {
         findAndReplace(doc.tasks, item.originalTitle, item.data);
     }
@@ -194,7 +191,7 @@ export function updateStoryContentForItemUpdate(content: string, item: { itemTyp
 function updateWebview(document: vscode.TextDocument, panel: vscode.WebviewPanel) {
     previewingDocumentUri = document.uri;
     try {
-        const data = yaml.load(document.getText());
+        const data = yaml.load(document.getText()) as StoryFile;
         panel.webview.postMessage({ command: 'update', data });
     } catch (e) {
         // Handle YAML parsing error if needed
