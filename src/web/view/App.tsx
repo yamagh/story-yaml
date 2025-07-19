@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-// Helper to escape HTML
-const escapeHtml = (unsafe: any): string => {
-    if (unsafe === null || unsafe === undefined) return '';
-    return String(unsafe)
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
-};
-
 const vscode = acquireVsCodeApi();
 
 const App = () => {
@@ -27,13 +16,16 @@ const App = () => {
         switch (message.command) {
             case 'update':
                 setStoryData(message.data);
+                // If a form was open, hide it to show the updated data.
+                // This prevents stale form data.
+                setFormState({ visible: false, type: null, parentId: null });
                 break;
         }
     }, []);
 
     useEffect(() => {
         window.addEventListener('message', handleMessage);
-        vscode.postMessage({ command: 'ready' }); // Signal that the webview is ready
+        vscode.postMessage({ command: 'ready' });
         return () => {
             window.removeEventListener('message', handleMessage);
         };
@@ -44,30 +36,40 @@ const App = () => {
             command: 'addItem',
             item: item,
         });
+        // Hide form after submission
         setFormState({ visible: false, type: null, parentId: null });
     };
 
     const showForm = (type: 'epics' | 'stories' | 'tasks', parentId: string | null = null) => {
-        setSelectedItem(null);
+        setSelectedItem(null); // Deselect any item to give focus to the form
         setFormState({ visible: true, type, parentId });
     };
 
+    const handleSelectRow = (item: any, type: string) => {
+        setFormState({ visible: false, type: null, parentId: null }); // Hide form when selecting an item
+        setSelectedItem({ ...item, type });
+    };
+
     const renderTable = () => {
-        if (!storyData) return <tbody></tbody>;
+        if (!storyData) return <tbody><tr><td colSpan={4}>Loading story data...</td></tr></tbody>;
         const { epics = [], tasks = [] } = storyData;
+
+        if (epics.length === 0 && tasks.length === 0) {
+            return <tbody><tr><td colSpan={4}>No items in story.yaml. Click "Add New Epic" to start.</td></tr></tbody>;
+        }
 
         return (
             <tbody>
                 {epics.map((epic: any) => (
                     <React.Fragment key={epic.title}>
-                        <tr className="epic" onClick={() => setSelectedItem({ ...epic, type: 'Epic' })}>
+                        <tr className="epic" onClick={() => handleSelectRow(epic, 'Epic')}>
                             <td>Epic</td>
                             <td>{epic.title} <button onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td>
                             <td></td>
                             <td></td>
                         </tr>
                         {epic.stories?.map((story: any) => (
-                            <tr key={story.title} className="story" onClick={() => setSelectedItem({ ...story, type: 'Story' })}>
+                            <tr key={story.title} className="story" onClick={() => handleSelectRow(story, 'Story')}>
                                 <td>Story</td>
                                 <td>{story.title} <button onClick={(e) => { e.stopPropagation(); showForm('tasks', story.title); }}>+</button></td>
                                 <td>{story.status}</td>
@@ -77,7 +79,7 @@ const App = () => {
                     </React.Fragment>
                 ))}
                 {tasks.map((task: any) => (
-                     <tr key={task.title} className="task" onClick={() => setSelectedItem({ ...task, type: 'Task' })}>
+                     <tr key={task.title} className="task" onClick={() => handleSelectRow(task, 'Task')}>
                         <td>Task</td>
                         <td>{task.title}</td>
                         <td>{task.status}</td>
@@ -89,9 +91,35 @@ const App = () => {
     };
 
     const renderDetails = () => {
-        if (!selectedItem) return <p>Click on an item to see details.</p>;
-        // Simplified details view
-        return <pre>{JSON.stringify(selectedItem, null, 2)}</pre>;
+        if (!selectedItem) return <p>Click on an item to see details or add a new item.</p>;
+
+        const { type, title, description, status, points, as, 'i want': iWant, 'so that': soThat, 'definition of done': dod } = selectedItem;
+
+        return (
+            <div>
+                <h3>{type}: {title}</h3>
+                {description && <p><strong>Description:</strong> {description}</p>}
+                {status && <p><strong>Status:</strong> {status}</p>}
+                {type === 'Story' && points !== undefined && <p><strong>Points:</strong> {points}</p>}
+                
+                {type === 'Story' && (
+                    <>
+                        <p><strong>As a:</strong> {as}</p>
+                        <p><strong>I want:</strong> {iWant}</p>
+                        <p><strong>So that:</strong> {soThat}</p>
+                    </>
+                )}
+
+                {dod && dod.length > 0 && (
+                    <div>
+                        <strong>Definition of Done:</strong>
+                        <ul>
+                            {dod.map((item: string, index: number) => <li key={index}>{item}</li>)}
+                        </ul>
+                    </div>
+                )}
+            </div>
+        );
     };
 
     const renderForm = () => {
@@ -104,7 +132,7 @@ const App = () => {
                 title: formData.get('title'),
                 description: formData.get('description'),
                 status: formData.get('status'),
-                'definition of done': (formData.get('dod') as string).split(/\\r\\n|\\n|\\r/).filter(line => line.trim() !== '')
+                'definition of done': (formData.get('dod') as string).split(/\r\n|\n|\r/).filter(line => line.trim() !== '')
             };
 
             if (formState.type === 'stories') {
@@ -143,7 +171,7 @@ const App = () => {
                         <option>Done</option>
                     </select>
                 </label>
-                <label>Definition of Done: <textarea name="dod"></textarea></label>
+                <label>Definition of Done (one per line): <textarea name="dod" rows={3}></textarea></label>
                 <button type="submit">Save</button>
                 <button type="button" onClick={() => setFormState({ visible: false, type: null, parentId: null })}>Cancel</button>
             </form>
@@ -151,8 +179,8 @@ const App = () => {
     };
 
     return (
-        <div style={{ display: 'flex' }}>
-            <div id="table-container" style={{ flex: 1, paddingRight: '20px' }}>
+        <div style={{ display: 'flex', height: '100vh' }}>
+            <div id="table-container" style={{ flex: 1, paddingRight: '20px', overflowY: 'auto' }}>
                 <button onClick={() => showForm('epics')}>Add New Epic</button>
                 <table>
                     <thead>
@@ -166,7 +194,7 @@ const App = () => {
                     {renderTable()}
                 </table>
             </div>
-            <div id="details-container" style={{ flex: 1, borderLeft: '1px solid #ccc', paddingLeft: '20px' }}>
+            <div id="details-container" style={{ flex: 1, borderLeft: '1px solid #ccc', paddingLeft: '20px', overflowY: 'auto' }}>
                 {formState.visible ? renderForm() : renderDetails()}
             </div>
         </div>

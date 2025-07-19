@@ -41,7 +41,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上でストーリーをクリックして詳細を表示したい
         so that: YAML形式ストーリーを直接参照することなく詳細を確認できるように
-        status: Done
+        status: WIP
         definition of done:
           - ユーザーはVS CodeのWebView上でストーリーをクリックして詳細を表示できる
           - 詳細には説明、ステータス、ポイントなどが含まれる
@@ -51,7 +51,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上で新しいエピック、ストーリー、タスクを追加したい
         so that: YAML形式ストーリーを直接編集することなく、新しいアイテムを追加できるように
-        status: ToDo
+        status: WIP
         definition of Done:
           - ユーザーはVS CodeのWebView上で新しいエピック、ストーリー、タスクを追加できる
           - ユーザーは「新規追加」ボタンで Epic を追加できる
