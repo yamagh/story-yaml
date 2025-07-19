@@ -15,6 +15,8 @@ context:
   coding_standards:
     - language: TypeScript
     - style: Airbnb
+    - policy: "WebViewのUIは、保守性向上のため、`extension.ts`内にHTML文字列として記述するのではなく、独立したReactコンポーネント（.tsx）として実装すること。"
+    - security: "ユーザー入力や外部から取得したデータをHTMLに埋め込む際は、必ずエスケープ処理（サニタイズ）を行い、XSS（クロスサイトスクリプティング）脆弱性を防止すること。"
   tech_stack:
     - frontend: React
     - backend: Node.js (Express)
@@ -65,17 +67,30 @@ development_flow:
 
     - step: 2
       name: 計画
-      purpose: ストーリーをもとに実装計画を立てる
-      command: %plan
-      depends_on:
-        - .story/story.md
-      outputs:
-        - .story/plan.md
-      ai_support:
-        - ゴール/要件から逆算して必要なタスクの洗い出しと優先度付け
-        - 現状の課題やリソースを把握し、実装したい範囲（スコープ）を明確に設定
-        - いきなり全体計画を漠然と立てるのではなく、まずスモールスタート（小さなゴールの設定）を行い、進捗状況や効果を見ながら段階的にスコープや難易度を拡張する計画立案
-        - 実装計画の精度を上げるために、過去の事例や既存のリソース・データベースを検索・分析し、「どういう実装が最適か」を確認
+      substeps:
+        - step: 2.1
+          name: 実装計画
+          purpose: ストーリーをもとに実装タスクを洗い出し、plan.yamlに出力する。
+          ai_support:
+            - ゴール/要件から逆算して必要なタスクの洗い出しと優先度付け
+            - 現状の課題やリソースを把握し、実装したい範囲（スコープ）を明確に設定
+            - いきなり全体計画を漠然と立てるのではなく、まずスモールスタート（小さなゴールの設定）を行い、進捗状況や効果を見ながら段階的にスコープや難易度を拡張する計画立案
+            - 実装計画の精度を上げるために、過去の事例や既存のリソース・データベースを検索・分析し、「どういう実装が最適か」を確認
+          depends_on:
+            - .story/story.md
+          outputs:
+            - .story/plan.md
+          command: %plan
+        - step: 2.2
+          name: テスト戦略の定義
+          purpose: |
+            ユニットテスト、インテグレーションテスト、手動テストで何を確認するか境界線を明確にする。
+            特に、ファイルシステム、ネットワーク、VS Code APIなど、外部環境への依存度が高い機能については、
+            モック化のコストと効果を考慮し、テストアプローチを決定する。
+          depends_on:
+            - .story/plan.yaml
+          outputs:
+            - .story/plan.yaml
 
     - step: 3
       name: 実装とテストの統合管理
