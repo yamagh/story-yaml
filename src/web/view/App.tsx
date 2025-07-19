@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import './App.css';
 
 const vscode = acquireVsCodeApi();
 
@@ -16,8 +17,6 @@ const App = () => {
         switch (message.command) {
             case 'update':
                 setStoryData(message.data);
-                // If a form was open, hide it to show the updated data.
-                // This prevents stale form data.
                 setFormState({ visible: false, type: null, parentId: null });
                 break;
         }
@@ -36,17 +35,16 @@ const App = () => {
             command: 'addItem',
             item: item,
         });
-        // Hide form after submission
         setFormState({ visible: false, type: null, parentId: null });
     };
 
     const showForm = (type: 'epics' | 'stories' | 'tasks', parentId: string | null = null) => {
-        setSelectedItem(null); // Deselect any item to give focus to the form
+        setSelectedItem(null);
         setFormState({ visible: true, type, parentId });
     };
 
     const handleSelectRow = (item: any, type: string) => {
-        setFormState({ visible: false, type: null, parentId: null }); // Hide form when selecting an item
+        setFormState({ visible: false, type: null, parentId: null });
         setSelectedItem({ ...item, type });
     };
 
@@ -64,14 +62,14 @@ const App = () => {
                     <React.Fragment key={epic.title}>
                         <tr className="epic" onClick={() => handleSelectRow(epic, 'Epic')}>
                             <td>Epic</td>
-                            <td>{epic.title} <button onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td>
+                            <td>{epic.title} <button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td>
                             <td></td>
                             <td></td>
                         </tr>
                         {epic.stories?.map((story: any) => (
                             <tr key={story.title} className="story" onClick={() => handleSelectRow(story, 'Story')}>
                                 <td>Story</td>
-                                <td>{story.title} <button onClick={(e) => { e.stopPropagation(); showForm('tasks', story.title); }}>+</button></td>
+                                <td>{story.title} <button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('tasks', story.title); }}>+</button></td>
                                 <td>{story.status}</td>
                                 <td>{story.points}</td>
                             </tr>
@@ -96,7 +94,7 @@ const App = () => {
         const { type, title, description, status, points, as, 'i want': iWant, 'so that': soThat, 'definition of done': dod } = selectedItem;
 
         return (
-            <div>
+            <div className="details-view">
                 <h3>{type}: {title}</h3>
                 {description && <p><strong>Description:</strong> {description}</p>}
                 {status && <p><strong>Status:</strong> {status}</p>}
@@ -151,7 +149,7 @@ const App = () => {
         };
 
         return (
-            <form onSubmit={handleSubmit}>
+            <form className="form-container" onSubmit={handleSubmit}>
                 <h3>Add New {formState.type?.slice(0, -1)}</h3>
                 <label>Title: <input name="title" required /></label>
                 {formState.type === 'stories' && (
@@ -172,15 +170,17 @@ const App = () => {
                     </select>
                 </label>
                 <label>Definition of Done (one per line): <textarea name="dod" rows={3}></textarea></label>
-                <button type="submit">Save</button>
-                <button type="button" onClick={() => setFormState({ visible: false, type: null, parentId: null })}>Cancel</button>
+                <div className="form-actions">
+                    <button type="submit">Save</button>
+                    <button type="button" onClick={() => setFormState({ visible: false, type: null, parentId: null })}>Cancel</button>
+                </div>
             </form>
         );
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh' }}>
-            <div id="table-container" style={{ flex: 1, paddingRight: '20px', overflowY: 'auto' }}>
+        <div className="app-container">
+            <div className="panel table-panel">
                 <button onClick={() => showForm('epics')}>Add New Epic</button>
                 <table>
                     <thead>
@@ -194,7 +194,7 @@ const App = () => {
                     {renderTable()}
                 </table>
             </div>
-            <div id="details-container" style={{ flex: 1, borderLeft: '1px solid #ccc', paddingLeft: '20px', overflowY: 'auto' }}>
+            <div className="panel details-panel">
                 {formState.visible ? renderForm() : renderDetails()}
             </div>
         </div>
