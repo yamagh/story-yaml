@@ -67,6 +67,7 @@ development_flow:
 
     - step: 2
       name: 計画
+      command: %plan
       substeps:
         - step: 2.1
           name: 実装計画
@@ -80,7 +81,6 @@ development_flow:
             - .story/story.md
           outputs:
             - .story/plan.md
-          command: %plan
         - step: 2.2
           name: テスト戦略の定義
           purpose: |

@@ -114,3 +114,80 @@ suite('Extension Logic Test Suite', () => {
         assert.strictEqual(updatedDoc.tasks[0].title, 'Orphan Task', "Root task title is incorrect");
     });
 });
+
+suite('Item Update Logic Test Suite', () => {
+    const { updateStoryContentForItemUpdate } = require('../../extension');
+
+    let initialDoc: any;
+
+    setup(() => {
+        initialDoc = {
+            epics: [{
+                title: 'Epic To Edit',
+                description: 'Initial epic description',
+                stories: [{
+                    title: 'Story to Edit',
+                    description: 'Initial story description',
+                    status: 'ToDo',
+                    'sub tasks': ['Sub-task 1']
+                }]
+            }],
+            tasks: [{
+                title: 'Task to Edit',
+                description: 'Initial task description',
+                status: 'ToDo'
+            }]
+        };
+    });
+
+    test('updateStoryContentForItemUpdate should update an existing epic', () => {
+        const initialContent = yaml.dump(initialDoc);
+        const itemToUpdate = {
+            itemType: 'epics',
+            originalTitle: 'Epic To Edit',
+            data: {
+                description: 'Updated epic description'
+            }
+        };
+
+        const updatedYaml = updateStoryContentForItemUpdate(initialContent, itemToUpdate);
+        const updatedDoc = yaml.load(updatedYaml) as any;
+
+        assert.strictEqual(updatedDoc.epics[0].description, 'Updated epic description', 'Epic description was not updated');
+        assert.strictEqual(updatedDoc.epics[0].title, 'Epic To Edit', 'Epic title should not change');
+    });
+
+    test('updateStoryContentForItemUpdate should update an existing story', () => {
+        const initialContent = yaml.dump(initialDoc);
+        const itemToUpdate = {
+            itemType: 'stories',
+            originalTitle: 'Story to Edit',
+            data: {
+                status: 'WIP'
+            }
+        };
+
+        const updatedYaml = updateStoryContentForItemUpdate(initialContent, itemToUpdate);
+        const updatedDoc = yaml.load(updatedYaml) as any;
+
+        assert.strictEqual(updatedDoc.epics[0].stories[0].status, 'WIP', 'Story status was not updated');
+        assert.strictEqual(updatedDoc.epics[0].stories[0].description, 'Initial story description', 'Story description should not change');
+    });
+
+    test('updateStoryContentForItemUpdate should update an existing root task', () => {
+        const initialContent = yaml.dump(initialDoc);
+        const itemToUpdate = {
+            itemType: 'tasks',
+            originalTitle: 'Task to Edit',
+            data: {
+                status: 'Done'
+            }
+        };
+
+        const updatedYaml = updateStoryContentForItemUpdate(initialContent, itemToUpdate);
+        const updatedDoc = yaml.load(updatedYaml) as any;
+
+        assert.strictEqual(updatedDoc.tasks[0].status, 'Done', 'Task status was not updated');
+        assert.strictEqual(updatedDoc.tasks[0].title, 'Task to Edit', 'Task title should not change');
+    });
+});

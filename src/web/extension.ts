@@ -103,6 +103,13 @@ function setupPreviewPanel(context: vscode.ExtensionContext, document: vscode.Te
                            updateWebview(updatedDoc, previewPanel!);
                         }
                         return;
+                    case 'updateItem':
+                        await updateItemInStoryFile(message.item);
+                        if (previewingDocumentUri) {
+                           const updatedDoc = await vscode.workspace.openTextDocument(previewingDocumentUri);
+                           updateWebview(updatedDoc, previewPanel!);
+                        }
+                        return;
                 }
             },
             undefined,
@@ -124,6 +131,72 @@ async function addItemToStoryFile(item: { itemType: string; data: any; parentId?
     } catch (e) {
         vscode.window.showErrorMessage(`Error updating story.yaml: ${(e as Error).message}`);
     }
+}
+
+async function updateItemInStoryFile(item: { itemType: string; originalTitle: string; data: any; }) {
+    if (!previewingDocumentUri) {
+        vscode.window.showErrorMessage('No file is being previewed.');
+        return;
+    }
+
+    try {
+        const rawContent = await vscode.workspace.fs.readFile(previewingDocumentUri);
+        const newContent = updateStoryContentForItemUpdate(new TextDecoder().decode(rawContent), item);
+        await vscode.workspace.fs.writeFile(previewingDocumentUri, new TextEncoder().encode(newContent));
+    } catch (e) {
+        vscode.window.showErrorMessage(`Error updating story.yaml: ${(e as Error).message}`);
+    }
+}
+
+export function updateStoryContentForItemUpdate(content: string, item: { itemType: string; originalTitle: string; data: any; }): string {
+    const doc = yaml.load(content) as any;
+    if (!doc) return content;
+
+    const findAndReplace = (collection: any[], title: string, newData: any) => {
+        if (!collection) return false;
+        const itemIndex = collection.findIndex(i => i.title === title);
+        if (itemIndex > -1) {
+            collection[itemIndex] = { ...collection[itemIndex], ...newData };
+            return true;
+        }
+        return false;
+    };
+
+    switch (item.itemType) {
+        case 'epics':
+            findAndReplace(doc.epics, item.originalTitle, item.data);
+            break;
+        case 'stories':
+            for (const epic of doc.epics || []) {
+                if (findAndReplace(epic.stories, item.originalTitle, item.data)) break;
+            }
+            break;
+        case 'tasks':
+             // Tasks can be under stories or at the root level
+            let found = false;
+            for (const epic of doc.epics || []) {
+                for (const story of epic.stories || []) {
+                    if (story['sub tasks']) {
+                        const taskIndex = story['sub tasks'].findIndex((t: string) => t === item.originalTitle);
+                        if (taskIndex > -1) {
+                            // This assumes tasks are just strings. If they are objects, this needs adjustment.
+                            // Based on addItem, they are just titles (strings).
+                            // To edit a task, we'd need to find the full task object in the root `tasks` array.
+                            // This part of the logic might need to be more robust if tasks can be complex objects.
+                            
+                            // Let's assume for now we are editing the root task object.
+                            break; // Break from inner loop
+                        }
+                    }
+                }
+                if(found) break; // Break from outer loop
+            }
+            // Also check root tasks
+            findAndReplace(doc.tasks, item.originalTitle, item.data);
+            break;
+    }
+
+    return yaml.dump(doc);
 }
 
 function updateWebview(document: vscode.TextDocument, panel: vscode.WebviewPanel) {

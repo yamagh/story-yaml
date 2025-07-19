@@ -8,16 +8,18 @@ const App = () => {
     const [selectedItem, setSelectedItem] = useState<any>(null);
     const [formState, setFormState] = useState<{
         visible: boolean;
+        isEditing: boolean;
         type: 'epics' | 'stories' | 'tasks' | null;
         parentId: string | null;
-    }>({ visible: false, type: null, parentId: null });
+        itemData?: any;
+    }>({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
 
     const handleMessage = useCallback((event: MessageEvent) => {
         const message = event.data;
         switch (message.command) {
             case 'update':
                 setStoryData(message.data);
-                setFormState({ visible: false, type: null, parentId: null });
+                setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
                 break;
         }
     }, []);
@@ -35,16 +37,25 @@ const App = () => {
             command: 'addItem',
             item: item,
         });
-        setFormState({ visible: false, type: null, parentId: null });
+        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
     };
 
-    const showForm = (type: 'epics' | 'stories' | 'tasks', parentId: string | null = null) => {
+    const handleUpdateItem = (item: any) => {
+        vscode.postMessage({
+            command: 'updateItem',
+            item: item,
+        });
+        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
+    };
+
+    const showForm = (type: 'epics' | 'stories' | 'tasks', parentId: string | null = null, isEditing = false) => {
+        const itemData = isEditing ? selectedItem : undefined;
         setSelectedItem(null);
-        setFormState({ visible: true, type, parentId });
+        setFormState({ visible: true, isEditing, type, parentId, itemData });
     };
 
     const handleSelectRow = (item: any, type: string) => {
-        setFormState({ visible: false, type: null, parentId: null });
+        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
         setSelectedItem({ ...item, type });
     };
 
@@ -91,6 +102,14 @@ const App = () => {
         );
     };
 
+    const handleEdit = () => {
+        if (selectedItem) {
+            const itemType = (selectedItem.type.toLowerCase() + 's') as 'epics' | 'stories' | 'tasks';
+            // The form will be populated with selectedItem data
+            showForm(itemType, null, true); 
+        }
+    };
+
     const renderDetails = () => {
         if (!selectedItem) return <p>Click on an item to see details or add a new item.</p>;
 
@@ -98,6 +117,7 @@ const App = () => {
 
         return (
             <div className="details-view">
+                <button onClick={handleEdit}>Edit</button>
                 <h3>{type}: {title}</h3>
                 {description && <p><strong>Description:</strong> {description}</p>}
                 {status && <p><strong>Status:</strong> {status}</p>}
@@ -126,56 +146,69 @@ const App = () => {
     const renderForm = () => {
         if (!formState.visible) return null;
 
+        const { isEditing, itemData } = formState;
+        const data = itemData || {};
+
         const handleSubmit = (e: React.FormEvent) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
-            const data: any = {
-                title: formData.get('title'),
+            const newOrUpdatedData: any = {
+                // Title is the key, so it cannot be changed in edit mode.
+                title: isEditing ? data.title : formData.get('title'),
                 description: formData.get('description'),
                 status: formData.get('status'),
                 'definition of done': (formData.get('dod') as string).split(/\r\n|\n|\r/).filter(line => line.trim() !== '')
             };
 
             if (formState.type === 'stories') {
-                data.as = formData.get('as');
-                data['i want'] = formData.get('i-want');
-                data['so that'] = formData.get('so-that');
-                data.points = parseInt(formData.get('points') as string, 10) || 0;
-                data.sprint = formData.get('sprint');
+                newOrUpdatedData.as = formData.get('as');
+                newOrUpdatedData['i want'] = formData.get('i-want');
+                newOrUpdatedData['so that'] = formData.get('so-that');
+                newOrUpdatedData.points = parseInt(formData.get('points') as string, 10) || 0;
+                newOrUpdatedData.sprint = formData.get('sprint');
             }
             
-            handleAddItem({
-                itemType: formState.type,
-                parentId: formState.parentId,
-                data: data
-            });
+            if (isEditing) {
+                handleUpdateItem({
+                    itemType: formState.type,
+                    // Pass original title to identify the item
+                    originalTitle: data.title,
+                    data: newOrUpdatedData
+                });
+            } else {
+                handleAddItem({
+                    itemType: formState.type,
+                    parentId: formState.parentId,
+                    data: newOrUpdatedData
+                });
+            }
         };
 
         return (
             <form className="form-container" onSubmit={handleSubmit}>
-                <h3>Add New {formState.type?.slice(0, -1)}</h3>
-                <label>Title: <input name="title" required /></label>
+                <h3>{isEditing ? `Edit ${formState.type?.slice(0, -1)}` : `Add New ${formState.type?.slice(0, -1)}`}</h3>
+                <label>Title: <input name="title" required defaultValue={data.title || ''} readOnly={isEditing} /></label>
                 {formState.type === 'stories' && (
                     <div id="story-fields">
-                        <label>As a: <input name="as" /></label>
-                        <label>I want: <input name="i-want" /></label>
-                        <label>So that: <input name="so-that" /></label>
-                        <label>Points: <input name="points" type="number" defaultValue="0" /></label>
-                        <label>Sprint: <input name="sprint" /></label>
+                        <label>As a: <input name="as" defaultValue={data.as || ''} /></label>
+                        <label>I want: <input name="i-want" defaultValue={data['i want'] || ''} /></label>
+                        <label>So that: <input name="so-that" defaultValue={data['so that'] || ''} /></label>
+                        <label>Points: <input name="points" type="number" defaultValue={data.points || '0'} /></label>
+                        <label>Sprint: <input name="sprint" defaultValue={data.sprint || ''} /></label>
                     </div>
                 )}
-                <label>Description: <textarea name="description"></textarea></label>
+                <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
                 <label>Status:
-                    <select name="status">
+                    <select name="status" defaultValue={data.status || 'ToDo'}>
                         <option>ToDo</option>
                         <option>WIP</option>
                         <option>Done</option>
                     </select>
                 </label>
-                <label>Definition of Done (one per line): <textarea name="dod" rows={3}></textarea></label>
+                <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={data['definition of done']?.join('\n') || ''}></textarea></label>
                 <div className="form-actions">
                     <button type="submit">Save</button>
-                    <button type="button" onClick={() => setFormState({ visible: false, type: null, parentId: null })}>Cancel</button>
+                    <button type="button" onClick={() => setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined })}>Cancel</button>
                 </div>
             </form>
         );
