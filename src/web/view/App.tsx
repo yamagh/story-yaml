@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useReducer } from 'react';
 import './App.css';
 import { Epic, Story, Task, SubTask, Status } from '../types';
 import { useVscode } from './hooks/useVscode';
@@ -18,46 +18,75 @@ interface FormState {
     itemData?: Item;
 }
 
+type FormAction =
+    | { type: 'SHOW_ADD_FORM'; payload: { type: ItemType; parentId: string | null } }
+    | { type: 'SHOW_EDIT_FORM'; payload: { type: ItemType; itemData: Item } }
+    | { type: 'HIDE_FORM' };
+
+const initialFormState: FormState = {
+    visible: false,
+    isEditing: false,
+    type: null,
+    parentId: null,
+    itemData: undefined,
+};
+
+function formReducer(state: FormState, action: FormAction): FormState {
+    switch (action.type) {
+        case 'SHOW_ADD_FORM':
+            return {
+                ...initialFormState,
+                visible: true,
+                type: action.payload.type,
+                parentId: action.payload.parentId,
+            };
+        case 'SHOW_EDIT_FORM':
+            return {
+                ...initialFormState,
+                visible: true,
+                isEditing: true,
+                type: action.payload.type,
+                itemData: action.payload.itemData,
+            };
+        case 'HIDE_FORM':
+            return initialFormState;
+        default:
+            return state;
+    }
+}
+
 const App = () => {
     const { storyData, addItem, updateItem } = useVscode();
     const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
-    const [formState, setFormState] = useState<FormState>({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
-
-    const resetFormState = useCallback(() => {
-        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
-    }, []);
+    const [formState, dispatchFormAction] = useReducer(formReducer, initialFormState);
 
     const handleAddItem = (item: { itemType: ItemType | null; parentId: string | null; data: Partial<Item> }) => {
         addItem(item);
-        resetFormState();
+        dispatchFormAction({ type: 'HIDE_FORM' });
     };
 
     const handleUpdateItem = (item: { itemType: ItemType | null; originalTitle: string; data: Partial<Item> }) => {
         updateItem(item);
-        resetFormState();
+        dispatchFormAction({ type: 'HIDE_FORM' });
     };
 
     const showForm = (type: ItemType, parentId: string | null = null) => {
-        setFormState({ visible: true, isEditing: false, type, parentId, itemData: undefined });
+        dispatchFormAction({ type: 'SHOW_ADD_FORM', payload: { type, parentId } });
         setSelectedItem(null);
     };
 
     const handleSelectRow = (item: Item, type: string) => {
-        resetFormState();
+        dispatchFormAction({ type: 'HIDE_FORM' });
         setSelectedItem({ ...item, type });
     };
+
+
 
     const handleEdit = () => {
         if (selectedItem) {
             const typeStr = selectedItem.type.toLowerCase().replace(' ', '');
             const itemType = (typeStr === 'story' ? 'stories' : typeStr + 's') as ItemType;
-            setFormState({
-                visible: true,
-                isEditing: true,
-                type: itemType,
-                parentId: null,
-                itemData: selectedItem
-            });
+            dispatchFormAction({ type: 'SHOW_EDIT_FORM', payload: { type: itemType, itemData: selectedItem } });
             setSelectedItem(null);
         }
     };
@@ -96,7 +125,7 @@ const App = () => {
     };
 
     const handleCancelForm = () => {
-        resetFormState();
+        dispatchFormAction({ type: 'HIDE_FORM' });
     };
 
     const renderForm = () => {
