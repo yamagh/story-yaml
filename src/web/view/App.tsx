@@ -4,6 +4,7 @@ import { Epic, Story, Task, SubTask, Status } from '../types';
 import { useVscode } from './hooks/useVscode';
 import { ItemForm } from './components/ItemForm';
 import { ItemDetails } from './components/ItemDetails';
+import { StoryTable } from './components/StoryTable';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type Item = Epic | Story | Task | SubTask;
@@ -98,46 +99,6 @@ const App = () => {
         resetFormState();
     };
 
-    const renderTable = () => {
-        if (!storyData) return <tbody><tr><td colSpan={5}>Loading story data...</td></tr></tbody>;
-        const { epics = [], tasks = [] } = storyData;
-
-        const renderSubTasks = (subTasks: SubTask[]) => {
-            if (!subTasks) return null;
-            return subTasks.map((sub) => (
-                <tr key={sub.title} className="subtask" onClick={(e) => { e.stopPropagation(); handleSelectRow(sub, 'SubTask'); }}>
-                    <td>SubTask</td>
-                    <td>{sub.title}</td>
-                    <td>{sub.status}</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            ));
-        };
-
-        return (
-            <tbody>
-                {epics.map((epic) => (
-                    <React.Fragment key={epic.title}>
-                        <tr className="epic" onClick={() => handleSelectRow(epic, 'Epic')}><td>Epic</td><td>{epic.title}</td><td></td><td></td><td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('stories', epic.title); }}>+</button></td></tr>
-                        {epic.stories?.map((story) => (
-                            <React.Fragment key={story.title}>
-                                <tr className="story" onClick={() => handleSelectRow(story, 'Story')}><td>Story</td><td>{story.title}</td><td>{story.status}</td><td>{story.points}</td><td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', story.title); }}>+</button></td></tr>
-                                {renderSubTasks(story['sub tasks'] || [])}
-                            </React.Fragment>
-                        ))}
-                    </React.Fragment>
-                ))}
-                {tasks.map((task) => (
-                     <React.Fragment key={task.title}>
-                        <tr className="task" onClick={() => handleSelectRow(task, 'Task')}><td>Task</td><td>{task.title}</td><td>{task.status}</td><td>{task.points}</td><td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', task.title); }}>+</button></td></tr>
-                        {renderSubTasks(task['sub tasks'] || [])}
-                    </React.Fragment>
-                ))}
-            </tbody>
-        );
-    };
-
     const renderForm = () => {
         if (!formState.visible || !formState.type) return null;
         return (
@@ -165,7 +126,11 @@ const App = () => {
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    {renderTable()}
+                    <StoryTable
+                        storyData={storyData}
+                        onSelectRow={handleSelectRow}
+                        onShowForm={showForm}
+                    />
                 </table>
             </div>
             <div className="panel details-panel">

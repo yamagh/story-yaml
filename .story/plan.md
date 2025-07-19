@@ -98,9 +98,9 @@
     *   [x] `App.tsx` から `ItemDetails` を呼び出すように変更する。
 
 4.  **テーブルコンポーネントの分離 (`StoryTable.tsx`)**
-    *   [ ] `src/web/view/components/StoryTable.tsx` を作成する。
-    *   [ ] `renderTable` 関数と関連するロジックを `StoryTable` コンポーネントとして分離する。
-    *   [ ] `App.tsx` から `StoryTable` を呼び出すように変更する。
+    *   [x] `src/web/view/components/StoryTable.tsx` を作成する。
+    *   [x] `renderTable` 関数と関連するロジックを `StoryTable` コンポーネントとして分離する。
+    *   [x] `App.tsx` から `StoryTable` を呼び出すように変更する。
 
 5.  **メインコンポーネントのクリーンアップ (`App.tsx`)**
     *   [ ] 分離したコンポーネントを `App.tsx` にインポートし、状態管理とロジックを整理する。
