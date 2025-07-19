@@ -192,32 +192,33 @@ glossary:
     structure: |
       ```story.yaml
       epics:
-        - title: エピックの簡潔なタイトル
-          description: |
-            エピックについての詳細な説明
+        - title: タイトル
+          description: 説明
           stories:
-            - title: ストーリーの簡潔なタイトル
+            - title: タイトル
               as: 役割
               i want: やりたいこと
               so that: 理由
+              description: 説明
               status: ToDo # ToDo, WIP, Done のいずれか
               points: 1 # 任意の整数
-              sprint: Sprint 1
+              sprint: Sprint 1 # スプリント名
               definition of done:
-                - 完了基準１
-                - 完了基準２
-                - 完了基準３
+                - 完了基準
               sub tasks:
-                - サブタスク１
-                - サブタスク２
-                - サブタスク３
+                - title: タイトル
+                  description: 説明
+                  status: ToDo
       tasks:
-        - title: タスクの簡潔なタイトル
-          description: |
-            タスクについての詳細な説明
+        - title: タイトル
+          description: 説明
           status: ToDo # ToDo, WIP, Done のいずれか
+          Sprint 1 # スプリント名
+          points: 1 # 任意の整数
           definition of done:
-            - 完了基準１
-            - 完了基準２
-            - 完了基準３
+            - 完了基準
+          sub tasks:
+            - title: タイトル
+              description: 説明
+              status: ToDo
       ```

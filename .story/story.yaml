@@ -51,7 +51,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上で新しいエピック、ストーリー、タスクを追加したい
         so that: YAML形式ストーリーを直接編集することなく、新しいアイテムを追加できるように
-        status: WIP
+        status: Done
         definition of Done:
           - ユーザーはVS CodeのWebView上で新しいエピック、ストーリー、タスクを追加できる
           - ユーザーは「新規追加」ボタンで Epic を追加できる
@@ -82,7 +82,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上でエピック、ストーリー、タスクを編集したい
         so that: YAML形式ストーリーを直接編集することなく、素早に変更できるように
-        status: ToDo
+        status: Done
         definition of done:
           - ユーザーはVS CodeのWebView上でエピック、ストーリー、タスクを編集できる
           - 編集内容はUIとYAML形式ストーリーの両方に反映される
@@ -96,8 +96,8 @@ epics:
         definition of done:
           - ユーザーはVS CodeのWebView上でエピック、ストーリー、タスクを削除できる
           - 削除されたアイテムはUIとYAML形式ストーリーから消える
-          - ユーザーはアイテムを右クリックして表示されるコンテキストメニューから「削除」を選択できる
-          - Epicを削除する場合、配下のStoryやTaskも削除対象になることが明示され、確認ダイアログでユーザーの承認を求める
+          - ユーザーはアイテムの詳細表示の削除ボタンから削除できる
+          - Epic や Story を削除する場合、配下のStoryやTaskも削除対象になることが明示され、確認ダイアログでユーザーの承認を求める
       - title: フィルタリング
         as: ユーザー
         i want: VS CodeのWebView上でストーリーをスプリントやステータスでフィルタリングしたい
