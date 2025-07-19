@@ -123,9 +123,9 @@ const App = () => {
         setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
     };
 
-    const showForm = (type: 'epics' | 'stories' | 'tasks' | 'subtasks', parentId: string | null = null, isEditing = false) => {
+    const showForm = (type: 'epics' | 'stories' | 'tasks' | 'subtasks', parentId: string | null = null) => {
+        setFormState({ visible: true, isEditing: false, type, parentId, itemData: undefined });
         setSelectedItem(null);
-        setFormState({ visible: true, isEditing, type, parentId, itemData: isEditing ? selectedItem : undefined });
     };
 
     const handleSelectRow = (item: any, type: string) => {
@@ -135,8 +135,16 @@ const App = () => {
 
     const handleEdit = () => {
         if (selectedItem) {
-            const itemType = (selectedItem.type.toLowerCase().replace(' ', '') + 's') as 'epics' | 'stories' | 'tasks' | 'subtasks';
-            showForm(itemType, null, true);
+            const typeStr = selectedItem.type.toLowerCase().replace(' ', '');
+            const itemType = (typeStr === 'story' ? 'stories' : typeStr + 's') as 'epics' | 'stories' | 'tasks' | 'subtasks';
+            setFormState({
+                visible: true,
+                isEditing: true,
+                type: itemType,
+                parentId: null,
+                itemData: selectedItem
+            });
+            setSelectedItem(null);
         }
     };
     
