@@ -8,7 +8,7 @@ const vscode = acquireVsCodeApi();
 const EpicForm = ({ data, onSubmit, onCancel }: any) => (
     <form className="form-container" onSubmit={onSubmit}>
         <h3>{data.title ? 'Edit Epic' : 'Add New Epic'}</h3>
-        <label>Title: <input name="title" required defaultValue={data.title || ''} readOnly={!!data.title} /></label>
+        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
         <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
         <div className="form-actions">
             <button type="submit">Save</button>
