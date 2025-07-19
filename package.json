@@ -45,6 +45,8 @@
   "devDependencies": {
     "@types/assert": "^1.5.11",
     "@types/mocha": "^10.0.10",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
     "@types/vscode": "^1.102.0",
     "@types/webpack-env": "^1.18.8",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
@@ -54,6 +56,8 @@
     "eslint": "^9.25.1",
     "mocha": "^11.1.0",
     "process": "^0.11.10",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
     "webpack": "^5.99.7",
