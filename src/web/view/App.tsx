@@ -3,6 +3,91 @@ import './App.css';
 
 const vscode = acquireVsCodeApi();
 
+// --- Form Components ---
+
+const EpicForm = ({ data, onSubmit, onCancel }: any) => (
+    <form className="form-container" onSubmit={onSubmit}>
+        <h3>{data.title ? 'Edit Epic' : 'Add New Epic'}</h3>
+        <label>Title: <input name="title" required defaultValue={data.title || ''} readOnly={!!data.title} /></label>
+        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
+        <div className="form-actions">
+            <button type="submit">Save</button>
+            <button type="button" onClick={onCancel}>Cancel</button>
+        </div>
+    </form>
+);
+
+const StoryForm = ({ data, onSubmit, onCancel }: any) => (
+    <form className="form-container" onSubmit={onSubmit}>
+        <h3>{data.title ? 'Edit Story' : 'Add New Story'}</h3>
+        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
+        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
+        <label>Status:
+            <select name="status" defaultValue={data.status || 'ToDo'}>
+                <option>ToDo</option>
+                <option>WIP</option>
+                <option>Done</option>
+            </select>
+        </label>
+        <div id="story-fields">
+            <label>As a: <input name="as" defaultValue={data.as || ''} /></label>
+            <label>I want: <input name="i-want" defaultValue={data['i want'] || ''} /></label>
+            <label>So that: <input name="so-that" defaultValue={data['so that'] || ''} /></label>
+        </div>
+        <label>Points: <input name="points" type="number" defaultValue={data.points || '0'} /></label>
+        <label>Sprint: <input name="sprint" defaultValue={data.sprint || ''} /></label>
+        <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={data['definition of done']?.join('\n') || ''}></textarea></label>
+        <div className="form-actions">
+            <button type="submit">Save</button>
+            <button type="button" onClick={onCancel}>Cancel</button>
+        </div>
+    </form>
+);
+
+const TaskForm = ({ data, onSubmit, onCancel }: any) => (
+    <form className="form-container" onSubmit={onSubmit}>
+        <h3>{data.title ? 'Edit Task' : 'Add New Task'}</h3>
+        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
+        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
+        <label>Status:
+            <select name="status" defaultValue={data.status || 'ToDo'}>
+                <option>ToDo</option>
+                <option>WIP</option>
+                <option>Done</option>
+            </select>
+        </label>
+        <label>Points: <input name="points" type="number" defaultValue={data.points || '0'} /></label>
+        <label>Sprint: <input name="sprint" defaultValue={data.sprint || ''} /></label>
+        <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={data['definition of done']?.join('\n') || ''}></textarea></label>
+        <div className="form-actions">
+            <button type="submit">Save</button>
+            <button type="button" onClick={onCancel}>Cancel</button>
+        </div>
+    </form>
+);
+
+const SubtaskForm = ({ data, onSubmit, onCancel }: any) => (
+    <form className="form-container" onSubmit={onSubmit}>
+        <h3>{data.title ? 'Edit Subtask' : 'Add New Subtask'}</h3>
+        <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
+        <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
+        <label>Status:
+            <select name="status" defaultValue={data.status || 'ToDo'}>
+                <option>ToDo</option>
+                <option>WIP</option>
+                <option>Done</option>
+            </select>
+        </label>
+        <div className="form-actions">
+            <button type="submit">Save</button>
+            <button type="button" onClick={onCancel}>Cancel</button>
+        </div>
+    </form>
+);
+
+
+// --- Main App Component ---
+
 const App = () => {
     const [storyData, setStoryData] = useState<any>(null);
     const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -16,42 +101,31 @@ const App = () => {
 
     const handleMessage = useCallback((event: MessageEvent) => {
         const message = event.data;
-        switch (message.command) {
-            case 'update':
-                setStoryData(message.data);
-                setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
-                break;
+        if (message.command === 'update') {
+            setStoryData(message.data);
+            setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
         }
     }, []);
 
     useEffect(() => {
         window.addEventListener('message', handleMessage);
         vscode.postMessage({ command: 'ready' });
-        return () => {
-            window.removeEventListener('message', handleMessage);
-        };
+        return () => window.removeEventListener('message', handleMessage);
     }, [handleMessage]);
 
     const handleAddItem = (item: any) => {
-        vscode.postMessage({
-            command: 'addItem',
-            item: item,
-        });
+        vscode.postMessage({ command: 'addItem', item });
         setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
     };
 
     const handleUpdateItem = (item: any) => {
-        vscode.postMessage({
-            command: 'updateItem',
-            item: item,
-        });
+        vscode.postMessage({ command: 'updateItem', item });
         setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
     };
 
     const showForm = (type: 'epics' | 'stories' | 'tasks' | 'subtasks', parentId: string | null = null, isEditing = false) => {
-        const itemData = isEditing ? selectedItem : undefined;
         setSelectedItem(null);
-        setFormState({ visible: true, isEditing, type, parentId, itemData });
+        setFormState({ visible: true, isEditing, type, parentId, itemData: isEditing ? selectedItem : undefined });
     };
 
     const handleSelectRow = (item: any, type: string) => {
@@ -59,11 +133,52 @@ const App = () => {
         setSelectedItem({ ...item, type });
     };
 
+    const handleEdit = () => {
+        if (selectedItem) {
+            const itemType = (selectedItem.type.toLowerCase().replace(' ', '') + 's') as 'epics' | 'stories' | 'tasks' | 'subtasks';
+            showForm(itemType, null, true);
+        }
+    };
+    
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const { isEditing, type, parentId, itemData } = formState;
+        const formData = new FormData(e.target as HTMLFormElement);
+        
+        const newOrUpdatedData: any = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            status: formData.get('status'),
+        };
+
+        if (type === 'stories' || type === 'tasks') {
+             newOrUpdatedData.points = parseInt(formData.get('points') as string, 10) || 0;
+             newOrUpdatedData.sprint = formData.get('sprint');
+             newOrUpdatedData['definition of done'] = (formData.get('dod') as string || '').split(/\r\n|\n|\r/).filter(line => line.trim() !== '');
+        }
+        
+        if (type === 'stories') {
+            newOrUpdatedData.as = formData.get('as');
+            newOrUpdatedData['i want'] = formData.get('i-want');
+            newOrUpdatedData['so that'] = formData.get('so-that');
+        }
+        
+        if (isEditing) {
+            handleUpdateItem({ itemType: type, originalTitle: itemData.title, data: newOrUpdatedData });
+        } else {
+            handleAddItem({ itemType: type, parentId: parentId, data: newOrUpdatedData });
+        }
+    };
+
+    const handleCancelForm = () => {
+        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
+    };
+
     const renderTable = () => {
         if (!storyData) return <tbody><tr><td colSpan={5}>Loading story data...</td></tr></tbody>;
         const { epics = [], tasks = [] } = storyData;
 
-        const renderSubTasks = (subTasks: any[], parentTitle: string) => {
+        const renderSubTasks = (subTasks: any[]) => {
             if (!subTasks) return null;
             return subTasks.map((sub: any) => (
                 <tr key={sub.title} className="subtask" onClick={(e) => { e.stopPropagation(); handleSelectRow(sub, 'SubTask'); }}>
@@ -75,10 +190,6 @@ const App = () => {
                 </tr>
             ));
         };
-
-        if (epics.length === 0 && tasks.length === 0) {
-            return <tbody><tr><td colSpan={5}>No items in story.yaml. Click "Add New Epic" to start.</td></tr></tbody>;
-        }
 
         return (
             <tbody>
@@ -100,7 +211,7 @@ const App = () => {
                                     <td>{story.points}</td>
                                     <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', story.title); }}>+</button></td>
                                 </tr>
-                                {renderSubTasks(story['sub tasks'], story.title)}
+                                {renderSubTasks(story['sub tasks'])}
                             </React.Fragment>
                         ))}
                     </React.Fragment>
@@ -114,25 +225,16 @@ const App = () => {
                             <td>{task.points}</td>
                             <td><button className="add-button" onClick={(e) => { e.stopPropagation(); showForm('subtasks', task.title); }}>+</button></td>
                         </tr>
-                        {renderSubTasks(task['sub tasks'], task.title)}
+                        {renderSubTasks(task['sub tasks'])}
                     </React.Fragment>
                 ))}
             </tbody>
         );
     };
 
-    const handleEdit = () => {
-        if (selectedItem) {
-            const itemType = (selectedItem.type.toLowerCase().replace(' ', '') + 's') as 'epics' | 'stories' | 'tasks' | 'subtasks';
-            showForm(itemType, null, true); 
-        }
-    };
-
     const renderDetails = () => {
         if (!selectedItem) return <p>Click on an item to see details or add a new item.</p>;
-
         const { type, title, description, status, points, as, 'i want': iWant, 'so that': soThat, 'definition of done': dod, sprint } = selectedItem;
-
         return (
             <div className="details-view">
                 <button onClick={handleEdit}>Edit</button>
@@ -141,21 +243,15 @@ const App = () => {
                 {status && <p><strong>Status:</strong> {status}</p>}
                 {points !== undefined && <p><strong>Points:</strong> {points}</p>}
                 {sprint && <p><strong>Sprint:</strong> {sprint}</p>}
-                
-                {type === 'Story' && (
-                    <>
-                        <p><strong>As a:</strong> {as}</p>
-                        <p><strong>I want:</strong> {iWant}</p>
-                        <p><strong>So that:</strong> {soThat}</p>
-                    </>
-                )}
-
+                {type === 'Story' && (<>
+                    <p><strong>As a:</strong> {as}</p>
+                    <p><strong>I want:</strong> {iWant}</p>
+                    <p><strong>So that:</strong> {soThat}</p>
+                </>)}
                 {dod && dod.length > 0 && (
                     <div>
                         <strong>Definition of Done:</strong>
-                        <ul>
-                            {dod.map((item: string, index: number) => <li key={index}>{item}</li>)}
-                        </ul>
+                        <ul>{dod.map((item: string, index: number) => <li key={index}>{item}</li>)}</ul>
                     </div>
                 )}
             </div>
@@ -164,95 +260,25 @@ const App = () => {
 
     const renderForm = () => {
         if (!formState.visible) return null;
-
-        const { isEditing, itemData, type } = formState;
-        const data = itemData || {};
-
-        const handleSubmit = (e: React.FormEvent) => {
-            e.preventDefault();
-            const formData = new FormData(e.target as HTMLFormElement);
-            const newOrUpdatedData: any = {
-                title: isEditing ? data.title : formData.get('title'),
-                description: formData.get('description'),
-                status: formData.get('status'),
-            };
-
-            if (type === 'stories' || type === 'tasks') {
-                 newOrUpdatedData.points = parseInt(formData.get('points') as string, 10) || 0;
-                 newOrUpdatedData.sprint = formData.get('sprint');
-                 newOrUpdatedData['definition of done'] = (formData.get('dod') as string).split(/\r\n|\n|\r/).filter(line => line.trim() !== '');
-            }
-            
-            if (type === 'stories') {
-                newOrUpdatedData.as = formData.get('as');
-                newOrUpdatedData['i want'] = formData.get('i-want');
-                newOrUpdatedData['so that'] = formData.get('so-that');
-            }
-            
-            if (isEditing) {
-                handleUpdateItem({
-                    itemType: type,
-                    originalTitle: data.title, 
-                    data: newOrUpdatedData
-                });
-            } else {
-                handleAddItem({
-                    itemType: type,
-                    parentId: formState.parentId,
-                    data: newOrUpdatedData
-                });
-            }
+        const props = {
+            data: formState.itemData || {},
+            onSubmit: handleFormSubmit,
+            onCancel: handleCancelForm
         };
-
-        const typeName = type?.slice(0, -1);
-
-        return (
-            <form className="form-container" onSubmit={handleSubmit}>
-                <h3>{isEditing ? `Edit ${typeName}` : `Add New ${typeName}`}</h3>
-                <label>Title: <input name="title" required defaultValue={data.title || ''} readOnly={isEditing} /></label>
-                
-                { (type === 'stories' || type === 'tasks' || type === 'subtasks' || type === 'epics') &&
-                    <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
-                }
-
-                { (type === 'stories' || type === 'tasks' || type === 'subtasks') &&
-                    <label>Status:
-                        <select name="status" defaultValue={data.status || 'ToDo'}>
-                            <option>ToDo</option>
-                            <option>WIP</option>
-                            <option>Done</option>
-                        </select>
-                    </label>
-                }
-                
-                {type === 'stories' && (
-                    <div id="story-fields">
-                        <label>As a: <input name="as" defaultValue={data.as || ''} /></label>
-                        <label>I want: <input name="i-want" defaultValue={data['i want'] || ''} /></label>
-                        <label>So that: <input name="so-that" defaultValue={data['so that'] || ''} /></label>
-                    </div>
-                )}
-
-                { (type === 'stories' || type === 'tasks') &&
-                    <>
-                        <label>Points: <input name="points" type="number" defaultValue={data.points || '0'} /></label>
-                        <label>Sprint: <input name="sprint" defaultValue={data.sprint || ''} /></label>
-                        <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={data['definition of done']?.join('\n') || ''}></textarea></label>
-                    </>
-                }
-
-                <div className="form-actions">
-                    <button type="submit">Save</button>
-                    <button type="button" onClick={() => setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined })}>Cancel</button>
-                </div>
-            </form>
-        );
+        switch (formState.type) {
+            case 'epics': return <EpicForm {...props} />;
+            case 'stories': return <StoryForm {...props} />;
+            case 'tasks': return <TaskForm {...props} />;
+            case 'subtasks': return <SubtaskForm {...props} />;
+            default: return null;
+        }
     };
 
     return (
         <div className="app-container">
             <div className="panel table-panel">
                 <button onClick={() => showForm('epics')}>Add New Epic</button>
+                <button onClick={() => showForm('tasks')}>Add New Task</button>
                 <table>
                     <thead>
                         <tr>

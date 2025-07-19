@@ -167,15 +167,16 @@ export function updateStoryContentForItemUpdate(content: string, item: { itemTyp
         if (!collection) return false;
         const itemIndex = collection.findIndex(i => i.title === title);
         if (itemIndex > -1) {
-            collection[itemIndex] = { ...collection[itemIndex], ...newData, title: collection[itemIndex].title };
+            // Replace the item, allowing the title to be updated from newData
+            collection[itemIndex] = { ...collection[itemIndex], ...newData };
             return true;
         }
-        // Recursively search in sub-tasks
-        for (const item of collection) {
-            if (item['sub tasks'] && findAndReplace(item['sub tasks'], title, newData)) {
+        // Recursively search in sub-tasks and stories
+        for (const currentItem of collection) {
+            if (currentItem.stories && findAndReplace(currentItem.stories, title, newData)) {
                 return true;
             }
-            if (item.stories && findAndReplace(item.stories, title, newData)) {
+            if (currentItem['sub tasks'] && findAndReplace(currentItem['sub tasks'], title, newData)) {
                 return true;
             }
         }
