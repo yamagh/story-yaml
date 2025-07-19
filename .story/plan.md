@@ -83,9 +83,9 @@
 #### フェーズ3: フロントエンドのリファクタリング (`App.tsx`)
 
 1.  **カスタムフックの作成 (`useVscode.ts`)**
-    *   [ ] `src/web/view/hooks/useVscode.ts` を作成する。
-    *   [ ] `useEffect` 内の `window.addEventListener` と `vscode.postMessage` を含むロジックをカスタムフックにカプセル化する。
-    *   [ ] `App.tsx` でこのカスタムフックを利用するように変更する。
+    *   [x] `src/web/view/hooks/useVscode.ts` を作成する。
+    *   [x] `useEffect` 内の `window.addEventListener` と `vscode.postMessage` を含むロジックをカスタムフックにカプセル化する。
+    *   [x] `App.tsx` でこのカスタムフックを利用するように変更する。
 
 2.  **フォームコンポーネントの共通化 (`ItemForm.tsx`)**
     *   [ ] `src/web/view/components/ItemForm.tsx` を作成する。

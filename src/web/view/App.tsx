@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import './App.css';
-import { StoryFile, Epic, Story, Task, SubTask, Status } from '../types';
-
-const vscode = acquireVsCodeApi();
+import { Epic, Story, Task, SubTask, Status } from '../types';
+import { useVscode } from './hooks/useVscode';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type Item = Epic | Story | Task | SubTask;
@@ -108,32 +107,22 @@ const SubtaskForm: React.FC<FormProps> = ({ data, onSubmit, onCancel }) => (
 // --- Main App Component ---
 
 const App = () => {
-    const [storyData, setStoryData] = useState<StoryFile | null>(null);
+    const { storyData, addItem, updateItem, setStoryData } = useVscode();
     const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
     const [formState, setFormState] = useState<FormState>({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
 
-    const handleMessage = useCallback((event: MessageEvent) => {
-        const message = event.data;
-        if (message.command === 'update') {
-            setStoryData(message.data);
-            setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
-        }
+    const resetFormState = useCallback(() => {
+        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
     }, []);
 
-    useEffect(() => {
-        window.addEventListener('message', handleMessage);
-        vscode.postMessage({ command: 'ready' });
-        return () => window.removeEventListener('message', handleMessage);
-    }, [handleMessage]);
-
     const handleAddItem = (item: { itemType: ItemType | null; parentId: string | null; data: Partial<Item> }) => {
-        vscode.postMessage({ command: 'addItem', item });
-        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
+        addItem(item);
+        resetFormState();
     };
 
     const handleUpdateItem = (item: { itemType: ItemType | null; originalTitle: string; data: Partial<Item> }) => {
-        vscode.postMessage({ command: 'updateItem', item });
-        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
+        updateItem(item);
+        resetFormState();
     };
 
     const showForm = (type: ItemType, parentId: string | null = null) => {
@@ -142,7 +131,7 @@ const App = () => {
     };
 
     const handleSelectRow = (item: Item, type: string) => {
-        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
+        resetFormState();
         setSelectedItem({ ...item, type });
     };
 
@@ -195,7 +184,7 @@ const App = () => {
     };
 
     const handleCancelForm = () => {
-        setFormState({ visible: false, isEditing: false, type: null, parentId: null, itemData: undefined });
+        resetFormState();
     };
 
     const renderTable = () => {
@@ -332,4 +321,5 @@ const App = () => {
 };
 
 export default App;
+
 
