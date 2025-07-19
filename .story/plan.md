@@ -70,15 +70,15 @@
 #### フェーズ2: 拡張機能側のリファクタリング (`extension.ts`)
 
 1.  **YAML操作ロジックの分離 (`StoryYamlService`)**
-    *   [ ] `src/web/services/StoryYamlService.ts` を作成する。
-    *   [ ] `updateStoryContent` と `updateStoryContentForItemUpdate` を `StoryYamlService` に移動し、静的メソッドとして実装する。
-    *   [ ] `extension.ts` から新しいサービスを呼び出すように修正する。
+    *   [x] `src/web/services/StoryYamlService.ts` を作成する。
+    *   [x] `updateStoryContent` と `updateStoryContentForItemUpdate` を `StoryYamlService` に移動し、静的メソッドとして実装する。
+    *   [x] `extension.ts` から新しいサービスを呼び出すように修正する。
 
 2.  **WebView管理のクラス化 (`WebviewPanelManager`)**
-    *   [ ] `src/web/WebviewPanelManager.ts` を作成する。
-    *   [ ] `previewPanel` と `previewingDocumentUri` を管理する `WebviewPanelManager` クラスを実装する。
-    *   [ ] パネルの生成、表示、更新、破棄のロジックをクラス内に移動する。
-    *   [ ] `extension.ts` の `activate` 関数を簡素化し、`WebviewPanelManager` のインスタンスを生成・利用する形に書き換える。
+    *   [x] `src/web/WebviewPanelManager.ts` を作成する。
+    *   [x] `previewPanel` と `previewingDocumentUri` を管理する `WebviewPanelManager` クラスを実装する。
+    *   [x] パネルの生成、表示、更新、破棄のロジックをクラス内に移動する。
+    *   [x] `extension.ts` の `activate` 関数を簡素化し、`WebviewPanelManager` のインスタンスを生成・利用する形に書き換える。
 
 #### フェーズ3: フロントエンドのリファクタリング (`App.tsx`)
 
