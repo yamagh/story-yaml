@@ -72,7 +72,11 @@ export class WebviewPanelManager {
             const data = yaml.load(this._document.getText()) as StoryFile;
             this._panel.webview.postMessage({ command: 'update', data });
         } catch (e) {
-            // Handle error
+            if (e instanceof Error) {
+                vscode.window.showErrorMessage(`Error parsing YAML: ${e.message}`);
+            } else {
+                vscode.window.showErrorMessage(`An unknown error occurred while parsing YAML.`);
+            }
         }
     }
 
@@ -105,6 +109,7 @@ export class WebviewPanelManager {
 
     private _getHtmlForWebview(webview: vscode.Webview) {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'dist', 'web', 'webview.js'));
+        const nonce = getNonce();
         return `
             <!DOCTYPE html>
             <html lang="en">
@@ -115,9 +120,18 @@ export class WebviewPanelManager {
             </head>
             <body>
                 <div id="root"></div>
-                <script src="${scriptUri}"></script>
+                <script nonce="${nonce}" src="${scriptUri}"></script>
             </body>
             </html>
         `;
     }
+}
+
+function getNonce() {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
 }

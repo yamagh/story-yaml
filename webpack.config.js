@@ -95,6 +95,13 @@ const webviewConfig = {
 		hints: false
 	},
 	devtool: 'nosources-source-map',
+    devServer: {
+        hot: true,
+        port: 3000,
+        headers: {
+            'Access-Control-Allow-Origin': '*'
+        }
+    }
 };
 
 
