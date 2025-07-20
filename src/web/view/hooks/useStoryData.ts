@@ -6,6 +6,7 @@ import { DragEndEvent } from '@dnd-kit/core';
 // 状態の型定義
 interface StoryDataState {
     selectedItem: (Item & { type: string }) | null;
+    selectedItemParent: (Epic | Story | Task) | null;
     formVisible: boolean;
     isEditing: boolean;
     formType: ItemType | null;
@@ -16,6 +17,7 @@ interface StoryDataState {
 // 初期状態
 const initialState: StoryDataState = {
     selectedItem: null,
+    selectedItemParent: null,
     formVisible: false,
     isEditing: false,
     formType: null,
@@ -65,17 +67,31 @@ export const useStoryData = () => {
     }, [initialStoryData]);
 
     const selectItem = useCallback((item: Item, type: string) => {
+        if (!storyData) {
+            setState(prevState => ({
+                ...prevState,
+                selectedItem: { ...item, type },
+                selectedItemParent: null,
+                formVisible: false,
+            }));
+            return;
+        }
+        const allTopLevelItems = [...storyData.epics, ...storyData.tasks];
+        const found = findItemAndParent(allTopLevelItems, item.title);
+
         setState(prevState => ({
             ...prevState,
             selectedItem: { ...item, type },
+            selectedItemParent: found ? found.parent : null,
             formVisible: false,
         }));
-    }, []);
+    }, [storyData]);
 
     const showAddItemForm = useCallback((type: ItemType, parentId: string | null = null) => {
         setState({
             ...initialState,
             selectedItem: null,
+            selectedItemParent: null,
             formVisible: true,
             formType: type,
             formParentId: parentId,
@@ -93,6 +109,7 @@ export const useStoryData = () => {
             formType: itemType,
             formItemData: state.selectedItem,
             selectedItem: null,
+            selectedItemParent: null,
         });
     }, [state.selectedItem]);
 

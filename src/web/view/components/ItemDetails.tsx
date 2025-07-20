@@ -1,17 +1,32 @@
 import React, { memo, useCallback, useState } from 'react';
-import { Epic, Story, Task, SubTask } from '../../types';
+import { Epic, Story, Task, SubTask, Item } from '../../types';
 import { ConfirmDialog } from './ConfirmDialog';
 
 type SelectedItem = (Epic | Story | Task | SubTask) & { type: string };
 
 interface ItemDetailsProps {
     selectedItem: SelectedItem | null;
+    selectedItemParent: (Epic | Story | Task) | null;
     onEdit: () => void;
     onDelete: (item: { title: string }) => void;
     onAddItem: (itemType: 'stories' | 'subtasks') => void;
+    onSelectParent: (item: Item, type: string) => void;
 }
 
-export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onEdit, onDelete, onAddItem }) => {
+const ParentInfoCard: React.FC<{ parent: Epic | Story | Task, onSelect: () => void }> = ({ parent, onSelect }) => {
+    const parentType = 'stories' in parent ? 'Epic' : ('i want' in parent ? 'Story' : 'Task');
+    return (
+        <div className="card mb-3 bg-light" onClick={onSelect} style={{ cursor: 'pointer' }}>
+            <div className="card-body py-2">
+                <small className="text-muted">Parent</small>
+                <p className="card-text mb-0 fw-bold">{parent.title}</p>
+                <span className={`badge bg-${parentType.toLowerCase()}`}>{parentType}</span>
+            </div>
+        </div>
+    );
+};
+
+export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, selectedItemParent, onEdit, onDelete, onAddItem, onSelectParent }) => {
     const [isConfirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = useCallback(() => {
@@ -24,6 +39,12 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
         onDelete({ title: selectedItem.title });
         setConfirmOpen(false);
     }, [selectedItem, onDelete]);
+
+    const handleSelectParent = useCallback(() => {
+        if (!selectedItemParent) return;
+        const parentType = 'stories' in selectedItemParent ? 'Epic' : ('i want' in selectedItemParent ? 'Story' : 'Task');
+        onSelectParent(selectedItemParent, parentType);
+    }, [selectedItemParent, onSelectParent]);
 
     if (!selectedItem) {
         return <div className="alert alert-info">Click on an item to see details or add a new item.</div>;
@@ -44,6 +65,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
 
     return (
         <>
+            {selectedItemParent && <ParentInfoCard parent={selectedItemParent} onSelect={handleSelectParent} />}
             <div>
                 <div className="d-flex justify-content-between mb-3">
                     <div>

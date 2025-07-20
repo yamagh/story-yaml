@@ -19,6 +19,7 @@ const App = () => {
     const {
         storyData,
         selectedItem,
+        selectedItemParent,
         formVisible,
         formType,
         formItemData,
@@ -122,7 +123,7 @@ const App = () => {
                     </div>
                     <div className="card">
                         <div className="card-body">
-                            {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={showEditItemForm} onDelete={deleteItem} onAddItem={(itemType) => showAddItemForm(itemType, selectedItem?.title || null)} />}
+                            {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} selectedItemParent={selectedItemParent} onEdit={showEditItemForm} onDelete={deleteItem} onAddItem={(itemType) => showAddItemForm(itemType, selectedItem?.title || null)} onSelectParent={selectItem} />}
                         </div>
                     </div>
                 </div>
