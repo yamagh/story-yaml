@@ -6,7 +6,14 @@ import { ItemForm } from './components/ItemForm';
 import { ItemDetails } from './components/ItemDetails';
 import { StoryTable } from './components/StoryTable';
 import { FilterPanel } from './components/FilterPanel';
-import { Story, Task } from '../types';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
 
 const App = () => {
     const {
@@ -21,6 +28,7 @@ const App = () => {
         hideForm,
         handleFormSubmit,
         deleteItem,
+        handleDragEnd,
     } = useStoryData();
 
     const {
@@ -32,6 +40,11 @@ const App = () => {
         filterSprint,
         filterKeyword,
     } = useStoryFilter(storyData);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor)
+    );
 
     const sprints = useMemo(() => {
         if (!storyData) return [];
@@ -59,6 +72,10 @@ const App = () => {
         );
     };
 
+    if (!storyData) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <div className="app-container">
             <div className="panel table-panel">
@@ -75,22 +92,25 @@ const App = () => {
                     onSprintChange={setFilterSprint}
                     onKeywordChange={setFilterKeyword}
                 />
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Points</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <StoryTable
-                        storyData={filteredData}
-                        onSelectRow={selectItem}
-                        onShowForm={showAddItemForm}
-                    />
-                </table>
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style={{ width: '30px' }}></th>
+                                <th>Type</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Points</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <StoryTable
+                            storyData={filteredData}
+                            onSelectRow={selectItem}
+                            onShowForm={showAddItemForm}
+                        />
+                    </table>
+                </DndContext>
             </div>
             <div className="panel details-panel">
                 {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={showEditItemForm} onDelete={deleteItem} />}

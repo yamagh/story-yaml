@@ -48,12 +48,12 @@ export type Item = Epic | Story | Task | SubTask;
 export type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 
 // WebView to Extension
-export type WebviewMessage = 
-    | { command: 'ready' } 
-    | { command: 'addItem', item: { itemType: string, parentTitle?: string, values: Omit<Item, 'stories' | 'sub tasks'> } }
-    | { command: 'updateItem', item: { originalTitle: string, updatedData: Item & { type: string } } }
-    | { command: 'deleteItem', item: { title: string } };
+export type WebviewMessage =
+    | { command: 'ready' }
+    | { command: 'addItem'; item: { itemType: string; parentTitle?: string; values: Omit<Item, 'stories' | 'sub tasks'> } }
+    | { command: 'updateItem'; item: { originalTitle: string, updatedData: Item & { type: string } } }
+    | { command: 'deleteItem'; item: { title: string } }
+    | { command: 'updateStoryFile'; storyFile: StoryFile };
 
-// Extension to WebView
-export type ExtensionMessage = 
-    | { command: 'update', storyFile: StoryFile };
+export type ExtensionMessage =
+    | { command: 'update'; storyFile: StoryFile };

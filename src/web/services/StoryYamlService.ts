@@ -5,6 +5,10 @@ type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type ItemData = Epic | Story | Task | SubTask;
 
 export class StoryYamlService {
+    public static saveStoryFile(storyFile: StoryFile): string {
+        return yaml.dump(storyFile);
+    }
+
     public static updateStoryContent(content: string, item: { itemType: string; parentTitle?: string; values: Omit<Item, 'stories' | 'sub tasks'> }): string {
         const doc = yaml.load(content) as StoryFile || { epics: [], tasks: [] };
 
@@ -31,7 +35,7 @@ export class StoryYamlService {
 
         this.addItem(doc, { itemType, data, parentId: item.parentTitle });
 
-        return yaml.dump(doc);
+        return this.saveStoryFile(doc);
     }
 
     private static addItem(doc: StoryFile, item: { itemType: ItemType; data: ItemData; parentId?: string }) {
@@ -98,7 +102,7 @@ export class StoryYamlService {
         this.findAndReplace(doc.epics, item.originalTitle, newData);
         this.findAndReplace(doc.tasks, item.originalTitle, newData);
 
-        return yaml.dump(doc);
+        return this.saveStoryFile(doc);
     }
 
     private static findAndReplace(collection: (Epic | Story | Task | SubTask)[], title: string, newData: Partial<ItemData>): boolean {
@@ -145,6 +149,6 @@ export class StoryYamlService {
             removeItem(doc.tasks, itemToDelete.title);
         }
 
-        return yaml.dump(doc);
+        return this.saveStoryFile(doc);
     }
 }

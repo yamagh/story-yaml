@@ -1,6 +1,7 @@
-import { useReducer, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useVscode } from './useVscode';
-import { Item, ItemType, Status, Story, Task } from '../../types';
+import { Item, ItemType, Status, Story, Task, StoryFile, Epic, SubTask } from '../../types';
+import { DragEndEvent } from '@dnd-kit/core';
 
 // 状態の型定義
 interface StoryDataState {
@@ -12,14 +13,6 @@ interface StoryDataState {
     formItemData?: Item;
 }
 
-// アクションの型定義
-type StoryDataAction =
-    | { type: 'SELECT_ITEM'; payload: { item: Item; type: string } }
-    | { type: 'CLEAR_SELECTION' }
-    | { type: 'SHOW_ADD_FORM'; payload: { type: ItemType; parentId: string | null } }
-    | { type: 'SHOW_EDIT_FORM' }
-    | { type: 'HIDE_FORM' };
-
 // 初期状態
 const initialState: StoryDataState = {
     selectedItem: null,
@@ -30,69 +23,88 @@ const initialState: StoryDataState = {
     formItemData: undefined,
 };
 
-// Reducer
-function storyDataReducer(state: StoryDataState, action: StoryDataAction): StoryDataState {
-    switch (action.type) {
-        case 'SELECT_ITEM':
-            return {
-                ...state,
-                selectedItem: { ...action.payload.item, type: action.payload.type },
-                formVisible: false, // アイテムを選択したらフォームは隠す
-            };
-        case 'CLEAR_SELECTION':
-            return { ...state, selectedItem: null };
-        case 'SHOW_ADD_FORM':
-            return {
-                ...initialState, // 状態をリセット
-                selectedItem: null,
-                formVisible: true,
-                formType: action.payload.type,
-                formParentId: action.payload.parentId,
-            };
-        case 'SHOW_EDIT_FORM':
-            if (!state.selectedItem) return state;
-            const typeStr = state.selectedItem.type.toLowerCase().replace(' ', '');
-            const itemType = (typeStr === 'story' ? 'stories' : typeStr + 's') as ItemType;
-            return {
-                ...initialState, // 状態をリセット
-                formVisible: true,
-                isEditing: true,
-                formType: itemType,
-                formItemData: state.selectedItem,
-                selectedItem: null,
-            };
-        case 'HIDE_FORM':
-            return {
-                ...state,
-                formVisible: false,
-                isEditing: false,
-                formType: null,
-                formParentId: null,
-                formItemData: undefined,
-            };
-        default:
-            return state;
+const findItemAndParent = (
+    nodes: (Epic | Task | Story | SubTask)[],
+    id: string,
+    parent: (Epic | Story | Task) | null = null
+): { item: Item; parent: (Epic | Story | Task) | null; type: ItemType } | null => {
+    for (const node of nodes) {
+        if (node.title === id) {
+            let type: ItemType;
+            if ('stories' in node) {
+                type = 'epics';
+            } else if (parent === null) {
+                type = 'tasks'; // Top-level task
+            } else if ('stories' in parent) {
+                type = 'stories';
+            } else {
+                type = 'subtasks';
+            }
+            return { item: node, parent, type };
+        }
+        if ('stories' in node && node.stories) {
+            const found = findItemAndParent(node.stories, id, node);
+            if (found) return found;
+        }
+        if ('sub tasks' in node && node['sub tasks']) {
+            const found = findItemAndParent(node['sub tasks'], id, node);
+            if (found) return found;
+        }
     }
-}
+    return null;
+};
+
 
 export const useStoryData = () => {
-    const { storyData, addItem, updateItem, deleteItem } = useVscode();
-    const [state, dispatch] = useReducer(storyDataReducer, initialState);
+    const { storyData: initialStoryData, addItem, updateItem, deleteItem, updateStoryFile } = useVscode();
+    const [storyData, setStoryData] = useState<StoryFile | null>(initialStoryData);
+    const [state, setState] = useState<StoryDataState>(initialState);
+
+    useEffect(() => {
+        setStoryData(initialStoryData);
+    }, [initialStoryData]);
 
     const selectItem = useCallback((item: Item, type: string) => {
-        dispatch({ type: 'SELECT_ITEM', payload: { item, type } });
+        setState(prevState => ({
+            ...prevState,
+            selectedItem: { ...item, type },
+            formVisible: false,
+        }));
     }, []);
 
     const showAddItemForm = useCallback((type: ItemType, parentId: string | null = null) => {
-        dispatch({ type: 'SHOW_ADD_FORM', payload: { type, parentId } });
+        setState({
+            ...initialState,
+            selectedItem: null,
+            formVisible: true,
+            formType: type,
+            formParentId: parentId,
+        });
     }, []);
 
     const showEditItemForm = useCallback(() => {
-        dispatch({ type: 'SHOW_EDIT_FORM' });
-    }, []);
+        if (!state.selectedItem) return;
+        const typeStr = state.selectedItem.type.toLowerCase().replace(' ', '');
+        const itemType = (typeStr === 'story' ? 'stories' : typeStr + 's') as ItemType;
+        setState({
+            ...initialState,
+            formVisible: true,
+            isEditing: true,
+            formType: itemType,
+            formItemData: state.selectedItem,
+            selectedItem: null,
+        });
+    }, [state.selectedItem]);
 
     const hideForm = useCallback(() => {
-        dispatch({ type: 'HIDE_FORM' });
+        setState(prevState => ({
+            ...prevState,
+            formVisible: false,
+            isEditing: false,
+            formType: null,
+            formParentId: null,
+            formItemData: undefined,
+        }));
     }, []);
 
     const handleFormSubmit = useCallback((e: React.FormEvent) => {
@@ -125,8 +137,90 @@ export const useStoryData = () => {
         } else {
             addItem({ itemType: formType!, parentTitle: formParentId || undefined, values: newOrUpdatedData as any });
         }
-        hideForm(); // フォームを閉じる
+        hideForm();
     }, [state, addItem, updateItem, hideForm]);
+
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (!over || !active.id || !over.id || active.id === over.id) {
+            return;
+        }
+
+        const newStoryData = JSON.parse(JSON.stringify(storyData)) as StoryFile;
+        if (!newStoryData) return;
+
+        const allTopLevelItems: (Epic | Task)[] = [...newStoryData.epics, ...newStoryData.tasks];
+
+        const activeInfo = findItemAndParent(allTopLevelItems, active.id.toString());
+        const overInfo = findItemAndParent(allTopLevelItems, over.id.toString());
+
+        if (!activeInfo || !overInfo) return;
+
+        // --- 1. Remove the active item from its original parent ---
+        const activeParentCollection: any[] | undefined =
+            activeInfo.parent === null
+                ? ('stories' in activeInfo.item ? newStoryData.epics : newStoryData.tasks)
+                : ('stories' in activeInfo.parent ? (activeInfo.parent as Epic).stories : (activeInfo.parent as Story | Task)['sub tasks']);
+
+        if (!activeParentCollection) return;
+        const activeIndex = activeParentCollection.findIndex(i => i.title === active.id);
+        if (activeIndex === -1) return;
+
+        const [movedItem] = activeParentCollection.splice(activeIndex, 1);
+        if (!movedItem) return;
+
+        // --- 2. Determine destination and insert ---
+        const activeType = activeInfo.type;
+        const overType = overInfo.type;
+
+        let destinationCollection: any[] | undefined;
+        let destinationIndex: number;
+
+        const isDroppingOnContainer = (activeType === 'stories' && overType === 'epics') || (activeType === 'subtasks' && (overType === 'stories' || overType === 'tasks'));
+
+        if (isDroppingOnContainer) {
+            // Case A: Dropping ON a container to reparent the item
+            if (overType === 'epics') {
+                const targetEpic = overInfo.item as Epic;
+                destinationCollection = targetEpic.stories = targetEpic.stories || [];
+            } else { // overType is 'stories' or 'tasks'
+                const targetParent = overInfo.item as Story | Task;
+                destinationCollection = targetParent['sub tasks'] = targetParent['sub tasks'] || [];
+            }
+            destinationIndex = destinationCollection.length; // Append to the end of the container
+        } else {
+            // Case B: Dropping ON an item to reorder
+            destinationCollection = overInfo.parent === null
+                ? ('stories' in overInfo.item ? newStoryData.epics : newStoryData.tasks)
+                : ('stories' in overInfo.parent ? (overInfo.parent as Epic).stories : (overInfo.parent as Story | Task)['sub tasks']);
+
+            if (!destinationCollection) {
+                activeParentCollection.splice(activeIndex, 0, movedItem); // Revert
+                return;
+            }
+            destinationIndex = destinationCollection.findIndex(i => i.title === over.id);
+
+            // --- Validation for reordering ---
+            const destParentType = overInfo.parent ? (('stories' in overInfo.parent) ? 'epics' : ('sub tasks' in overInfo.parent ? 'stories' : 'tasks')) : 'root';
+            
+            if (activeType === 'epics' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+            if (activeType === 'tasks' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+            if (activeType === 'stories' && destParentType !== 'epics') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+            if (activeType === 'subtasks' && destParentType !== 'stories' && destParentType !== 'tasks') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+        }
+
+        if (destinationIndex === -1) {
+            activeParentCollection.splice(activeIndex, 0, movedItem); // Revert
+            return;
+        }
+
+        destinationCollection.splice(destinationIndex, 0, movedItem);
+
+        setStoryData(newStoryData);
+        updateStoryFile(newStoryData);
+
+    }, [storyData, updateStoryFile]);
 
     return {
         storyData,
@@ -137,5 +231,6 @@ export const useStoryData = () => {
         hideForm,
         handleFormSubmit,
         deleteItem,
+        handleDragEnd,
     };
 };

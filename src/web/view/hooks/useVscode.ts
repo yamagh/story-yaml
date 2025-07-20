@@ -37,5 +37,9 @@ export function useVscode() {
         postMessage({ command: 'deleteItem', item });
     };
 
-    return { storyData, setStoryData, addItem, updateItem, deleteItem };
+    const updateStoryFile = (storyFile: StoryFile) => {
+        postMessage({ command: 'updateStoryFile', storyFile });
+    };
+
+    return { storyData, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
 }

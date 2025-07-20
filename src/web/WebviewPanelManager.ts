@@ -58,6 +58,10 @@ export class WebviewPanelManager {
                         await this.deleteItemFromStoryFile(message);
                         this.update();
                         return;
+                    case 'updateStoryFile':
+                        await this.updateStoryFile(message);
+                        // No need to call update() here as the change originated from the webview
+                        return;
                 }
             },
             null,
@@ -94,6 +98,14 @@ export class WebviewPanelManager {
 
     private postMessage(message: ExtensionMessage) {
         this._panel?.webview.postMessage(message);
+    }
+
+    private async updateStoryFile(message: WebviewMessage & { command: 'updateStoryFile' }) {
+        if (!this._document) return;
+        const newContent = StoryYamlService.saveStoryFile(message.storyFile);
+        const edit = new vscode.WorkspaceEdit();
+        edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
+        await vscode.workspace.applyEdit(edit);
     }
 
     private async addItemToStoryFile(message: WebviewMessage & { command: 'addItem' }) {
