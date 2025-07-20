@@ -97,15 +97,33 @@ export const useStoryData = () => {
     }, [state.selectedItem]);
 
     const hideForm = useCallback(() => {
-        setState(prevState => ({
-            ...prevState,
-            formVisible: false,
-            isEditing: false,
-            formType: null,
-            formParentId: null,
-            formItemData: undefined,
-        }));
-    }, []);
+        if (state.isEditing && state.formItemData) {
+            // Case 1: Cancel while editing -> show original item's details
+            const itemType = (state.formItemData as any).type;
+            selectItem(state.formItemData, itemType);
+        } else if (!state.isEditing && state.formParentId) {
+            // Case 2: Cancel while adding a new child item -> show parent's details
+            if (storyData) {
+                const allTopLevelItems = [...storyData.epics, ...storyData.tasks];
+                const parentInfo = findItemAndParent(allTopLevelItems, state.formParentId);
+                if (parentInfo) {
+                    const parentTypeString = parentInfo.type.slice(0, -1);
+                    const type = parentTypeString.charAt(0).toUpperCase() + parentTypeString.slice(1);
+                    selectItem(parentInfo.item, type);
+                }
+            }
+        } else {
+            // Case 3: Cancel while adding a new top-level item -> just hide form
+            setState(prevState => ({
+                ...prevState,
+                formVisible: false,
+                isEditing: false,
+                formType: null,
+                formParentId: null,
+                formItemData: undefined,
+            }));
+        }
+    }, [state, storyData, selectItem]);
 
     const handleFormSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
