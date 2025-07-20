@@ -86,10 +86,6 @@ const App = () => {
         <div className="container-fluid mt-3">
             <div className="row">
                 <div className="col-md-8">
-                    <div className="mb-3">
-                        <button className="btn btn-primary me-2" onClick={() => showAddItemForm('epics')}>Add New Epic</button>
-                        <button className="btn btn-primary" onClick={() => showAddItemForm('tasks')}>Add New Task</button>
-                    </div>
                     <FilterPanel
                         sprints={sprints}
                         statusFilter={filterStatus}
@@ -120,6 +116,10 @@ const App = () => {
                     </DndContext>
                 </div>
                 <div className="col-md-4">
+                    <div className="mb-3 d-flex justify-content-end">
+                        <button className="btn btn-primary me-2" onClick={() => showAddItemForm('epics')}>Add New Epic</button>
+                        <button className="btn btn-primary" onClick={() => showAddItemForm('tasks')}>Add New Task</button>
+                    </div>
                     <div className="card">
                         <div className="card-body">
                             {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={showEditItemForm} onDelete={deleteItem} onAddItem={(itemType) => showAddItemForm(itemType, selectedItem?.title || null)} />}

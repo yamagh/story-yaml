@@ -57,7 +57,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
                     </div>
                 </div>
                 <h4 className="mb-3">{title}</h4>
-                {description && <p><strong>Description:</strong> {description}</p>}
+                {description && <p>{description}</p>}
                 {status && <p><strong>Status:</strong> <span className="badge bg-secondary">{status}</span></p>}
                 {points !== undefined && <p><strong>Points:</strong> <span className="badge bg-success">{points}</span></p>}
                 {sprint && <p><strong>Sprint:</strong> {sprint}</p>}
