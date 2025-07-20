@@ -108,7 +108,6 @@ const App = () => {
                                     <th>Title</th>
                                     <th>Status</th>
                                     <th>Points</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <StoryTable
