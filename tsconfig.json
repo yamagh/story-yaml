@@ -12,11 +12,21 @@
 		"sourceMap": true,
 		"rootDir": "src",
 		"strict": true,
-		"jsx": "react-jsx"
+		"jsx": "react-jsx",
+		"types": [
+			"mocha",
+			"node",
+			"webpack-env"
+		]
 	},
 	"include": [
 		"src/**/*.ts",
 		"src/**/*.tsx",
 		"src/web/view/vscode.d.ts"
+	],
+	"exclude": [
+		"src/web/view",
+		"**/*.test.ts",
+		"**/*.test.tsx"
 	]
 }

@@ -49,6 +49,7 @@
     "@types/assert": "^1.5.11",
     "@types/bootstrap": "^5.2.10",
     "@types/mocha": "^10.0.10",
+    "@types/node": "^24.0.15",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/vscode": "^1.102.0",
