@@ -44,11 +44,16 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
     return (
         <>
             <div>
-                <div className="d-flex justify-content-end mb-3">
-                    <button className="btn btn-primary me-2" onClick={onEdit}>Edit</button>
-                    <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                <div className="d-flex justify-content-between mb-3">
+                    <div>
+                      <span className={`badge bg-${type.toLowerCase()}`}>{type}</span>
+                    </div>
+                    <div>
+                      <button className="btn btn-primary me-2" onClick={onEdit}>Edit</button>
+                      <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                    </div>
                 </div>
-                <h4 className="mb-3">{type}: {title}</h4>
+                <h4 className="mb-3">{title}</h4>
                 {description && <p><strong>Description:</strong> {description}</p>}
                 {status && <p><strong>Status:</strong> <span className="badge bg-secondary">{status}</span></p>}
                 {points !== undefined && <p><strong>Points:</strong> <span className="badge bg-success">{points}</span></p>}

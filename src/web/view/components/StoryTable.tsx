@@ -54,9 +54,18 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
     const getRowClass = () => {
         switch(type) {
             case 'Epic': return 'table-primary';
-            case 'Story': return 'table-info';
+            case 'Story': return 'table-light';
             case 'SubTask': return 'table-light';
             default: return '';
+        }
+    }
+
+    const getStatusClass = (status: string) => {
+        switch(status) {
+            case 'ToDo': return 'badge bg-secondary-subtle text-dark';
+            case 'WIP': return 'badge bg-primary-subtle text-dark';
+            case 'Done': return 'badge bg-success';
+            default: return 'badge bg-secondary';
         }
     }
 
@@ -66,9 +75,9 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
                 <span {...listeners}><DragHandle /></span>
             </td>
             <td><span className={`badge bg-${type.toLowerCase()}`}>{type}</span></td>
-            <td style={{ paddingLeft: `${level * 20 + 10}px` }}>{item.title}</td>
-            <td>{'status' in item ? <span className={`badge bg-secondary`}>{item.status}</span> : ''}</td>
-            <td>{'points' in item ? <span className="badge bg-success">{item.points}</span> : ''}</td>
+            <td style={{ paddingLeft: `${level * 30 + 10}px` }}>{item.title}</td>
+            <td>{'status' in item ? <span className={getStatusClass(item.status)}>{item.status}</span> : ''}</td>
+            <td>{'points' in item ? <span className="badge bg-secondary-subtle text-dark">{item.points}</span> : ''}</td>
             <td className="text-center">{getButton()}</td>
         </tr>
     );
