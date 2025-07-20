@@ -78,6 +78,7 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
             <td style={{ paddingLeft: `${level * 30 + 10}px` }}>{item.title}</td>
             <td>{'status' in item ? <span className={getStatusClass(item.status)}>{item.status}</span> : ''}</td>
             <td>{'points' in item ? <span className="badge bg-secondary-subtle text-dark">{item.points}</span> : ''}</td>
+            <td>{'sprint' in item ? <span className="badge bg-info-subtle text-dark">{item.sprint}</span> : ''}</td>
         </tr>
     );
 };

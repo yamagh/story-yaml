@@ -108,6 +108,7 @@ const App = () => {
                                     <th>Title</th>
                                     <th>Status</th>
                                     <th>Points</th>
+                                    <th>Sprint</th>
                                 </tr>
                             </thead>
                             <StoryTable

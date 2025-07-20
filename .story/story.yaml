@@ -8,6 +8,8 @@ epics:
         i want: VS CodeのYAMLエディタで各種要素（エピック、ストーリー、タスク、サブタスク）のスニペットを利用したい
         so that: 迅速にYAML形式の構造化ストーリーを作成できるように
         status: Done
+        points: 8
+        sprint: Sprint 1
         definition of done:
           - ユーザーはYAMLファイルの編集中にスニペット候補を呼び出せる（例 Ctrl + Space による補完）
           - 各スニペットは以下の種類に対応している
@@ -28,6 +30,7 @@ epics:
         i want: VS CodeのWebView上でYAML形式ストーリーをテーブル形式でプレビューしたい
         so that: ストーリーの構造を表形式で確認できるように
         status: Done
+        points: 13
         definition of done:
           - ユーザーはVS CodeのWebView上でYAML形式ストーリーのテーブル形式プレビューを確認できる
           - テーブルにはエピック、ストーリー、タスクの情報が含まれる
