@@ -37,7 +37,7 @@ epics:
           - 無効なYAML形式ストーリーの場合、エラーメッセージが表示される
           - プレビューは有効なYAML形式ストーリーのみ更新される
           - プレビューは編集内容をリアルタイムで反映する
-      - title: 詳細表示
+      - title: アイテム詳細表示
         as: ユーザー
         i want: VS CodeのWebView上でストーリーをクリックして詳細を表示したい
         so that: YAML形式ストーリーを直接参照することなく詳細を確認できるように
@@ -92,7 +92,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上でエピック、ストーリー、タスクを削除したい
         so that: 不要なコンテンツを視覚的に整理できるように
-        status: ToDo
+        status: Done
         definition of done:
           - ユーザーはVS CodeのWebView上でエピック、ストーリー、タスクを削除できる
           - 削除されたアイテムはUIとYAML形式ストーリーから消える
