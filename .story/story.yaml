@@ -114,7 +114,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上でエピックやストーリーの順序をドラッグ＆ドロップで並べ替えたい
         so that: YAML形式エピックやストーリーを直接編集することなく、視覚的に変更できるように
-        status: ToDo
+        status: Done
         definition of done:
           - 1. ドラッグ操作可能なUI
           - 1.1. ユーザーはVS CodeのWebView上でストーリーをドラッグ＆ドロップで並べ替えできる
