@@ -35,7 +35,7 @@ const webExtensionConfig = {
 	module: {
 		rules: [{
 			test: /\.tsx?$/,
-			exclude: [ /node_modules/, /\.d\.ts$/ ],
+			exclude: [ /node_modules/, /\.test\.tsx?$/, /\.d\.ts$/ ],
 			use: [{
 				loader: 'ts-loader'
 			}]
@@ -79,7 +79,7 @@ const webviewConfig = {
 	module: {
 		rules: [{
 			test: /\.tsx?$/,
-			exclude: /node_modules/,
+			exclude: [ /node_modules/, /\.test\.tsx?$/ ],
 			use: [{
 				loader: 'ts-loader'
 			}]
