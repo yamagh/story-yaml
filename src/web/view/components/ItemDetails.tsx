@@ -55,19 +55,21 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
     return (
         <>
             {selectedItemParent && <ParentInfoCard parent={selectedItemParent} onSelect={handleSelectParent} />}
-            <div>
+            <div className='card p-3 shadow-sm'>
                 <div className="d-flex justify-content-between mb-3">
                     <div>
                         <span className={`badge bg-${type.toLowerCase()}`}>{type}</span>
                     </div>
                     <div>
-                        <button className="btn btn-primary me-2" onClick={onEdit}>Edit</button>
-                        <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                        <button className="btn btn-sm btn-primary me-2" onClick={onEdit}>Edit</button>
+                        <button className="btn btn-sm btn-danger" onClick={handleDelete}>Delete</button>
                     </div>
                 </div>
                 <h4 className="mb-3">{title}</h4>
                 <ItemProperties selectedItem={selectedItem} />
-                <ChildrenList selectedItem={selectedItem} onSelectItem={onSelectParent} onAddItem={onAddItem} />
+            </div>
+            <div className='mt-3'>
+              <ChildrenList selectedItem={selectedItem} onSelectItem={onSelectParent} onAddItem={onAddItem} />
             </div>
             <ConfirmDialog
                 isOpen={isConfirmOpen}

@@ -28,7 +28,7 @@ export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem, onSele
     const addItemType = isEpic(selectedItem) ? 'stories' : 'subtasks';
 
     return (
-        <div className="mt-4">
+        <div className="card p-3 shadow-sm">
             <div className="d-flex justify-content-between align-items-center">
                 <h5>{title}</h5>
                 <button className="btn btn-success btn-sm" onClick={() => onAddItem(addItemType)}>{addButtonText}</button>

@@ -15,7 +15,7 @@ export const ItemForm: React.FC<ItemFormProps> = memo(({ formType, data, onSubmi
     const title = `${isNew ? 'Add New' : 'Edit'} ${formType.charAt(0).toUpperCase() + formType.slice(1, -1)}`;
 
     return (
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} className='card p-3 shadow-sm'>
             <h4>{title}</h4>
             <div className="mb-3">
                 <label htmlFor="title" className="form-label">Title</label>

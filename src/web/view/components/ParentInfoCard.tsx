@@ -16,11 +16,11 @@ export const ParentInfoCard: React.FC<ParentInfoCardProps> = ({ parent, onSelect
     }
 
     return (
-        <div className="card mb-3 bg-light" onClick={onSelect} style={{ cursor: 'pointer' }}>
+        <div className="card mb-3 bg-light shadow-sm" onClick={onSelect} style={{ cursor: 'pointer' }}>
             <div className="card-body py-2">
                 <small className="text-muted">Parent</small>
+                <span className={`ms-1 badge bg-${parentType.toLowerCase()}`}>{parentType}</span>
                 <p className="card-text mb-0 fw-bold">{parent.title}</p>
-                <span className={`badge bg-${parentType.toLowerCase()}`}>{parentType}</span>
             </div>
         </div>
     );

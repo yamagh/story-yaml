@@ -121,10 +121,8 @@ const App = () => {
                         <button className="btn btn-primary me-2" onClick={() => showAddItemForm('epics')}>Add New Epic</button>
                         <button className="btn btn-primary" onClick={() => showAddItemForm('tasks')}>Add New Task</button>
                     </div>
-                    <div className="card">
-                        <div className="card-body">
-                            {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} selectedItemParent={selectedItemParent} onEdit={showEditItemForm} onDelete={deleteItem} onAddItem={(itemType) => showAddItemForm(itemType, selectedItem?.title || null)} onSelectParent={selectItem} />}
-                        </div>
+                    <div className="">
+                      {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} selectedItemParent={selectedItemParent} onEdit={showEditItemForm} onDelete={deleteItem} onAddItem={(itemType) => showAddItemForm(itemType, selectedItem?.title || null)} onSelectParent={selectItem} />}
                     </div>
                 </div>
             </div>
