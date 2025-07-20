@@ -1,149 +1,15 @@
 /* General App Styles */
 body {
   font-family: var(--vscode-font-family);
-  margin: 0;
-  padding: 1rem;
   background-color: var(--vscode-editor-background);
   color: var(--vscode-editor-foreground);
 }
 
-.container {
-  display: flex;
-  gap: 1rem;
-}
-
-.main-content {
-  flex-grow: 1;
-}
-
-/* Table Styles */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-th, td {
-  padding: 8px;
-  text-align: left;
-  border-bottom: 1px solid var(--vscode-editorWidget-border);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-th {
-  background-color: var(--vscode-sideBar-background);
-  font-weight: bold;
-}
-
-tr:hover {
-  background-color: var(--vscode-list-hoverBackground);
-}
-
-/* Item Type Specific Styles */
-.epic {
-  font-weight: bold;
-  background-color: var(--vscode-peekViewEditor-background);
-}
-
-.story {
-  background-color: var(--vscode-editor-selectionBackground);
-  color: var(--vscode-editor-selectionForeground);
-}
-
-.task {
-  background-color: var(--vscode-input-background);
-}
-
-.subtask {
-  font-style: italic;
-  background-color: var(--vscode-editorGutter-commentRangeForeground);
-  opacity: 0.8;
-}
-
-/* Button Styles */
-.add-button, button {
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  border: 1px solid var(--vscode-button-border, transparent);
-  padding: 4px 8px;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.add-button:hover, button:hover {
-  background-color: var(--vscode-button-hoverBackground);
-}
-
-/* Details Panel Styles */
-.details-panel {
-  width: 300px;
-  min-width: 250px;
-  padding: 1rem;
-  border-left: 1px solid var(--vscode-editorWidget-border);
-  background-color: var(--vscode-sideBar-background);
-}
-
-.details-panel h2 {
-  margin-top: 0;
-}
-
-.details-panel p {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-/* Form Styles */
-.form-container {
-  margin-top: 1rem;
-}
-
-.form-container form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-container label {
-  font-weight: bold;
-}
-
-.form-container input,
-.form-container textarea,
-.form-container select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid var(--vscode-input-border);
-  background-color: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
-  border-radius: 4px;
-}
-
-.form-container textarea {
-  min-height: 80px;
-  resize: vertical;
-}
-
-.form-container .form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
 /* Drag and Drop Styles */
-.drag-handle-cell {
-  width: 30px;
-  padding: 0 5px;
-}
-
 .drag-handle {
   cursor: grab;
   color: var(--vscode-editor-foreground);
   opacity: 0.5;
-  width: 1.2em;
-  height: 1.2em;
 }
 
 tr[aria-pressed="true"] {
@@ -153,3 +19,17 @@ tr[aria-pressed="true"] {
 tr[aria-pressed="true"] .drag-handle {
   cursor: grabbing;
 }
+
+.badge.bg-epic {
+    background-color: #6f42c1 !important;
+}
+.badge.bg-story {
+    background-color: #0d6efd !important;
+}
+.badge.bg-task {
+    background-color: #198754 !important;
+}
+.badge.bg-subtask {
+    background-color: #6c757d !important;
+}
+

@@ -10,8 +10,8 @@ import { StoryFile, SubTask, Epic, Story, Task, Item } from '../../types';
 
 // A simple grip icon for the drag handle
 const DragHandle: React.FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 drag-handle">
-        <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v12.5a.75.75 0 01-1.5 0V3.75A.75.75 0 0110 3zM3.75 6a.75.75 0 000 1.5h12.5a.75.75 0 000-1.5H3.75zM3 12.75a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" clipRule="evenodd" />
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-grip-vertical" viewBox="0 0 16 16">
+        <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zM7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
     </svg>
 );
 
@@ -24,9 +24,10 @@ interface RowProps {
     onSelectRow: (item: Item, type: string) => void;
     onShowForm: (type: ItemType, parentId: string | null) => void;
     children?: React.ReactNode;
+    level?: number;
 }
 
-const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, children }) => {
+const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, level = 0 }) => {
     const {
         attributes,
         listeners,
@@ -40,24 +41,35 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
+        '--bs-table-bg-opacity': type === 'Epic' ? 0.1 : (type === 'Story' ? 0.05 : 1),
     };
 
     const getButton = () => {
-        if (type === 'Epic') return <button className="add-button" onClick={(e) => { e.stopPropagation(); onShowForm('stories', item.title); }}>+</button>;
-        if (type === 'Story' || type === 'Task') return <button className="add-button" onClick={(e) => { e.stopPropagation(); onShowForm('subtasks', item.title); }}>+</button>;
+        const buttonClass = "btn btn-sm btn-outline-secondary";
+        if (type === 'Epic') return <button className={buttonClass} onClick={(e) => { e.stopPropagation(); onShowForm('stories', item.title); }}>+</button>;
+        if (type === 'Story' || type === 'Task') return <button className={buttonClass} onClick={(e) => { e.stopPropagation(); onShowForm('subtasks', item.title); }}>+</button>;
         return null;
     };
 
+    const getRowClass = () => {
+        switch(type) {
+            case 'Epic': return 'table-primary';
+            case 'Story': return 'table-info';
+            case 'SubTask': return 'table-light';
+            default: return '';
+        }
+    }
+
     return (
-        <tr ref={setNodeRef} style={style} {...attributes} className={`${type.toLowerCase()}`} onClick={() => onSelectRow(item, type)}>
-            <td className="drag-handle-cell">
+        <tr ref={setNodeRef} style={style} {...attributes} className={getRowClass()} onClick={() => onSelectRow(item, type)}>
+            <td className="text-center align-middle" style={{ cursor: 'grab' }}>
                 <span {...listeners}><DragHandle /></span>
             </td>
-            <td>{type}</td>
-            <td>{item.title}</td>
-            <td>{'status' in item ? item.status : ''}</td>
-            <td>{'points' in item ? item.points : ''}</td>
-            <td>{getButton()}</td>
+            <td><span className={`badge bg-${type.toLowerCase()}`}>{type}</span></td>
+            <td style={{ paddingLeft: `${level * 20 + 10}px` }}>{item.title}</td>
+            <td>{'status' in item ? <span className={`badge bg-secondary`}>{item.status}</span> : ''}</td>
+            <td>{'points' in item ? <span className="badge bg-success">{item.points}</span> : ''}</td>
+            <td className="text-center">{getButton()}</td>
         </tr>
     );
 };
@@ -91,34 +103,35 @@ export const StoryTable: React.FC<StoryTableProps> = memo(({ storyData, onSelect
 
     const { epics = [], tasks = [] } = storyData;
 
-    const renderSubTasks = (subTasks: SubTask[]) => {
+    const renderSubTasks = (subTasks: SubTask[], level: number) => {
         if (!subTasks) return null;
         return subTasks.map((sub) => (
-            <SortableRow key={sub.title} item={sub} type="SubTask" onSelectRow={onSelectRow} onShowForm={onShowForm} />
+            <SortableRow key={sub.title} item={sub} type="SubTask" onSelectRow={onSelectRow} onShowForm={onShowForm} level={level} />
         ));
     };
 
     return (
-        <tbody>
+        <tbody className="table-group-divider">
             <SortableContext items={flattenedItems.map(item => item.title)} strategy={verticalListSortingStrategy}>
                 {epics.map((epic) => (
                     <React.Fragment key={epic.title}>
-                        <SortableRow item={epic} type="Epic" onSelectRow={onSelectRow} onShowForm={onShowForm} />
+                        <SortableRow item={epic} type="Epic" onSelectRow={onSelectRow} onShowForm={onShowForm} level={0} />
                         {epic.stories?.map((story) => (
                             <React.Fragment key={story.title}>
-                                <SortableRow item={story} type="Story" onSelectRow={onSelectRow} onShowForm={onShowForm} />
-                                {renderSubTasks(story['sub tasks'] || [])}
+                                <SortableRow item={story} type="Story" onSelectRow={onSelectRow} onShowForm={onShowForm} level={1} />
+                                {renderSubTasks(story['sub tasks'] || [], 2)}
                             </React.Fragment>
                         ))}
                     </React.Fragment>
                 ))}
                 {tasks.map((task) => (
                     <React.Fragment key={task.title}>
-                        <SortableRow item={task} type="Task" onSelectRow={onSelectRow} onShowForm={onShowForm} />
-                        {renderSubTasks(task['sub tasks'] || [])}
+                        <SortableRow item={task} type="Task" onSelectRow={onSelectRow} onShowForm={onShowForm} level={0} />
+                        {renderSubTasks(task['sub tasks'] || [], 1)}
                     </React.Fragment>
                 ))}
             </SortableContext>
         </tbody>
     );
 });
+

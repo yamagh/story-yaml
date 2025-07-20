@@ -31,37 +31,53 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     };
 
     return (
-        <div className="filter-panel">
-            <div className="filter-group">
-                <strong>Status:</strong>
-                {allStatuses.map(status => (
-                    <label key={status}>
+        <div className="card mb-3">
+            <div className="card-body">
+                <div className="row g-3 align-items-center">
+                    <div className="col-auto">
+                        <strong>Status:</strong>
+                    </div>
+                    <div className="col-auto">
+                        {allStatuses.map(status => (
+                            <div className="form-check form-check-inline" key={status}>
+                                <input
+                                    className="form-check-input"
+                                    type="checkbox"
+                                    id={`status-${status}`}
+                                    checked={statusFilter.includes(status)}
+                                    onChange={() => handleStatusChange(status)}
+                                />
+                                <label className="form-check-label" htmlFor={`status-${status}`}>
+                                    {status}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="col-auto">
+                        <label htmlFor="sprint-filter" className="col-form-label"><strong>Sprint:</strong></label>
+                    </div>
+                    <div className="col-auto">
+                        <select id="sprint-filter" className="form-select" value={sprintFilter} onChange={e => onSprintChange(e.target.value)}>
+                            <option value="">All</option>
+                            {sprints.map(sprint => (
+                                <option key={sprint} value={sprint}>{sprint}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="col-auto">
+                        <label htmlFor="keyword-filter" className="col-form-label"><strong>Keyword:</strong></label>
+                    </div>
+                    <div className="col-auto">
                         <input
-                            type="checkbox"
-                            checked={statusFilter.includes(status)}
-                            onChange={() => handleStatusChange(status)}
+                            id="keyword-filter"
+                            type="text"
+                            className="form-control"
+                            value={keywordFilter}
+                            onChange={e => onKeywordChange(e.target.value)}
+                            placeholder="Search by keyword..."
                         />
-                        {status}
-                    </label>
-                ))}
-            </div>
-            <div className="filter-group">
-                <strong>Sprint:</strong>
-                <select value={sprintFilter} onChange={e => onSprintChange(e.target.value)}>
-                    <option value="">All</option>
-                    {sprints.map(sprint => (
-                        <option key={sprint} value={sprint}>{sprint}</option>
-                    ))}
-                </select>
-            </div>
-            <div className="filter-group">
-                <strong>Keyword:</strong>
-                <input
-                    type="text"
-                    value={keywordFilter}
-                    onChange={e => onKeywordChange(e.target.value)}
-                    placeholder="Search by keyword..."
-                />
+                    </div>
+                </div>
             </div>
         </div>
     );

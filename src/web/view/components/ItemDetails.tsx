@@ -25,7 +25,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
     }, [selectedItem, onDelete]);
 
     if (!selectedItem) {
-        return <p>Click on an item to see details or add a new item.</p>;
+        return <div className="alert alert-info">Click on an item to see details or add a new item.</div>;
     }
 
     const { type, title, description } = selectedItem;
@@ -43,25 +43,31 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
 
     return (
         <>
-            <div className="details-view">
-                <button onClick={onEdit}>Edit</button>
-                <button onClick={handleDelete}>Delete</button>
-                <h3>{type}: {title}</h3>
+            <div>
+                <div className="d-flex justify-content-end mb-3">
+                    <button className="btn btn-primary me-2" onClick={onEdit}>Edit</button>
+                    <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
+                </div>
+                <h4 className="mb-3">{type}: {title}</h4>
                 {description && <p><strong>Description:</strong> {description}</p>}
-                {status && <p><strong>Status:</strong> {status}</p>}
-                {points !== undefined && <p><strong>Points:</strong> {points}</p>}
+                {status && <p><strong>Status:</strong> <span className="badge bg-secondary">{status}</span></p>}
+                {points !== undefined && <p><strong>Points:</strong> <span className="badge bg-success">{points}</span></p>}
                 {sprint && <p><strong>Sprint:</strong> {sprint}</p>}
                 {type === 'Story' && (
-                    <>
-                        <p><strong>As a:</strong> {as}</p>
-                        <p><strong>I want:</strong> {iWant}</p>
-                        <p><strong>So that:</strong> {soThat}</p>
-                    </>
+                    <div className="card my-3">
+                        <div className="card-body">
+                            <p className="card-text"><strong>As a:</strong> {as}</p>
+                            <p className="card-text"><strong>I want:</strong> {iWant}</p>
+                            <p className="card-text"><strong>So that:</strong> {soThat}</p>
+                        </div>
+                    </div>
                 )}
                 {dod && dod.length > 0 && (
                     <div>
                         <strong>Definition of Done:</strong>
-                        <ul>{dod.map((item: string, index: number) => <li key={index}>{item}</li>)}</ul>
+                        <ul className="list-group mt-2">
+                            {dod.map((item: string, index: number) => <li key={index} className="list-group-item">{item}</li>)}
+                        </ul>
                     </div>
                 )}
             </div>

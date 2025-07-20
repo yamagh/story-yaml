@@ -14,15 +14,20 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({ isOpen, onClose, o
     }
 
     return (
-        <div className="confirm-dialog-overlay">
-            <div className="confirm-dialog">
-                <h3>{title}</h3>
-                <div className="confirm-dialog-content">
-                    {children}
-                </div>
-                <div className="confirm-dialog-actions">
-                    <button onClick={onClose}>Cancel</button>
-                    <button onClick={onConfirm} className="confirm-button">Confirm</button>
+        <div className="modal" tabIndex={-1} style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title">{title}</h5>
+                        <button type="button" className="btn-close" onClick={onClose} aria-label="Close"></button>
+                    </div>
+                    <div className="modal-body">
+                        {children}
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                        <button type="button" className="btn btn-danger" onClick={onConfirm}>Confirm</button>
+                    </div>
                 </div>
             </div>
         </div>

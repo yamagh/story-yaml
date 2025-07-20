@@ -15,40 +15,65 @@ export const ItemForm: React.FC<ItemFormProps> = memo(({ formType, data, onSubmi
     const title = `${isNew ? 'Add New' : 'Edit'} ${formType.charAt(0).toUpperCase() + formType.slice(1, -1)}`;
 
     return (
-        <form className="form-container" onSubmit={onSubmit}>
-            <h3>{title}</h3>
-            <label>Title: <input name="title" required defaultValue={data.title || ''} /></label>
-            <label>Description: <textarea name="description" defaultValue={data.description || ''}></textarea></label>
+        <form onSubmit={onSubmit}>
+            <h4>{title}</h4>
+            <div className="mb-3">
+                <label htmlFor="title" className="form-label">Title</label>
+                <input id="title" name="title" required defaultValue={data.title || ''} className="form-control" />
+            </div>
+            <div className="mb-3">
+                <label htmlFor="description" className="form-label">Description</label>
+                <textarea id="description" name="description" defaultValue={data.description || ''} className="form-control"></textarea>
+            </div>
 
             {(formType === 'stories' || formType === 'tasks' || formType === 'subtasks') && (
-                <label>Status:
-                    <select name="status" defaultValue={(data as Task).status || 'ToDo'}>
+                <div className="mb-3">
+                    <label htmlFor="status" className="form-label">Status</label>
+                    <select id="status" name="status" defaultValue={(data as Task).status || 'ToDo'} className="form-select">
                         <option>ToDo</option>
                         <option>WIP</option>
                         <option>Done</option>
                     </select>
-                </label>
+                </div>
             )}
 
             {(formType === 'stories' || formType === 'tasks') && (
                 <>
-                    <label>Points: <input name="points" type="number" defaultValue={(data as Task).points || '0'} /></label>
-                    <label>Sprint: <input name="sprint" defaultValue={(data as Task).sprint || ''} /></label>
-                    <label>Definition of Done (one per line): <textarea name="dod" rows={3} defaultValue={(data as Task)['definition of done']?.join('\n') || ''}></textarea></label>
+                    <div className="mb-3">
+                        <label htmlFor="points" className="form-label">Points</label>
+                        <input id="points" name="points" type="number" defaultValue={(data as Task).points || '0'} className="form-control" />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="sprint" className="form-label">Sprint</label>
+                        <input id="sprint" name="sprint" defaultValue={(data as Task).sprint || ''} className="form-control" />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="dod" className="form-label">Definition of Done (one per line)</label>
+                        <textarea id="dod" name="dod" rows={3} defaultValue={(data as Task)['definition of done']?.join('\n') || ''} className="form-control"></textarea>
+                    </div>
                 </>
             )}
 
             {formType === 'stories' && (
                 <div id="story-fields">
-                    <label>As a: <input name="as" defaultValue={(data as Story).as || ''} /></label>
-                    <label>I want: <input name="i-want" defaultValue={(data as Story)['i want'] || ''} /></label>
-                    <label>So that: <input name="so-that" defaultValue={(data as Story)['so that'] || ''} /></label>
+                    <div className="mb-3">
+                        <label htmlFor="as" className="form-label">As a</label>
+                        <input id="as" name="as" defaultValue={(data as Story).as || ''} className="form-control" />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="i-want" className="form-label">I want</label>
+                        <input id="i-want" name="i-want" defaultValue={(data as Story)['i want'] || ''} className="form-control" />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="so-that" className="form-label">So that</label>
+                        <input id="so-that" name="so-that" defaultValue={(data as Story)['so that'] || ''} className="form-control" />
+                    </div>
                 </div>
             )}
 
-            <div className="form-actions">
-                <button type="submit">Save</button>
-                <button type="button" onClick={onCancel}>Cancel</button>
+            <div className="d-flex justify-content-end">
+                <button type="button" className="btn btn-secondary me-2" onClick={onCancel}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Save</button>
             </div>
         </form>
     );

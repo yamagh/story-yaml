@@ -73,47 +73,59 @@ const App = () => {
     };
 
     if (!storyData) {
-        return <div>Loading...</div>;
+        return (
+            <div className="d-flex justify-content-center align-items-center vh-100">
+                <div className="spinner-border" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="app-container">
-            <div className="panel table-panel">
-                <div className="toolbar">
-                    <button onClick={() => showAddItemForm('epics')}>Add New Epic</button>
-                    <button onClick={() => showAddItemForm('tasks')}>Add New Task</button>
+        <div className="container-fluid mt-3">
+            <div className="row">
+                <div className="col-md-8">
+                    <div className="mb-3">
+                        <button className="btn btn-primary me-2" onClick={() => showAddItemForm('epics')}>Add New Epic</button>
+                        <button className="btn btn-primary" onClick={() => showAddItemForm('tasks')}>Add New Task</button>
+                    </div>
+                    <FilterPanel
+                        sprints={sprints}
+                        statusFilter={filterStatus}
+                        sprintFilter={filterSprint}
+                        keywordFilter={filterKeyword}
+                        onStatusChange={setFilterStatus}
+                        onSprintChange={setFilterSprint}
+                        onKeywordChange={setFilterKeyword}
+                    />
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <table className="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '30px' }}></th>
+                                    <th>Type</th>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Points</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <StoryTable
+                                storyData={filteredData}
+                                onSelectRow={selectItem}
+                                onShowForm={showAddItemForm}
+                            />
+                        </table>
+                    </DndContext>
                 </div>
-                <FilterPanel
-                    sprints={sprints}
-                    statusFilter={filterStatus}
-                    sprintFilter={filterSprint}
-                    keywordFilter={filterKeyword}
-                    onStatusChange={setFilterStatus}
-                    onSprintChange={setFilterSprint}
-                    onKeywordChange={setFilterKeyword}
-                />
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style={{ width: '30px' }}></th>
-                                <th>Type</th>
-                                <th>Title</th>
-                                <th>Status</th>
-                                <th>Points</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <StoryTable
-                            storyData={filteredData}
-                            onSelectRow={selectItem}
-                            onShowForm={showAddItemForm}
-                        />
-                    </table>
-                </DndContext>
-            </div>
-            <div className="panel details-panel">
-                {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={showEditItemForm} onDelete={deleteItem} />}
+                <div className="col-md-4">
+                    <div className="card">
+                        <div className="card-body">
+                            {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={showEditItemForm} onDelete={deleteItem} />}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
