@@ -102,7 +102,7 @@ epics:
         as: ユーザー
         i want: VS CodeのWebView上でストーリーをスプリントやステータスでフィルタリングしたい
         so that: 関心のあるストーリーだけを表示できるように
-        status: ToDo
+        status: WIP
         definition of done:
           - ユーザーはステータス（ToDo、In Progress、Doneなど）でストーリーを絞り込める。チェックボックスやドロップダウンによる複数選択が可能
           - ユーザーはスプリントでストーリーを絞り込める。スプリント名一覧から選択可能
