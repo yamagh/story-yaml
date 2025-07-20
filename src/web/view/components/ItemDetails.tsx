@@ -72,8 +72,6 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
                       <span className={`badge bg-${type.toLowerCase()}`}>{type}</span>
                     </div>
                     <div>
-                      {type === 'Epic' && <button className="btn btn-success me-2" onClick={() => onAddItem('stories')}>Add New Story</button>}
-                      {type === 'Story' && <button className="btn btn-success me-2" onClick={() => onAddItem('subtasks')}>Add New Subtask</button>}
                       <button className="btn btn-primary me-2" onClick={onEdit}>Edit</button>
                       <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
                     </div>
@@ -100,6 +98,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
                         </ul>
                     </div>
                 )}
+                <ChildrenList selectedItem={selectedItem} onSelectItem={onSelectParent} onAddItem={onAddItem} />
             </div>
             <ConfirmDialog
                 isOpen={isConfirmOpen}
@@ -111,3 +110,46 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
         </>
     );
 });
+
+const ChildrenList: React.FC<{
+    selectedItem: SelectedItem,
+    onSelectItem: (item: Item, type: string) => void,
+    onAddItem: (itemType: 'stories' | 'subtasks') => void
+}> = ({ selectedItem, onSelectItem, onAddItem }) => {
+    const { type } = selectedItem;
+    const children = 'stories' in selectedItem ? selectedItem.stories : ('sub tasks' in selectedItem ? selectedItem['sub tasks'] : undefined);
+
+    if (type !== 'Epic' && type !== 'Story') {
+        return null;
+    }
+
+    const handleSelectChild = (child: Story | SubTask) => {
+        const childType = 'i want' in child ? 'Story' : 'SubTask';
+        onSelectItem(child, childType);
+    };
+
+    const title = type === 'Epic' ? 'Stories' : 'Sub-Tasks';
+    const emptyMessage = type === 'Epic' ? 'No stories yet.' : 'No sub-tasks yet.';
+    const addButtonText = type === 'Epic' ? 'Add New Story' : 'Add New Subtask';
+    const addItemType = type === 'Epic' ? 'stories' : 'subtasks';
+
+    return (
+        <div className="mt-4">
+            <div className="d-flex justify-content-between align-items-center">
+                <h5>{title}</h5>
+                <button className="btn btn-success btn-sm" onClick={() => onAddItem(addItemType)}>{addButtonText}</button>
+            </div>
+            <ul className="list-group mt-2">
+                {children && children.length > 0 ? (
+                    children.map((child) => (
+                        <li key={child.title} className="list-group-item list-group-item-action" onClick={() => handleSelectChild(child)} style={{ cursor: 'pointer' }}>
+                            {child.title}
+                        </li>
+                    ))
+                ) : (
+                    <li className="list-group-item text-muted">{emptyMessage}</li>
+                )}
+            </ul>
+        </div>
+    );
+};
