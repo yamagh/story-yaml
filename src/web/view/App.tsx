@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import './App.css';
 import { useStoryData } from './hooks/useStoryData';
+import { useStoryFilter } from './hooks/useStoryFilter';
 import { ItemForm } from './components/ItemForm';
 import { ItemDetails } from './components/ItemDetails';
 import { StoryTable } from './components/StoryTable';
+import { FilterPanel } from './components/FilterPanel';
+import { Story, Task } from '../types';
 
 const App = () => {
     const {
@@ -20,6 +23,30 @@ const App = () => {
         deleteItem,
     } = useStoryData();
 
+    const {
+        filteredData,
+        setFilterStatus,
+        setFilterSprint,
+        setFilterKeyword,
+        filterStatus,
+        filterSprint,
+        filterKeyword,
+    } = useStoryFilter(storyData);
+
+    const sprints = useMemo(() => {
+        if (!storyData) return [];
+        const sprintSet = new Set<string>();
+        storyData.epics.forEach(epic => {
+            epic.stories?.forEach(story => {
+                if (story.sprint) sprintSet.add(story.sprint);
+            });
+        });
+        storyData.tasks.forEach(task => {
+            if (task.sprint) sprintSet.add(task.sprint);
+        });
+        return Array.from(sprintSet).sort();
+    }, [storyData]);
+
     const renderForm = () => {
         if (!formVisible || !formType) return null;
         return (
@@ -35,8 +62,19 @@ const App = () => {
     return (
         <div className="app-container">
             <div className="panel table-panel">
-                <button onClick={() => showAddItemForm('epics')}>Add New Epic</button>
-                <button onClick={() => showAddItemForm('tasks')}>Add New Task</button>
+                <div className="toolbar">
+                    <button onClick={() => showAddItemForm('epics')}>Add New Epic</button>
+                    <button onClick={() => showAddItemForm('tasks')}>Add New Task</button>
+                </div>
+                <FilterPanel
+                    sprints={sprints}
+                    statusFilter={filterStatus}
+                    sprintFilter={filterSprint}
+                    keywordFilter={filterKeyword}
+                    onStatusChange={setFilterStatus}
+                    onSprintChange={setFilterSprint}
+                    onKeywordChange={setFilterKeyword}
+                />
                 <table>
                     <thead>
                         <tr>
@@ -48,7 +86,7 @@ const App = () => {
                         </tr>
                     </thead>
                     <StoryTable
-                        storyData={storyData}
+                        storyData={filteredData}
                         onSelectRow={selectItem}
                         onShowForm={showAddItemForm}
                     />

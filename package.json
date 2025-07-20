@@ -44,6 +44,7 @@
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.0",
     "@types/assert": "^1.5.11",
     "@types/mocha": "^10.0.10",
     "@types/react": "^19.1.8",
