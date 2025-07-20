@@ -122,7 +122,7 @@ const App = () => {
                 <div className="col-md-4">
                     <div className="card">
                         <div className="card-body">
-                            {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={showEditItemForm} onDelete={deleteItem} />}
+                            {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} onEdit={showEditItemForm} onDelete={deleteItem} onAddItem={(itemType) => showAddItemForm(itemType, selectedItem?.title || null)} />}
                         </div>
                     </div>
                 </div>

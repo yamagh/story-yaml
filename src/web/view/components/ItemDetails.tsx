@@ -8,9 +8,10 @@ interface ItemDetailsProps {
     selectedItem: SelectedItem | null;
     onEdit: () => void;
     onDelete: (item: { title: string }) => void;
+    onAddItem: (itemType: 'stories' | 'subtasks') => void;
 }
 
-export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onEdit, onDelete }) => {
+export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onEdit, onDelete, onAddItem }) => {
     const [isConfirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = useCallback(() => {
@@ -49,6 +50,8 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, onE
                       <span className={`badge bg-${type.toLowerCase()}`}>{type}</span>
                     </div>
                     <div>
+                      {type === 'Epic' && <button className="btn btn-success me-2" onClick={() => onAddItem('stories')}>Add New Story</button>}
+                      {type === 'Story' && <button className="btn btn-success me-2" onClick={() => onAddItem('subtasks')}>Add New Subtask</button>}
                       <button className="btn btn-primary me-2" onClick={onEdit}>Edit</button>
                       <button className="btn btn-danger" onClick={handleDelete}>Delete</button>
                     </div>
