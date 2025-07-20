@@ -137,8 +137,15 @@ export const useStoryData = () => {
         } else {
             addItem({ itemType: formType!, parentTitle: formParentId || undefined, values: newOrUpdatedData as any });
         }
-        hideForm();
-    }, [state, addItem, updateItem, hideForm]);
+        
+        // Select the newly saved item to show its details.
+        const itemTypeString = formType!.slice(0, -1); // 'epics' -> 'epic'
+        const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1); // 'epic' -> 'Epic'
+        const selectedItemData = isEditing ? { ...formItemData, ...newOrUpdatedData } : newOrUpdatedData;
+        
+        selectItem(selectedItemData as Item, type);
+
+    }, [state, addItem, updateItem, selectItem]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
