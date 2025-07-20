@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useVscode } from './useVscode';
 import { Item, ItemType, Status, Story, Task, StoryFile, Epic, SubTask } from '../../types';
 import { DragEndEvent } from '@dnd-kit/core';
+import { isEpic, isStory, isTask } from '../../typeGuards';
 
 // 状態の型定義
 interface StoryDataState {
@@ -26,29 +27,29 @@ const initialState: StoryDataState = {
 };
 
 const findItemAndParent = (
-    nodes: (Epic | Task | Story | SubTask)[],
+    nodes: Item[],
     id: string,
     parent: (Epic | Story | Task) | null = null
 ): { item: Item; parent: (Epic | Story | Task) | null; type: ItemType } | null => {
     for (const node of nodes) {
         if (node.title === id) {
             let type: ItemType;
-            if ('stories' in node) {
+            if (isEpic(node)) {
                 type = 'epics';
             } else if (parent === null) {
                 type = 'tasks'; // Top-level task
-            } else if ('stories' in parent) {
+            } else if (isEpic(parent)) {
                 type = 'stories';
             } else {
                 type = 'subtasks';
             }
             return { item: node, parent, type };
         }
-        if ('stories' in node && node.stories) {
+        if (isEpic(node) && node.stories) {
             const found = findItemAndParent(node.stories, id, node);
             if (found) {return found;}
         }
-        if ('sub tasks' in node && node['sub tasks']) {
+        if ((isStory(node) || isTask(node)) && node['sub tasks']) {
             const found = findItemAndParent(node['sub tasks'], id, node);
             if (found) {return found;}
         }
