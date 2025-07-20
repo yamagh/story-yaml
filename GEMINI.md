@@ -21,6 +21,7 @@ context:
     - frontend: React
     - backend: Node.js (Express)
     - database: sqlite
+    - css: bootstrap
 
 directory_structure:
   - (This File)
