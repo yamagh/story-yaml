@@ -44,11 +44,11 @@ const findItemAndParent = (
         }
         if ('stories' in node && node.stories) {
             const found = findItemAndParent(node.stories, id, node);
-            if (found) return found;
+            if (found) {return found;}
         }
         if ('sub tasks' in node && node['sub tasks']) {
             const found = findItemAndParent(node['sub tasks'], id, node);
-            if (found) return found;
+            if (found) {return found;}
         }
     }
     return null;
@@ -83,7 +83,7 @@ export const useStoryData = () => {
     }, []);
 
     const showEditItemForm = useCallback(() => {
-        if (!state.selectedItem) return;
+        if (!state.selectedItem) {return;}
         const typeStr = state.selectedItem.type.toLowerCase().replace(' ', '');
         const itemType = (typeStr === 'story' ? 'stories' : typeStr + 's') as ItemType;
         setState({
@@ -148,14 +148,14 @@ export const useStoryData = () => {
         }
 
         const newStoryData = JSON.parse(JSON.stringify(storyData)) as StoryFile;
-        if (!newStoryData) return;
+        if (!newStoryData) {return;}
 
         const allTopLevelItems: (Epic | Task)[] = [...newStoryData.epics, ...newStoryData.tasks];
 
         const activeInfo = findItemAndParent(allTopLevelItems, active.id.toString());
         const overInfo = findItemAndParent(allTopLevelItems, over.id.toString());
 
-        if (!activeInfo || !overInfo) return;
+        if (!activeInfo || !overInfo) {return;}
 
         // --- 1. Remove the active item from its original parent ---
         const activeParentCollection: any[] | undefined =
@@ -163,12 +163,12 @@ export const useStoryData = () => {
                 ? ('stories' in activeInfo.item ? newStoryData.epics : newStoryData.tasks)
                 : ('stories' in activeInfo.parent ? (activeInfo.parent as Epic).stories : (activeInfo.parent as Story | Task)['sub tasks']);
 
-        if (!activeParentCollection) return;
+        if (!activeParentCollection) {return;}
         const activeIndex = activeParentCollection.findIndex(i => i.title === active.id);
-        if (activeIndex === -1) return;
+        if (activeIndex === -1) {return;}
 
         const [movedItem] = activeParentCollection.splice(activeIndex, 1);
-        if (!movedItem) return;
+        if (!movedItem) {return;}
 
         // --- 2. Determine destination and insert ---
         const activeType = activeInfo.type;

@@ -18,19 +18,19 @@ export const useStoryFilter = (storyData: StoryFile | null) => {
         const lowerCaseKeyword = filterKeyword.toLowerCase();
 
         const keywordFilter = (item: Item): boolean => {
-            if (!lowerCaseKeyword) return true;
+            if (!lowerCaseKeyword) {return true;}
             const titleMatch = item.title.toLowerCase().includes(lowerCaseKeyword);
             const descriptionMatch = item.description?.toLowerCase().includes(lowerCaseKeyword) ?? false;
             return titleMatch || descriptionMatch;
         };
 
         const statusFilter = (item: Item): boolean => {
-            if (filterStatus.length === 0) return true;
+            if (filterStatus.length === 0) {return true;}
             return itemHasStatus(item) && filterStatus.includes(item.status);
         };
 
         const sprintFilter = (item: Item): boolean => {
-            if (!filterSprint) return true;
+            if (!filterSprint) {return true;}
             return itemHasSprint(item) && item.sprint === filterSprint;
         };
 

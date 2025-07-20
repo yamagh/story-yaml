@@ -14,7 +14,7 @@ export class WebviewPanelManager {
         this._extensionUri = extensionUri;
     }
 
-    public createOrShow(document: vscode.TextDocument) {
+    public async createOrShow(document: vscode.TextDocument) {
         this._document = document;
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
@@ -36,7 +36,7 @@ export class WebviewPanelManager {
             }
         );
 
-        this._panel.webview.html = this._getHtmlForWebview(this._panel.webview);
+        this._panel.webview.html = await this._getHtmlForWebview(this._panel.webview);
 
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
@@ -101,7 +101,7 @@ export class WebviewPanelManager {
     }
 
     private async updateStoryFile(message: WebviewMessage & { command: 'updateStoryFile' }) {
-        if (!this._document) return;
+        if (!this._document) {return;}
         const newContent = StoryYamlService.saveStoryFile(message.storyFile);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
@@ -109,7 +109,7 @@ export class WebviewPanelManager {
     }
 
     private async addItemToStoryFile(message: WebviewMessage & { command: 'addItem' }) {
-        if (!this._document) return;
+        if (!this._document) {return;}
         const newContent = StoryYamlService.updateStoryContent(this._document.getText(), message.item);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
@@ -117,7 +117,7 @@ export class WebviewPanelManager {
     }
 
     private async updateItemInStoryFile(message: WebviewMessage & { command: 'updateItem' }) {
-        if (!this._document) return;
+        if (!this._document) {return;}
         const newContent = StoryYamlService.updateStoryContentForItemUpdate(this._document.getText(), message.item);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
@@ -125,30 +125,24 @@ export class WebviewPanelManager {
     }
 
     private async deleteItemFromStoryFile(message: WebviewMessage & { command: 'deleteItem' }) {
-        if (!this._document) return;
+        if (!this._document) {return;}
         const newContent = StoryYamlService.deleteItemFromStoryFile(this._document.getText(), message.item);
         const edit = new vscode.WorkspaceEdit();
         edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
         await vscode.workspace.applyEdit(edit);
     }
 
-    private _getHtmlForWebview(webview: vscode.Webview) {
+    private async _getHtmlForWebview(webview: vscode.Webview): Promise<string> {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'dist', 'web', 'webview.js'));
         const nonce = getNonce();
-        return `
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Story YAML Preview</title>
-            </head>
-            <body>
-                <div id="root"></div>
-                <script nonce="${nonce}" src="${scriptUri}"></script>
-            </body>
-            </html>
-        `;
+
+        const htmlPath = vscode.Uri.joinPath(this._extensionUri, 'dist', 'web', 'index.html');
+        const htmlContent = await vscode.workspace.fs.readFile(htmlPath);
+        const decodedHtml = new TextDecoder('utf-8').decode(htmlContent);
+
+        return decodedHtml
+            .replace('{{nonce}}', nonce)
+            .replace('{{scriptUri}}', scriptUri.toString());
     }
 }
 

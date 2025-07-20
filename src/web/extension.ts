@@ -7,10 +7,10 @@ export function activate(context: vscode.ExtensionContext) {
     const panelManager = new WebviewPanelManager(context.extensionUri);
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('story-yaml.preview', () => {
+        vscode.commands.registerCommand('story-yaml.preview', async () => {
             const editor = vscode.window.activeTextEditor;
             if (editor) {
-                panelManager.createOrShow(editor.document);
+                await panelManager.createOrShow(editor.document);
             } else {
                 vscode.window.showErrorMessage('No active editor');
             }

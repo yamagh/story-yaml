@@ -4,6 +4,8 @@
 const path = require('path');
 const webpack = require('webpack');
 
+const CopyPlugin = require('copy-webpack-plugin');
+
 const webExtensionConfig = {
 	mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
 	target: 'webworker', // extensions run in a webworker context
@@ -90,6 +92,11 @@ const webviewConfig = {
 		new webpack.ProvidePlugin({
 			process: 'process/browser',
 		}),
+		new CopyPlugin({
+			patterns: [
+				{ from: './src/web/view/index.html', to: 'index.html' }
+			]
+		})
 	],
 	performance: {
 		hints: false

@@ -12,8 +12,8 @@ export class StoryYamlService {
     public static updateStoryContent(content: string, item: { itemType: string; parentTitle?: string; values: Omit<Item, 'stories' | 'sub tasks'> }): string {
         const doc = yaml.load(content) as StoryFile || { epics: [], tasks: [] };
 
-        if (!doc.epics) doc.epics = [];
-        if (!doc.tasks) doc.tasks = [];
+        if (!doc.epics) {doc.epics = [];}
+        if (!doc.tasks) {doc.tasks = [];}
 
         const itemType = item.itemType as ItemType;
         let data: ItemData;
@@ -73,11 +73,11 @@ export class StoryYamlService {
                 }
                 if ('stories' in item && item.stories) {
                     const found = findParent(item.stories);
-                    if (found) return found;
+                    if (found) {return found;}
                 }
                 if ('sub tasks' in item && item['sub tasks']) {
                     const found = findParent(item['sub tasks']);
-                    if (found) return found;
+                    if (found) {return found;}
                 }
             }
             return undefined;
@@ -95,7 +95,7 @@ export class StoryYamlService {
 
     public static updateStoryContentForItemUpdate(content: string, item: { originalTitle: string, updatedData: Item & { type: string } }): string {
         const doc = yaml.load(content) as StoryFile;
-        if (!doc) return content;
+        if (!doc) {return content;}
 
         const { type, ...newData } = item.updatedData;
 
@@ -106,7 +106,7 @@ export class StoryYamlService {
     }
 
     private static findAndReplace(collection: (Epic | Story | Task | SubTask)[], title: string, newData: Partial<ItemData>): boolean {
-        if (!collection) return false;
+        if (!collection) {return false;}
         const itemIndex = collection.findIndex(i => i.title === title);
         if (itemIndex > -1) {
             collection[itemIndex] = { ...collection[itemIndex], ...newData };
@@ -125,10 +125,10 @@ export class StoryYamlService {
 
     public static deleteItemFromStoryFile(content: string, itemToDelete: { title: string }): string {
         const doc = yaml.load(content) as StoryFile;
-        if (!doc) return content;
+        if (!doc) {return content;}
 
         const removeItem = (collection: any[], title: string): boolean => {
-            if (!collection) return false;
+            if (!collection) {return false;}
             const itemIndex = collection.findIndex(i => i.title === title);
             if (itemIndex > -1) {
                 collection.splice(itemIndex, 1);
