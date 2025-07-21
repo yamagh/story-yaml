@@ -56,4 +56,5 @@ export type WebviewMessage =
     | { command: 'updateStoryFile'; storyFile: StoryFile };
 
 export type ExtensionMessage =
-    | { command: 'update'; storyFile: StoryFile };
+    | { command: 'update'; storyFile: StoryFile }
+    | { command: 'yamlError'; error: string };

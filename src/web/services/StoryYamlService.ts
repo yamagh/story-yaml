@@ -5,12 +5,21 @@ type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type ItemData = Epic | Story | Task | SubTask;
 
 export class StoryYamlService {
+    private static loadYaml(content: string): StoryFile {
+        try {
+            const doc = yaml.load(content) as StoryFile;
+            return doc || { epics: [], tasks: [] };
+        } catch (e) {
+            throw e;
+        }
+    }
+
     public static saveStoryFile(storyFile: StoryFile): string {
         return yaml.dump(storyFile);
     }
 
     public static updateStoryContent(content: string, item: { itemType: string; parentTitle?: string; values: Omit<Item, 'stories' | 'sub tasks'> }): string {
-        const doc = yaml.load(content) as StoryFile || { epics: [], tasks: [] };
+        const doc = this.loadYaml(content);
 
         if (!doc.epics) {doc.epics = [];}
         if (!doc.tasks) {doc.tasks = [];}
@@ -94,8 +103,7 @@ export class StoryYamlService {
     }
 
     public static updateStoryContentForItemUpdate(content: string, item: { originalTitle: string, updatedData: Item & { type: string } }): string {
-        const doc = yaml.load(content) as StoryFile;
-        if (!doc) {return content;}
+        const doc = this.loadYaml(content);
 
         const { type, ...newData } = item.updatedData;
 
@@ -124,8 +132,7 @@ export class StoryYamlService {
     }
 
     public static deleteItemFromStoryFile(content: string, itemToDelete: { title: string }): string {
-        const doc = yaml.load(content) as StoryFile;
-        if (!doc) {return content;}
+        const doc = this.loadYaml(content);
 
         const removeItem = (collection: any[], title: string): boolean => {
             if (!collection) {return false;}

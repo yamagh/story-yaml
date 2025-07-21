@@ -60,7 +60,6 @@ export class WebviewPanelManager {
                         return;
                     case 'updateStoryFile':
                         await this.updateStoryFile(message);
-                        // No need to call update() here as the change originated from the webview
                         return;
                 }
             },
@@ -74,14 +73,17 @@ export class WebviewPanelManager {
             return;
         }
         try {
-            const storyFile = yaml.load(this._document.getText()) as StoryFile;
-            this.postMessage({ command: 'update', storyFile });
+            // yaml.loadはjs-yamlから直接使うのではなく、StoryYamlServiceのメソッド経由でパースする
+            const content = this._document.getText();
+            // StoryYamlService内でパースエラーが起きると例外がスローされる
+            // ここではパースだけが目的なので、loadのようなメソッドがServiceにあると良いが、現状はない
+            // そのため、直接yaml.loadを呼ぶが、エラーハンドリングはしっかり行う
+            const storyFile = yaml.load(content) as StoryFile;
+            this.postMessage({ command: 'update', storyFile: storyFile || { epics: [], tasks: [] } });
         } catch (e) {
-            if (e instanceof Error) {
-                vscode.window.showErrorMessage(`Error parsing YAML: ${e.message}`);
-            } else {
-                vscode.window.showErrorMessage(`An unknown error occurred while parsing YAML.`);
-            }
+            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred while parsing YAML.';
+            vscode.window.showErrorMessage(`Error parsing YAML: ${errorMessage}`);
+            this.postMessage({ command: 'yamlError', error: errorMessage });
         }
     }
 
@@ -101,35 +103,59 @@ export class WebviewPanelManager {
     }
 
     private async updateStoryFile(message: WebviewMessage & { command: 'updateStoryFile' }) {
-        if (!this._document) {return;}
-        const newContent = StoryYamlService.saveStoryFile(message.storyFile);
-        const edit = new vscode.WorkspaceEdit();
-        edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-        await vscode.workspace.applyEdit(edit);
+        if (!this._document) { return; }
+        try {
+            const newContent = StoryYamlService.saveStoryFile(message.storyFile);
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
+            await vscode.workspace.applyEdit(edit);
+        } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+            vscode.window.showErrorMessage(`Error saving YAML: ${errorMessage}`);
+            this.postMessage({ command: 'yamlError', error: errorMessage });
+        }
     }
 
     private async addItemToStoryFile(message: WebviewMessage & { command: 'addItem' }) {
-        if (!this._document) {return;}
-        const newContent = StoryYamlService.updateStoryContent(this._document.getText(), message.item);
-        const edit = new vscode.WorkspaceEdit();
-        edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-        await vscode.workspace.applyEdit(edit);
+        if (!this._document) { return; }
+        try {
+            const newContent = StoryYamlService.updateStoryContent(this._document.getText(), message.item);
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
+            await vscode.workspace.applyEdit(edit);
+        } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+            vscode.window.showErrorMessage(`Error processing YAML: ${errorMessage}`);
+            this.postMessage({ command: 'yamlError', error: errorMessage });
+        }
     }
 
     private async updateItemInStoryFile(message: WebviewMessage & { command: 'updateItem' }) {
-        if (!this._document) {return;}
-        const newContent = StoryYamlService.updateStoryContentForItemUpdate(this._document.getText(), message.item);
-        const edit = new vscode.WorkspaceEdit();
-        edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-        await vscode.workspace.applyEdit(edit);
+        if (!this._document) { return; }
+        try {
+            const newContent = StoryYamlService.updateStoryContentForItemUpdate(this._document.getText(), message.item);
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
+            await vscode.workspace.applyEdit(edit);
+        } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+            vscode.window.showErrorMessage(`Error processing YAML: ${errorMessage}`);
+            this.postMessage({ command: 'yamlError', error: errorMessage });
+        }
     }
 
     private async deleteItemFromStoryFile(message: WebviewMessage & { command: 'deleteItem' }) {
-        if (!this._document) {return;}
-        const newContent = StoryYamlService.deleteItemFromStoryFile(this._document.getText(), message.item);
-        const edit = new vscode.WorkspaceEdit();
-        edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-        await vscode.workspace.applyEdit(edit);
+        if (!this._document) { return; }
+        try {
+            const newContent = StoryYamlService.deleteItemFromStoryFile(this._document.getText(), message.item);
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
+            await vscode.workspace.applyEdit(edit);
+        } catch (e) {
+            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+            vscode.window.showErrorMessage(`Error processing YAML: ${errorMessage}`);
+            this.postMessage({ command: 'yamlError', error: errorMessage });
+        }
     }
 
     private async _getHtmlForWebview(webview: vscode.Webview): Promise<string> {

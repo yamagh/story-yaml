@@ -23,6 +23,8 @@ const App = () => {
         formVisible,
         formType,
         formItemData,
+        error,
+        setError,
         selectItem,
         showAddItemForm,
         showEditItemForm,
@@ -85,6 +87,12 @@ const App = () => {
 
     return (
         <div className="container-fluid mt-3">
+            {error && (
+                <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>YAML Parse Error:</strong> {error}
+                    <button type="button" className="btn-close" onClick={() => setError(null)} aria-label="Close"></button>
+                </div>
+            )}
             <div className="row">
                 <div className="col-md-8">
                     <FilterPanel

@@ -61,7 +61,7 @@ const findItemAndParent = (
 
 
 export const useStoryData = () => {
-    const { storyData: initialStoryData, addItem, updateItem, deleteItem: deleteItemInVscode, updateStoryFile } = useVscode();
+    const { storyData: initialStoryData, error, setError, addItem, updateItem, deleteItem: deleteItemInVscode, updateStoryFile } = useVscode();
     const [storyData, setStoryData] = useState<StoryFile | null>(initialStoryData);
     const [state, setState] = useState<StoryDataState>(initialState);
 
@@ -300,6 +300,8 @@ export const useStoryData = () => {
     return {
         storyData,
         ...state,
+        error,
+        setError,
         selectItem,
         showAddItemForm,
         showEditItemForm,

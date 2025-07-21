@@ -5,11 +5,18 @@ const vscode = acquireVsCodeApi();
 
 export function useVscode() {
     const [storyData, setStoryData] = useState<StoryFile | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const handleMessage = useCallback((event: MessageEvent<ExtensionMessage>) => {
         const message = event.data;
-        if (message.command === 'update') {
-            setStoryData(message.storyFile);
+        switch (message.command) {
+            case 'update':
+                setStoryData(message.storyFile);
+                setError(null); // Clear error on successful update
+                break;
+            case 'yamlError':
+                setError(message.error);
+                break;
         }
     }, []);
 
@@ -41,5 +48,5 @@ export function useVscode() {
         postMessage({ command: 'updateStoryFile', storyFile });
     };
 
-    return { storyData, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
+    return { storyData, error, setError, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
 }
