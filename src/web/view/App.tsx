@@ -5,7 +5,8 @@ import { useStoryFilter } from './hooks/useStoryFilter';
 import { ItemForm } from './components/ItemForm';
 import { ItemDetails } from './components/ItemDetails';
 import { StoryTable } from './components/StoryTable';
-import { FilterPanel } from './components/FilterPanel';
+import { TableHeaderFilter } from './components/TableHeaderFilter';
+import { Status } from '../types';
 import {
     DndContext,
     closestCenter,
@@ -95,15 +96,16 @@ const App = () => {
             )}
             <div className="row">
                 <div className="col-md-8">
-                    <FilterPanel
-                        sprints={sprints}
-                        statusFilter={filterStatus}
-                        sprintFilter={filterSprint}
-                        keywordFilter={filterKeyword}
-                        onStatusChange={setFilterStatus}
-                        onSprintChange={setFilterSprint}
-                        onKeywordChange={setFilterKeyword}
-                    />
+                    <div className="input-group mb-3">
+                        <span className="input-group-text">Keyword</span>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={filterKeyword}
+                            onChange={e => setFilterKeyword(e.target.value)}
+                            placeholder="Search by keyword..."
+                        />
+                    </div>
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <table className="table table-hover">
                             <thead>
@@ -111,9 +113,21 @@ const App = () => {
                                     <th style={{ width: '30px' }}></th>
                                     <th>Type</th>
                                     <th>Title</th>
-                                    <th>Status</th>
+                                    <TableHeaderFilter
+                                        title="Status"
+                                        options={['ToDo', 'WIP', 'Done'] as Status[]}
+                                        selectedOptions={filterStatus}
+                                        onChange={setFilterStatus}
+                                    />
                                     <th>Points</th>
-                                    <th>Sprint</th>
+                                    <TableHeaderFilter
+                                        title="Sprint"
+                                        options={sprints}
+                                        selectedOptions={filterSprint ? [filterSprint] : []}
+                                        onChange={(selected) => setFilterSprint(selected[0] || '')}
+                                        singleSelection={true}
+                                        allowEmpty={true}
+                                    />
                                 </tr>
                             </thead>
                             <StoryTable

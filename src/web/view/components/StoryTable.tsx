@@ -1,12 +1,11 @@
 import React, { memo, useMemo } from 'react';
 import {
     SortableContext,
-    sortableKeyboardCoordinates,
     useSortable,
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { StoryFile, SubTask, Epic, Story, Task, Item } from '../../types';
+import { StoryFile, SubTask, Item, Status } from '../../types';
 import { Badge } from './Badge';
 
 // A simple grip icon for the drag handle
@@ -43,13 +42,6 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
         transition,
         opacity: isDragging ? 0.5 : 1,
         '--bs-table-bg-opacity': type === 'Epic' ? 0.1 : (type === 'Story' ? 0.05 : 1),
-    };
-
-    const getButton = () => {
-        const buttonClass = "btn btn-sm btn-outline-secondary";
-        if (type === 'Epic') return <button className={buttonClass} onClick={(e) => { e.stopPropagation(); onShowForm('stories', item.title); }}>+</button>;
-        if (type === 'Story' || type === 'Task') return <button className={buttonClass} onClick={(e) => { e.stopPropagation(); onShowForm('subtasks', item.title); }}>+</button>;
-        return null;
     };
 
     const getRowClass = () => {
