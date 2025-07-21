@@ -20,18 +20,38 @@ tr[aria-pressed="true"] .drag-handle {
   cursor: grabbing;
 }
 
-.badge.bg-epic {
+/* Badge colors for light theme */
+body:not(.vscode-dark) .badge.bg-epic {
     background-color: #6f42c1 !important;
 }
-.badge.bg-story {
+body:not(.vscode-dark) .badge.bg-story {
     background-color: #0d6efd !important;
 }
-.badge.bg-task {
+body:not(.vscode-dark) .badge.bg-task {
     background-color: #198754 !important;
 }
-.badge.bg-subtask {
+body:not(.vscode-dark) .badge.bg-subtask {
     background-color: #6c757d !important;
 }
+
+/* Badge colors for dark theme */
+body.vscode-dark .badge.bg-epic {
+    background-color: #a078f0 !important;
+    color: #ffffff !important;
+}
+body.vscode-dark .badge.bg-story {
+    background-color: #69a6f8 !important;
+    color: #ffffff !important;
+}
+body.vscode-dark .badge.bg-task {
+    background-color: #76c49f !important;
+    color: #ffffff !important;
+}
+body.vscode-dark .badge.bg-subtask {
+    background-color: #aab1b8 !important;
+    color: #000000 !important;
+}
+
 
 /* Selected row style */
 .selected-row {
@@ -39,3 +59,31 @@ tr[aria-pressed="true"] .drag-handle {
     font-weight: bold;
 }
 
+/* Parent Info Card style */
+.parent-info-card {
+    background-color: var(--vscode-editorWidget-background) !important;
+}
+
+/* Card style override */
+.card {
+    background-color: var(--vscode-sideBar-background);
+    color: var(--vscode-sideBar-foreground);
+    border: 1px solid var(--vscode-sideBar-border);
+}
+
+/* StoryTable style override using Bootstrap CSS variables */
+.table {
+    --bs-table-color: var(--vscode-editor-foreground);
+    --bs-table-bg: var(--vscode-editor-background);
+    --bs-table-border-color: var(--vscode-contrastBorder);
+    --bs-table-hover-color: var(--vscode-list-hoverForeground);
+    --bs-table-hover-bg: var(--vscode-list-hoverBackground);
+}
+
+.table > thead {
+    background-color: var(--vscode-editorWidget-background);
+}
+
+.table-group-divider {
+    border-top-color: var(--vscode-contrastBorder);
+}

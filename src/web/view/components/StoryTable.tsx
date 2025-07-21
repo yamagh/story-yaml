@@ -51,12 +51,6 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
         if (item.title === selectedItem?.title) {
             classes.push('selected-row');
         }
-        switch(type) {
-            case 'Epic': classes.push('table-primary'); break;
-            case 'Story': classes.push('table-light'); break;
-            case 'SubTask': classes.push('table-light'); break;
-            default: break;
-        }
         return classes.join(' ');
     }
 
