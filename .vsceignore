@@ -1,0 +1,5 @@
+.devbox/**
+node_modules/**
+.story/**
+dist/web/**
+docs/images/**
