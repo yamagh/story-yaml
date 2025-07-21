@@ -13,6 +13,7 @@ interface StoryDataState {
     formType: ItemType | null;
     formParentId: string | null;
     formItemData?: Item;
+    formItemParentData?: (Epic | Story | Task) | null;
 }
 
 // 初期状態
@@ -24,6 +25,7 @@ const initialState: StoryDataState = {
     formType: null,
     formParentId: null,
     formItemData: undefined,
+    formItemParentData: undefined,
 };
 
 const findItemAndParent = (
@@ -109,10 +111,11 @@ export const useStoryData = () => {
             isEditing: true,
             formType: itemType,
             formItemData: state.selectedItem,
+            formItemParentData: state.selectedItemParent,
             selectedItem: null,
             selectedItemParent: null,
         });
-    }, [state.selectedItem]);
+    }, [state.selectedItem, state.selectedItemParent]);
 
     const hideForm = useCallback(() => {
         if (state.isEditing && state.formItemData) {
@@ -139,13 +142,14 @@ export const useStoryData = () => {
                 formType: null,
                 formParentId: null,
                 formItemData: undefined,
+                formItemParentData: undefined,
             }));
         }
     }, [state, storyData, selectItem]);
 
     const handleFormSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        const { isEditing, formType, formParentId, formItemData } = state;
+        const { isEditing, formType, formParentId, formItemData, formItemParentData } = state;
         const formData = new FormData(e.target as HTMLFormElement);
 
         const newOrUpdatedData: Partial<Item> = {
@@ -174,14 +178,32 @@ export const useStoryData = () => {
             addItem({ itemType: formType!, parentTitle: formParentId || undefined, values: newOrUpdatedData as any });
         }
         
-        // Select the newly saved item to show its details.
-        const itemTypeString = formType!.slice(0, -1); // 'epics' -> 'epic'
-        const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1); // 'epic' -> 'Epic'
+        const itemTypeString = formType!.slice(0, -1);
+        const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1);
         const selectedItemData = isEditing ? { ...formItemData, ...newOrUpdatedData } : newOrUpdatedData;
-        
-        selectItem(selectedItemData as Item, type);
 
-    }, [state, addItem, updateItem, selectItem]);
+        let parent: (Epic | Story | Task) | null = null;
+        if (isEditing) {
+            parent = formItemParentData || null;
+        } else if (formParentId && storyData) {
+            const allTopLevelItems = [...storyData.epics, ...storyData.tasks];
+            const parentInfo = findItemAndParent(allTopLevelItems, formParentId);
+            parent = parentInfo ? parentInfo.item as (Epic | Story | Task) : null;
+        }
+
+        setState(prevState => ({
+            ...prevState,
+            selectedItem: { ...(selectedItemData as Item), type },
+            selectedItemParent: parent,
+            formVisible: false,
+            isEditing: false,
+            formType: null,
+            formParentId: null,
+            formItemData: undefined,
+            formItemParentData: undefined,
+        }));
+
+    }, [state, addItem, updateItem, storyData]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;

@@ -8,5 +8,9 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/web/view/**/*.test.ts', 'src/web/view/**/*.test.tsx', 'src/web/services/**/*.test.ts'],
     setupFiles: ['src/web/test/setup.ts'],
+    watchOptions: {
+      usePolling: true,
+      interval: 100,
+    },
   },
 });
