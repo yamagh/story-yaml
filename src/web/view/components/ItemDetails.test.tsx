@@ -6,12 +6,17 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ItemDetails } from './ItemDetails';
 import { Epic, Story, Task } from '../../types';
+import { StoryDataProvider, useStoryData } from '../contexts/StoryDataContext';
+
+vi.mock('../contexts/StoryDataContext');
 
 const mockEpic: Epic = {
+    id: 'epic-1',
     title: 'Test Epic',
     description: 'Epic Description',
     stories: [
         {
+            id: 'story-1',
             title: 'Test Story',
             as: 'User',
             'i want': 'to test',
@@ -27,6 +32,7 @@ const mockEpic: Epic = {
 };
 
 const mockStory: Story = {
+    id: 'story-1',
     title: 'Test Story',
     as: 'User',
     'i want': 'to test',
@@ -38,6 +44,7 @@ const mockStory: Story = {
     'definition of done': [],
     'sub tasks': [
         {
+            id: 'subtask-1',
             title: 'Test SubTask',
             description: 'SubTask Description',
             status: 'ToDo',
@@ -46,6 +53,7 @@ const mockStory: Story = {
 };
 
 const mockTask: Task = {
+    id: 'task-1',
     title: 'Test Task',
     description: 'Task Description',
     status: 'ToDo',
@@ -54,162 +62,63 @@ const mockTask: Task = {
     'sub tasks': [],
 };
 
-
 describe('ItemDetails', () => {
-    const onEdit = vi.fn();
-    const onDelete = vi.fn();
-    const onAddItem = vi.fn();
-    const onSelectParent = vi.fn();
+    const showEditItemForm = vi.fn();
+    const deleteItem = vi.fn();
+    const selectItem = vi.fn();
+
+    const renderComponent = (selectedItem: any, selectedItemParent: any = null) => {
+        (useStoryData as vi.Mock).mockReturnValue({
+            selectedItem,
+            selectedItemParent,
+            showEditItemForm,
+            deleteItem,
+            selectItem,
+        });
+
+        return render(
+            <StoryDataProvider>
+                <ItemDetails />
+            </StoryDataProvider>
+        );
+    };
 
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
     it('displays an info message when no item is selected', () => {
-        render(
-            <ItemDetails
-                selectedItem={null}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
+        renderComponent(null);
         expect(screen.getByText('Click on an item to see details or add a new item.')).toBeInTheDocument();
     });
 
     it('displays parent info card when a parent exists', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockStory, type: 'Story' }}
-                selectedItemParent={mockEpic}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
+        renderComponent({ ...mockStory, type: 'Story' }, mockEpic);
         expect(screen.getByText(/Parent/i)).toBeInTheDocument();
         expect(screen.getByText(mockEpic.title)).toBeInTheDocument();
     });
 
     it('does not display parent info card when there is no parent', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockEpic, type: 'Epic' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
+        renderComponent({ ...mockEpic, type: 'Epic' });
         expect(screen.queryByText(/Parent:/)).not.toBeInTheDocument();
     });
 
-    it('displays children list when the item has children', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockEpic, type: 'Epic' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
-        expect(screen.getByText('Stories')).toBeInTheDocument();
-        expect(screen.getByText(mockEpic.stories[0].title)).toBeInTheDocument();
-    });
-
-    it('does not display children list when the item has no children', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockTask, type: 'Task' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
-        expect(screen.queryByText('Sub-Tasks')).not.toBeInTheDocument();
-    });
-
-    it('calls onEdit when the Edit button is clicked', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockStory, type: 'Story' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
+    it('calls showEditItemForm when the Edit button is clicked', () => {
+        renderComponent({ ...mockStory, type: 'Story' });
         fireEvent.click(screen.getByText('Edit'));
-        expect(onEdit).toHaveBeenCalledTimes(1);
+        expect(showEditItemForm).toHaveBeenCalledTimes(1);
     });
 
     it('opens confirm dialog when Delete button is clicked', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockStory, type: 'Story' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
+        renderComponent({ ...mockStory, type: 'Story' });
         fireEvent.click(screen.getByText('Delete'));
         expect(screen.getByText('Delete Story')).toBeInTheDocument();
     });
 
-    it('calls onDelete when deletion is confirmed', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockStory, type: 'Story' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
+    it('calls deleteItem with id when deletion is confirmed', () => {
+        renderComponent({ ...mockStory, type: 'Story' });
         fireEvent.click(screen.getByText('Delete'));
         fireEvent.click(screen.getByText('Confirm'));
-        expect(onDelete).toHaveBeenCalledWith(mockStory.title);
-    });
-
-    it('calls onAddItem when Add New... button is clicked for an Epic', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockEpic, type: 'Epic' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
-        fireEvent.click(screen.getByText('Add New Story'));
-        expect(onAddItem).toHaveBeenCalledWith('stories');
-    });
-
-    it('calls onAddItem when Add New... button is clicked for a Story', () => {
-        render(
-            <ItemDetails
-                selectedItem={{ ...mockStory, type: 'Story' }}
-                selectedItemParent={null}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onAddItem={onAddItem}
-                onSelectParent={onSelectParent}
-            />
-        );
-        fireEvent.click(screen.getByText('Add New Subtask'));
-        expect(onAddItem).toHaveBeenCalledWith('subtasks');
+        expect(deleteItem).toHaveBeenCalledWith(mockStory.id);
     });
 });

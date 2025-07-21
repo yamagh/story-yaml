@@ -35,6 +35,21 @@ tasks:
         status: ToDo
 `;
 
+const duplicateTitleYamlContent = `
+epics:
+  - title: Epic 1
+    description: Epic 1 Description
+    stories:
+      - title: Duplicate Title
+        status: ToDo
+      - title: Duplicate Title
+        status: WIP
+tasks:
+  - title: Task 1
+    description: Task 1 Description
+    status: ToDo
+`;
+
 describe('StoryYamlService', () => {
 
     describe('updateStoryContent (addItem)', () => {
@@ -72,9 +87,11 @@ describe('StoryYamlService', () => {
                 title: 'New Story',
                 status: 'Done',
             };
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const parentEpicId = doc.epics[0].id;
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'stories',
-                parentTitle: 'Epic 1',
+                parentId: parentEpicId,
                 values: newStory as Omit<Item, 'stories' | 'sub tasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
@@ -87,9 +104,11 @@ describe('StoryYamlService', () => {
                 title: 'New SubTask for Story',
                 status: 'ToDo',
             };
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const parentStoryId = doc.epics[0].stories[0].id;
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'subtasks',
-                parentTitle: 'Story 1-1',
+                parentId: parentStoryId,
                 values: newSubTask as Omit<Item, 'stories' | 'sub tasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
@@ -102,9 +121,11 @@ describe('StoryYamlService', () => {
                 title: 'New SubTask for Task',
                 status: 'WIP',
             };
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const parentTaskId = doc.tasks[0].id;
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'subtasks',
-                parentTitle: 'Task 1',
+                parentId: parentTaskId,
                 values: newSubTask as Omit<Item, 'stories' | 'sub tasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
@@ -115,6 +136,8 @@ describe('StoryYamlService', () => {
 
     describe('updateStoryContentForItemUpdate', () => {
         it('should update an existing story, including its title', () => {
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const storyToUpdateId = doc.epics[0].stories[0].id;
             const updatedStoryData = {
                 type: 'stories',
                 title: 'Updated Story Title',
@@ -123,7 +146,7 @@ describe('StoryYamlService', () => {
                 points: 13,
             };
             const result = StoryYamlService.updateStoryContentForItemUpdate(initialYamlContent, {
-                originalTitle: 'Story 1-1',
+                id: storyToUpdateId!,
                 updatedData: updatedStoryData as Item & { type: string },
             });
             const parsedResult = yaml.load(result) as StoryFile;
@@ -135,38 +158,73 @@ describe('StoryYamlService', () => {
         });
 
         it('should update a nested subtask', () => {
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const subtaskToUpdateId = doc.epics[0].stories[0]['sub tasks']![0].id;
             const updatedSubTaskData = {
                 type: 'subtasks',
                 title: 'SubTask 1-1-1',
                 status: 'WIP',
             };
             const result = StoryYamlService.updateStoryContentForItemUpdate(initialYamlContent, {
-                originalTitle: 'SubTask 1-1-1',
+                id: subtaskToUpdateId!,
                 updatedData: updatedSubTaskData as Item & { type: string },
             });
             const parsedResult = yaml.load(result) as StoryFile;
             const subtask = parsedResult.epics[0].stories[0]['sub tasks']![0];
             expect(subtask.status).toBe('WIP');
         });
+
+        it('should update the correct item when titles are duplicated', () => {
+            const doc = StoryYamlService.loadYaml(duplicateTitleYamlContent);
+            const secondStoryId = doc.epics[0].stories[1].id;
+            const updatedStoryData = {
+                type: 'stories',
+                title: 'Unique New Title',
+                status: 'Done',
+            };
+            const result = StoryYamlService.updateStoryContentForItemUpdate(duplicateTitleYamlContent, {
+                id: secondStoryId!,
+                updatedData: updatedStoryData as Item & { type: string },
+            });
+            const parsedResult = yaml.load(result) as StoryFile;
+            expect(parsedResult.epics[0].stories[0].title).toBe('Duplicate Title');
+            expect(parsedResult.epics[0].stories[1].title).toBe('Unique New Title');
+            expect(parsedResult.epics[0].stories[1].status).toBe('Done');
+        });
     });
 
     describe('deleteItemFromStoryFile', () => {
         it('should delete a story', () => {
-            const result = StoryYamlService.deleteItemFromStoryFile(initialYamlContent, { title: 'Story 1-1' });
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const storyToDeleteId = doc.epics[0].stories[0].id;
+            const result = StoryYamlService.deleteItemFromStoryFile(initialYamlContent, { id: storyToDeleteId! });
             const parsedResult = yaml.load(result) as StoryFile;
             expect(parsedResult.epics[0].stories.find(s => s.title === 'Story 1-1')).toBeUndefined();
         });
 
         it('should delete a task', () => {
-            const result = StoryYamlService.deleteItemFromStoryFile(initialYamlContent, { title: 'Task 1' });
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const taskToDeleteId = doc.tasks[0].id;
+            const result = StoryYamlService.deleteItemFromStoryFile(initialYamlContent, { id: taskToDeleteId! });
             const parsedResult = yaml.load(result) as StoryFile;
             expect(parsedResult.tasks.find(t => t.title === 'Task 1')).toBeUndefined();
         });
 
         it('should delete a subtask', () => {
-            const result = StoryYamlService.deleteItemFromStoryFile(initialYamlContent, { title: 'SubTask 1-1-1' });
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const subtaskToDeleteId = doc.epics[0].stories[0]['sub tasks']![0].id;
+            const result = StoryYamlService.deleteItemFromStoryFile(initialYamlContent, { id: subtaskToDeleteId! });
             const parsedResult = yaml.load(result) as StoryFile;
             expect(parsedResult.epics[0].stories[0]['sub tasks']!.find(st => st.title === 'SubTask 1-1-1')).toBeUndefined();
+        });
+
+        it('should delete the correct item when titles are duplicated', () => {
+            const doc = StoryYamlService.loadYaml(duplicateTitleYamlContent);
+            const firstStoryId = doc.epics[0].stories[0].id;
+            const result = StoryYamlService.deleteItemFromStoryFile(duplicateTitleYamlContent, { id: firstStoryId! });
+            const parsedResult = yaml.load(result) as StoryFile;
+            expect(parsedResult.epics[0].stories).toHaveLength(1);
+            expect(parsedResult.epics[0].stories[0].status).toBe('WIP');
         });
     });
 
@@ -177,7 +235,6 @@ epics:
   - title: Epic 1
     description: Epic 1 Description
 `;
-            // StoryYamlServiceのloadYamlはprivateなので、updateStoryContent経由でテストする
             const result = StoryYamlService.updateStoryContent(yamlWithoutTasks, {
                 itemType: 'tasks',
                 values: { title: 'New Task' } as Omit<Item, 'stories' | 'sub tasks'>,
@@ -186,6 +243,34 @@ epics:
             expect(parsedResult.tasks).toBeDefined();
             expect(parsedResult.tasks).toHaveLength(1);
             expect(parsedResult.tasks[0].title).toBe('New Task');
+        });
+
+        it('should assign unique IDs to all items', () => {
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const ids = new Set<string>();
+            const checkIds = (items: Item[]) => {
+                items.forEach(item => {
+                    expect(item.id).toBeDefined();
+                    expect(ids.has(item.id!)).toBe(false);
+                    ids.add(item.id!);
+                    if ('stories' in item && item.stories) {
+                        checkIds(item.stories);
+                    }
+                    if ('sub tasks' in item && item['sub tasks']) {
+                        checkIds(item['sub tasks']);
+                    }
+                });
+            };
+            checkIds(doc.epics);
+            checkIds(doc.tasks);
+        });
+    });
+
+    describe('saveStoryFile', () => {
+        it('should remove id fields before saving', () => {
+            const doc = StoryYamlService.loadYaml(initialYamlContent);
+            const yamlString = StoryYamlService.saveStoryFile(doc);
+            expect(yamlString).not.toContain('id:');
         });
     });
 });

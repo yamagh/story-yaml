@@ -5,28 +5,67 @@ type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type ItemData = Epic | Story | Task | SubTask;
 
 export class StoryYamlService {
-    private static loadYaml(content: string): StoryFile {
+    private static nextId = 0;
+
+    private static addUniqueIds(items: Item[]): Item[] {
+        const assignId = (item: Item) => {
+            if (!item.id) {
+                item.id = (this.nextId++).toString();
+            }
+            if ('stories' in item && item.stories) {
+                item.stories.forEach(assignId);
+            }
+            if ('sub tasks' in item && item['sub tasks']) {
+                item['sub tasks'].forEach(assignId);
+            }
+        };
+        items.forEach(assignId);
+        return items;
+    }
+
+    public static loadYaml(content: string): StoryFile {
         try {
             const doc = yaml.load(content) as StoryFile;
             const validatedDoc = doc || { epics: [], tasks: [] };
+            if (!validatedDoc.epics) {
+                validatedDoc.epics = [];
+            }
             if (!validatedDoc.tasks) {
                 validatedDoc.tasks = [];
             }
+            this.nextId = 0;
+            this.addUniqueIds(validatedDoc.epics);
+            this.addUniqueIds(validatedDoc.tasks);
             return validatedDoc;
         } catch (e) {
             throw e;
         }
     }
 
-    public static saveStoryFile(storyFile: StoryFile): string {
-        return yaml.dump(storyFile);
+    private static removeIds(items: any[]): any[] {
+        return items.map(item => {
+            const { id, ...rest } = item;
+            if (rest.stories) {
+                rest.stories = this.removeIds(rest.stories);
+            }
+            if (rest['sub tasks']) {
+                rest['sub tasks'] = this.removeIds(rest['sub tasks']);
+            }
+            return rest;
+        });
     }
 
-    public static updateStoryContent(content: string, item: { itemType: string; parentTitle?: string; values: Omit<Item, 'stories' | 'sub tasks'> }): string {
+    public static saveStoryFile(storyFile: StoryFile): string {
+        const cleanEpics = this.removeIds(storyFile.epics);
+        const cleanTasks = this.removeIds(storyFile.tasks);
+        return yaml.dump({ epics: cleanEpics, tasks: cleanTasks });
+    }
+
+    public static updateStoryContent(content: string, item: { itemType: string; parentId?: string; values: Omit<Item, 'stories' | 'sub tasks'> }): string {
         const doc = this.loadYaml(content);
 
-        if (!doc.epics) {doc.epics = [];}
-        if (!doc.tasks) {doc.tasks = [];}
+        if (!doc.epics) { doc.epics = []; }
+        if (!doc.tasks) { doc.tasks = []; }
 
         const itemType = item.itemType as ItemType;
         let data: ItemData;
@@ -46,7 +85,7 @@ export class StoryYamlService {
                 return content;
         }
 
-        this.addItem(doc, { itemType, data, parentId: item.parentTitle });
+        this.addItem(doc, { itemType, data, parentId: item.parentId });
 
         return this.saveStoryFile(doc);
     }
@@ -69,7 +108,7 @@ export class StoryYamlService {
     }
 
     private static addStory(doc: StoryFile, story: Story, parentId?: string) {
-        const parentEpic = doc.epics.find((e) => e.title === parentId);
+        const parentEpic = doc.epics.find((e) => e.id === parentId);
         if (parentEpic) {
             if (!parentEpic.stories) {
                 parentEpic.stories = [];
@@ -81,16 +120,16 @@ export class StoryYamlService {
     private static addSubTask(doc: StoryFile, subTask: SubTask, parentId?: string) {
         const findParent = (items: (Epic | Story | Task)[]): (Epic | Story | Task) | undefined => {
             for (const item of items) {
-                if (item.title === parentId) {
+                if (item.id === parentId) {
                     return item;
                 }
                 if ('stories' in item && item.stories) {
                     const found = findParent(item.stories);
-                    if (found) {return found;}
+                    if (found) { return found; }
                 }
                 if ('sub tasks' in item && item['sub tasks']) {
                     const found = findParent(item['sub tasks']);
-                    if (found) {return found;}
+                    if (found) { return found; }
                 }
             }
             return undefined;
@@ -106,60 +145,61 @@ export class StoryYamlService {
         }
     }
 
-    public static updateStoryContentForItemUpdate(content: string, item: { originalTitle: string, updatedData: Item & { type: string } }): string {
+    public static updateStoryContentForItemUpdate(content: string, item: { id: string, updatedData: Item & { type: string } }): string {
         const doc = this.loadYaml(content);
 
         const { type, ...newData } = item.updatedData;
 
-        this.findAndReplace(doc.epics, item.originalTitle, newData);
-        this.findAndReplace(doc.tasks, item.originalTitle, newData);
+        this.findAndReplace(doc.epics, item.id, newData);
+        this.findAndReplace(doc.tasks, item.id, newData);
 
         return this.saveStoryFile(doc);
     }
 
-    private static findAndReplace(collection: (Epic | Story | Task | SubTask)[], title: string, newData: Partial<ItemData>): boolean {
-        if (!collection) {return false;}
-        const itemIndex = collection.findIndex(i => i.title === title);
+    private static findAndReplace(collection: (Epic | Story | Task | SubTask)[], id: string, newData: Partial<ItemData>): boolean {
+        if (!collection) { return false; }
+        const itemIndex = collection.findIndex(i => i.id === id);
         if (itemIndex > -1) {
             collection[itemIndex] = { ...collection[itemIndex], ...newData };
             return true;
         }
         for (const currentItem of collection) {
-            if ('stories' in currentItem && currentItem.stories && this.findAndReplace(currentItem.stories, title, newData)) {
+            if ('stories' in currentItem && currentItem.stories && this.findAndReplace(currentItem.stories, id, newData)) {
                 return true;
             }
-            if ('sub tasks' in currentItem && currentItem['sub tasks'] && this.findAndReplace(currentItem['sub tasks'], title, newData)) {
+            if ('sub tasks' in currentItem && currentItem['sub tasks'] && this.findAndReplace(currentItem['sub tasks'], id, newData)) {
                 return true;
             }
         }
         return false;
     }
 
-    public static deleteItemFromStoryFile(content: string, itemToDelete: { title: string }): string {
+    public static deleteItemFromStoryFile(content: string, itemToDelete: { id: string }): string {
         const doc = this.loadYaml(content);
 
-        const removeItem = (collection: any[], title: string): boolean => {
-            if (!collection) {return false;}
-            const itemIndex = collection.findIndex(i => i.title === title);
+        const removeItem = (collection: any[], id: string): boolean => {
+            if (!collection) { return false; }
+            const itemIndex = collection.findIndex(i => i.id === id);
             if (itemIndex > -1) {
                 collection.splice(itemIndex, 1);
                 return true;
             }
             for (const currentItem of collection) {
-                if (currentItem.stories && removeItem(currentItem.stories, title)) {
+                if (currentItem.stories && removeItem(currentItem.stories, id)) {
                     return true;
                 }
-                if (currentItem['sub tasks'] && removeItem(currentItem['sub tasks'], title)) {
+                if (currentItem['sub tasks'] && removeItem(currentItem['sub tasks'], id)) {
                     return true;
                 }
             }
             return false;
         };
 
-        if (!removeItem(doc.epics, itemToDelete.title)) {
-            removeItem(doc.tasks, itemToDelete.title);
+        if (!removeItem(doc.epics, itemToDelete.id)) {
+            removeItem(doc.tasks, itemToDelete.id);
         }
 
         return this.saveStoryFile(doc);
     }
 }
+

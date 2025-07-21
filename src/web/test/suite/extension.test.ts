@@ -1,9 +1,7 @@
 import * as assert from 'assert';
 import * as yaml from 'js-yaml';
 import { StoryYamlService } from '../../services/StoryYamlService';
-import { Item, Epic, Story, Task, SubTask } from '../../types';
-
-type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
+import { Item } from '../../types';
 
 suite('Extension Logic Test Suite', () => {
 
@@ -19,9 +17,11 @@ suite('Extension Logic Test Suite', () => {
 
     test('updateStoryContent should add a new story to an epic', () => {
         const initialContent = yaml.dump({ epics: [{ title: 'Parent Epic', stories: [] }] });
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const parentEpicId = doc.epics[0].id;
         const newItem = {
             itemType: 'stories',
-            parentTitle: 'Parent Epic',
+            parentId: parentEpicId,
             values: { title: 'New Story' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem as any)) as any;
@@ -41,9 +41,11 @@ suite('Extension Logic Test Suite', () => {
 
     test('updateStoryContent should add a new sub-task to a story', () => {
         const initialContent = yaml.dump({ epics: [{ title: 'Epic', stories: [{ title: 'Parent Story', 'sub tasks': [] }] }] });
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const parentStoryId = doc.epics[0].stories[0].id;
         const newItem = {
             itemType: 'subtasks',
-            parentTitle: 'Parent Story',
+            parentId: parentStoryId,
             values: { title: 'New Sub-task', status: 'ToDo' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem as any)) as any;
@@ -78,8 +80,10 @@ suite('Item Update Logic Test Suite', () => {
 
     test('should update an existing epic', () => {
         const initialContent = yaml.dump(initialDoc);
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const epicToUpdateId = doc.epics[0].id;
         const itemToUpdate = {
-            originalTitle: 'Epic To Edit',
+            id: epicToUpdateId,
             updatedData: { type: 'epics', description: 'Updated epic description' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
@@ -88,8 +92,10 @@ suite('Item Update Logic Test Suite', () => {
 
     test('should update an existing story', () => {
         const initialContent = yaml.dump(initialDoc);
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const storyToUpdateId = doc.epics[0].stories[0].id;
         const itemToUpdate = {
-            originalTitle: 'Story to Edit',
+            id: storyToUpdateId,
             updatedData: { type: 'stories', status: 'WIP' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
@@ -98,8 +104,10 @@ suite('Item Update Logic Test Suite', () => {
 
     test('should update an existing root task', () => {
         const initialContent = yaml.dump(initialDoc);
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const taskToUpdateId = doc.tasks[0].id;
         const itemToUpdate = {
-            originalTitle: 'Task to Edit',
+            id: taskToUpdateId,
             updatedData: { type: 'tasks', status: 'Done' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
@@ -108,11 +116,50 @@ suite('Item Update Logic Test Suite', () => {
 
     test('should update a nested sub-task', () => {
         const initialContent = yaml.dump(initialDoc);
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const subtaskToUpdateId = doc.epics[0].stories[0]['sub tasks']![0].id;
         const itemToUpdate = {
-            originalTitle: 'Sub-task to Edit',
+            id: subtaskToUpdateId,
             updatedData: { type: 'subtasks', status: 'WIP' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate as any)) as any;
         assert.strictEqual(updatedDoc.epics[0].stories[0]['sub tasks'][0].status, 'WIP');
     });
 });
+
+
+suite('Item Deletion Logic Test Suite', () => {
+    let initialDoc: any;
+
+    setup(() => {
+        initialDoc = {
+            epics: [{
+                title: 'Epic With Story',
+                stories: [{ title: 'Story To Delete' }]
+            }],
+            tasks: [{
+                title: 'Task To Delete',
+                'sub tasks': [{ title: 'Sub-task To Keep' }]
+            }]
+        };
+    });
+
+    test('should delete a story from an epic', () => {
+        const initialContent = yaml.dump(initialDoc);
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const storyToDeleteId = doc.epics[0].stories[0].id;
+        const itemToDelete = { id: storyToDeleteId! };
+        const updatedDoc = yaml.load(StoryYamlService.deleteItemFromStoryFile(initialContent, itemToDelete)) as any;
+        assert.strictEqual(updatedDoc.epics[0].stories.length, 0);
+    });
+
+    test('should delete a root task', () => {
+        const initialContent = yaml.dump(initialDoc);
+        const doc = StoryYamlService.loadYaml(initialContent);
+        const taskToDeleteId = doc.tasks[0].id;
+        const itemToDelete = { id: taskToDeleteId! };
+        const updatedDoc = yaml.load(StoryYamlService.deleteItemFromStoryFile(initialContent, itemToDelete)) as any;
+        assert.strictEqual(updatedDoc.tasks.length, 0);
+    });
+});
+

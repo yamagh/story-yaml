@@ -37,7 +37,7 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: item.title });
+    } = useSortable({ id: item.id! });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -48,7 +48,7 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
 
     const getRowClass = () => {
         const classes = [];
-        if (item.title === selectedItem?.title) {
+        if (item.id === selectedItem?.id) {
             classes.push('selected-row');
         }
         return classes.join(' ');
@@ -100,18 +100,18 @@ export const StoryTable: React.FC<StoryTableProps> = memo(({ storyData, onSelect
     const renderSubTasks = (subTasks: SubTask[], level: number) => {
         if (!subTasks) return null;
         return subTasks.map((sub) => (
-            <SortableRow key={sub.title} item={sub} type="SubTask" onSelectRow={onSelectRow} onShowForm={onShowForm} level={level} />
+            <SortableRow key={sub.id} item={sub} type="SubTask" onSelectRow={onSelectRow} onShowForm={onShowForm} level={level} />
         ));
     };
 
     return (
         <tbody className="table-group-divider">
-            <SortableContext items={flattenedItems.map(item => item.title)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={flattenedItems.map(item => item.id!)} strategy={verticalListSortingStrategy}>
                 {epics.map((epic) => (
-                    <React.Fragment key={epic.title}>
+                    <React.Fragment key={epic.id}>
                         <SortableRow item={epic} type="Epic" onSelectRow={onSelectRow} onShowForm={onShowForm} level={0} />
                         {epic.stories?.map((story) => (
-                            <React.Fragment key={story.title}>
+                            <React.Fragment key={story.id}>
                                 <SortableRow item={story} type="Story" onSelectRow={onSelectRow} onShowForm={onShowForm} level={1} />
                                 {renderSubTasks(story['sub tasks'] || [], 2)}
                             </React.Fragment>
@@ -119,7 +119,7 @@ export const StoryTable: React.FC<StoryTableProps> = memo(({ storyData, onSelect
                     </React.Fragment>
                 ))}
                 {tasks.map((task) => (
-                    <React.Fragment key={task.title}>
+                    <React.Fragment key={task.id}>
                         <SortableRow item={task} type="Task" onSelectRow={onSelectRow} onShowForm={onShowForm} level={0} />
                         {renderSubTasks(task['sub tasks'] || [], 1)}
                     </React.Fragment>

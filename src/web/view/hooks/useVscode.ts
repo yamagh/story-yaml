@@ -32,15 +32,15 @@ export function useVscode() {
         vscode.postMessage(message);
     };
 
-    const addItem = (item: { itemType: string, parentTitle?: string, values: Omit<Item, 'stories' | 'sub tasks'> }) => {
+    const addItem = (item: { itemType: string, parentId?: string, values: Omit<Item, 'stories' | 'sub tasks'> }) => {
         postMessage({ command: 'addItem', item });
     };
 
-    const updateItem = (item: { originalTitle: string, updatedData: Item & { type: string } }) => {
+    const updateItem = (item: { id: string, updatedData: Item & { type: string } }) => {
         postMessage({ command: 'updateItem', item });
     };
 
-    const deleteItem = (item: { title: string }) => {
+    const deleteItem = (item: { id: string }) => {
         postMessage({ command: 'deleteItem', item });
     };
 
@@ -50,3 +50,14 @@ export function useVscode() {
 
     return { storyData, error, setError, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
 }
+
+
+// Ensure vscode api is typed
+interface VsCodeApi {
+    postMessage(message: any): void;
+    getState(): any;
+    setState(state: any): void;
+}
+
+declare function acquireVsCodeApi(): VsCodeApi;
+

@@ -73,12 +73,8 @@ export class WebviewPanelManager {
             return;
         }
         try {
-            // yaml.loadはjs-yamlから直接使うのではなく、StoryYamlServiceのメソッド経由でパースする
             const content = this._document.getText();
-            // StoryYamlService内でパースエラーが起きると例外がスローされる
-            // ここではパースだけが目的なので、loadのようなメソッドがServiceにあると良いが、現状はない
-            // そのため、直接yaml.loadを呼ぶが、エラーハンドリングはしっかり行う
-            const storyFile = yaml.load(content) as StoryFile;
+            const storyFile = StoryYamlService.loadYaml(content);
             this.postMessage({ command: 'update', storyFile: storyFile || { epics: [], tasks: [] } });
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred while parsing YAML.';

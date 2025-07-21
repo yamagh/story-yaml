@@ -20,7 +20,7 @@ interface StoryDataContextType {
     showEditItemForm: () => void;
     hideForm: () => void;
     handleFormSubmit: (e: React.FormEvent) => void;
-    deleteItem: (title: string) => void;
+    deleteItem: (id: string) => void;
     handleDragEnd: (event: DragEndEvent) => void;
 }
 
@@ -58,7 +58,7 @@ const findItemAndParent = (
     parent: (Epic | Story | Task) | null = null
 ): { item: Item; parent: (Epic | Story | Task) | null; type: ItemType } | null => {
     for (const node of nodes) {
-        if (node.title === id) {
+        if (node.id === id) {
             let type: ItemType;
             if (isEpic(node)) {
                 type = 'epics';
@@ -92,8 +92,8 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
         setStoryData(initialStoryData);
     }, [initialStoryData]);
 
-    const deleteItem = useCallback((title: string) => {
-        deleteItemInVscode({ title });
+    const deleteItem = useCallback((id: string) => {
+        deleteItemInVscode({ id });
         setState(prevState => ({
             ...prevState,
             selectedItem: null,
@@ -113,7 +113,7 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
             return;
         }
         const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
-        const found = findItemAndParent(allTopLevelItems, item.title);
+        const found = findItemAndParent(allTopLevelItems, item.id!);
 
         setState(prevState => ({
             ...prevState,
@@ -203,9 +203,9 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
 
         if (isEditing && formItemData) {
             const updatedData = { ...formItemData, ...newOrUpdatedData, type: formType! };
-            updateItem({ originalTitle: formItemData.title, updatedData });
+            updateItem({ id: formItemData.id!, updatedData });
         } else {
-            addItem({ itemType: formType!, parentTitle: formParentId || undefined, values: newOrUpdatedData as any });
+            addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as any });
         }
 
         setState(prevState => ({
@@ -249,7 +249,7 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
                 ? ('stories' in activeInfo.item ? newStoryData.epics : newStoryData.tasks)
                 : ('stories' in activeInfo.parent ? (activeInfo.parent as Epic).stories : (activeInfo.parent as Story | Task)['sub tasks']);
         if (!activeParentCollection) return;
-        const activeIndex = activeParentCollection.findIndex(i => i.title === active.id);
+        const activeIndex = activeParentCollection.findIndex(i => i.id === active.id);
         if (activeIndex === -1) return;
         const [movedItem] = activeParentCollection.splice(activeIndex, 1);
         if (!movedItem) return;
@@ -277,7 +277,7 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
                 activeParentCollection.splice(activeIndex, 0, movedItem);
                 return;
             }
-            destinationIndex = destinationCollection.findIndex(i => i.title === over.id);
+            destinationIndex = destinationCollection.findIndex(i => i.id === over.id);
             const destParentType = overInfo.parent ? (('stories' in overInfo.parent) ? 'epics' : ('sub tasks' in overInfo.parent ? 'stories' : 'tasks')) : 'root';
             if (activeType === 'epics' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
             if (activeType === 'tasks' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }

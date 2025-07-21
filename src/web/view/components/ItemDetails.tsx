@@ -19,7 +19,7 @@ export const ItemDetails: React.FC = memo(() => {
 
     const handleConfirmDelete = useCallback(() => {
         if (!selectedItem) return;
-        deleteItem(selectedItem.title);
+        deleteItem(selectedItem.id!);
         setConfirmOpen(false);
     }, [selectedItem, deleteItem]);
 
