@@ -1,3 +1,4 @@
+```yaml
 environment:
   devbox: true
   instructions: >
@@ -33,7 +34,7 @@ directory_structure:
 
 development_flow:
   policy: >
-    トラブルが発生した場合は、まず docs/issue/ に記録された過去のナレッジを参照すること。
+    トラブルが発生した場合は、まず .story/issue/ に記録された過去のナレッジを参照すること。
     類似の解決例が存在しないかを確認してから調査・修正に着手する。
   steps:
     - step: 1
@@ -172,10 +173,10 @@ development_flow:
 
     - step: 6
       name: Issue記録
-      purpose: 直前のタスクで直面したトラブルやその解決方法、試行錯誤の過程を記録し、GitHub Issuesの一般的な使い方に準じた形式で docs/issue/ に保存する。
+      purpose: 直前のタスクで直面したトラブルやその解決方法、試行錯誤の過程を記録し、GitHub Issuesの一般的な使い方に準じた形式で .story/issue/ に保存する。
       depends_on: []
       outputs:
-        - docs/issue/
+        - .story/issue/
       command: '%issue'
       responsibility:
         - 問題の背景、発生条件、現象を明確に記録する
@@ -225,3 +226,4 @@ glossary:
               description: 説明
               status: ToDo
       ```
+```
