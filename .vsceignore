@@ -1,4 +1,4 @@
-.devbox/**
+.devbox/
 node_modules/**
 .story/**
 dist/web/**
