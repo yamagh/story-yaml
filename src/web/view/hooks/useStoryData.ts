@@ -14,6 +14,7 @@ interface StoryDataState {
     formParentId: string | null;
     formItemData?: Item;
     formItemParentData?: (Epic | Story | Task) | null;
+    pendingSelection: string | null;
 }
 
 // 初期状態
@@ -26,6 +27,7 @@ const initialState: StoryDataState = {
     formParentId: null,
     formItemData: undefined,
     formItemParentData: undefined,
+    pendingSelection: null,
 };
 
 const findItemAndParent = (
@@ -159,7 +161,7 @@ export const useStoryData = () => {
 
     const handleFormSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        const { isEditing, formType, formParentId, formItemData, formItemParentData } = state;
+        const { isEditing, formType, formParentId, formItemData } = state;
         const formData = new FormData(e.target as HTMLFormElement);
 
         const newOrUpdatedData: Partial<Item> = {
@@ -187,33 +189,32 @@ export const useStoryData = () => {
         } else {
             addItem({ itemType: formType!, parentTitle: formParentId || undefined, values: newOrUpdatedData as any });
         }
-        
-        const itemTypeString = formType!.slice(0, -1);
-        const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1);
-        const selectedItemData = isEditing ? { ...formItemData, ...newOrUpdatedData } : newOrUpdatedData;
-
-        let parent: (Epic | Story | Task) | null = null;
-        if (isEditing) {
-            parent = formItemParentData || null;
-        } else if (formParentId && storyData) {
-            const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
-            const parentInfo = findItemAndParent(allTopLevelItems, formParentId);
-            parent = parentInfo ? parentInfo.item as (Epic | Story | Task) : null;
-        }
 
         setState(prevState => ({
             ...prevState,
-            selectedItem: { ...(selectedItemData as Item), type },
-            selectedItemParent: parent,
             formVisible: false,
             isEditing: false,
             formType: null,
             formParentId: null,
             formItemData: undefined,
             formItemParentData: undefined,
+            pendingSelection: newOrUpdatedData.title || null,
         }));
 
-    }, [state, addItem, updateItem, storyData]);
+    }, [state, addItem, updateItem]);
+
+    useEffect(() => {
+        if (state.pendingSelection && storyData) {
+            const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
+            const found = findItemAndParent(allTopLevelItems, state.pendingSelection);
+            if (found) {
+                const itemTypeString = found.type.slice(0, -1);
+                const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1);
+                selectItem(found.item, type);
+                setState(prevState => ({ ...prevState, pendingSelection: null }));
+            }
+        }
+    }, [storyData, state.pendingSelection, selectItem]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
