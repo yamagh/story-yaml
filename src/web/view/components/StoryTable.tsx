@@ -7,6 +7,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { StoryFile, SubTask, Item, Status } from '../../types';
 import { Badge } from './Badge';
+import { useStoryData } from '../contexts/StoryDataContext';
 
 // A simple grip icon for the drag handle
 const DragHandle: React.FC = () => (
@@ -28,6 +29,7 @@ interface RowProps {
 }
 
 const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, level = 0 }) => {
+    const { selectedItem } = useStoryData();
     const {
         attributes,
         listeners,
@@ -45,12 +47,17 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
     };
 
     const getRowClass = () => {
-        switch(type) {
-            case 'Epic': return 'table-primary';
-            case 'Story': return 'table-light';
-            case 'SubTask': return 'table-light';
-            default: return '';
+        const classes = [];
+        if (item.title === selectedItem?.title) {
+            classes.push('selected-row');
         }
+        switch(type) {
+            case 'Epic': classes.push('table-primary'); break;
+            case 'Story': classes.push('table-light'); break;
+            case 'SubTask': classes.push('table-light'); break;
+            default: break;
+        }
+        return classes.join(' ');
     }
 
     return (

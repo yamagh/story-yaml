@@ -33,3 +33,9 @@ tr[aria-pressed="true"] .drag-handle {
     background-color: #6c757d !important;
 }
 
+/* Selected row style */
+.selected-row {
+    background-color: var(--vscode-list-hoverBackground) !important;
+    font-weight: bold;
+}
+

@@ -190,3 +190,17 @@ epics:
           - ドロップダウン内には、列に応じたフィルターオプション（チェックボックスやリスト）を配置する
           - フィルター条件が変更されたら、useStoryFilterフックを呼び出してテーブルの表示を更新する
           - 既存のFilterPanelコンポーネントを削除し、App.tsxを修正する
+      - title: 選択中のアイテムをテーブルで強調表示
+        as: ユーザー
+        i want: アイテム詳細で選択中のアイテムが、テーブル上でもハイライト表示されるようにしたい
+        so that: どのアイテムの詳細を見ているか、視覚的にすぐにわかるようにするため
+        description: |
+          アイテム詳細（ItemDetails）でアイテムが選択されているとき、StoryTableの対応する行をハイライトし、ユーザーがどのアイテムを見ているか視覚的に分かりやすくします。
+        status: ToDo
+        points: 2
+        sprint: Sprint 2
+        definition of done:
+          - StoryDataContextにselectedItemの状態が含まれている
+          - StoryTableコンポーネントがuseStoryDataフックからselectedItemを取得する
+          - StoryTableで、現在の行のアイテムがselectedItemと一致する場合、特定のCSSクラス（例：`selected-row`）を行（`<tr>`）に適用する
+          - App.cssに`.selected-row`のためのハイライトスタイル（背景色など）が定義されている

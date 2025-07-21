@@ -1,50 +1,24 @@
 idea:
-  title: テーブルヘッダーからのフィルタリング機能
+  title: 選択中のアイテムをテーブルで強調表示
   description: |
-    現在のフィルタリングパネルの機能を拡張し、テーブルのヘッダーをクリックすることで各列（Status, Sprintなど）のフィルタリングを直感的に行えるようにする。
-    これにより、ユーザーはより少ない操作で目的のデータにたどり着けるようになる。
-
+    アイテム詳細（ItemDetails）でアイテムが選択されているとき、StoryTableの対応する行をハイライトし、ユーザーがどのアイテムを見ているか視覚的に分かりやすくします。
   proposals:
-    - title: StoryTableのヘッダーにフィルタリングUIを統合する
+    - title: 選択行のハイライト機能の実装
       description: |
-        StoryTableの各ヘッダー（例: "Status", "Sprint"）をクリックすると、ドロップダウンメニューが表示され、
-        その場でフィルタリング条件を選択できるようにする。
-        FilterPanelは不要になるため、UIをシンプルにできる。
+        useStoryDataからselectedItemを取得し、StoryTableで対応する行のスタイルを変更する。
       pros:
-        - UIが直感的になり、操作が簡潔になる。
-        - FilterPanelが不要になり、コンポーネント構成がシンプルになる。
+        - UIの視覚的なフィードバックが向上し、選択中のアイテムが明確になる。
+        - ユーザビリティが向上する。
       cons:
-        - 複数のフィルター（例: StatusとSprint）を同時に設定する場合、複数回のクリックが必要になる可能性がある。
-        - 実装の変更範囲が比較的大きい。
+        - ハイライトのスタイル（背景色、ボーダーなど）を他のUI要素と調和させる必要がある。
       implementation_details:
+        - StoryDataContext: selectedItemの状態をStoryTableコンポーネントからアクセス可能にする。
         - StoryTable.tsx:
-            - thead部分をインタラクティブなコンポーネントに変更する。
-            - ヘッダーセルにonClickイベントを追加し、ドロップダウンメニュー（PopoverやDropdownコンポーネント）を表示する。
-            - ドロップダウン内には、列に応じたフィルターオプション（チェックボックスやリスト）を配置する。
-        - useStoryFilter.ts:
-            - フィルターの状態管理ロジックはそのまま利用する。
-            - StoryTableからフィルター条件を受け取り、stateを更新する関数を渡す。
-        - App.tsx (または親コンポーネント):
-            - FilterPanelを削除し、StoryTableに必要なpropsを渡すように修正する。
-
-    - title: 既存のFilterPanelとテーブルヘッダーフィルターを併用する
-      description: |
-        現在のFilterPanelを残しつつ、テーブルヘッダーからもフィルタリングを行えるようにする。
-        両方のUIはフィルタリング状態を同期させる。
-      pros:
-        - 既存のFilterPanelの機能を維持できる。
-        - ユーザーは好みの方法でフィルタリングできる。
-      cons:
-        - 状態の同期が複雑になる可能性がある。
-        - UI上に同様の機能が2箇所に存在することになり、混乱を招く可能性がある。
-      implementation_details:
-        - StoryTable.tsx:
-            - 上記案と同様に、ヘッダーにドロップダウンメニューを追加する。
-        - useStoryFilter.ts / App.tsx:
-            - FilterPanelとStoryTableの両方からフィルター状態を更新できるように、状態管理ロジックを修正する。
-            - どちらか一方のUIでフィルターが変更されたら、もう一方のUIにも変更が反映されるようにする。
-
+            - useStoryDataフックからselectedItemを取得する。
+            - 行を描画する際に、現在のアイテムがselectedItemと一致するかどうかを確認する。
+            - 一致する場合、特定のCSSクラス（例：`table-info`, `selected-row`）を行（`<tr>`）に適用してハイライトする。
+        - App.css:
+            - ハイライト用のCSSクラス（`.selected-row` など）にスタイル（例：`background-color`, `border`）を定義する。
 recommendation: |
-  **「StoryTableのヘッダーにフィルタリングUIを統合する」** 案を推奨します。
-  UIがよりモダンで直感的になり、コンポーネントの責務が明確になるため、長期的なメンテナンス性が向上すると考えられます。
-  FilterPanelを廃止することで、コードベースもよりシンプルになります。
+  **「選択行のハイライト機能の実装」** 案を推奨します。
+  ユーザー体験を大きく向上させる、シンプルで効果的な改善です。
