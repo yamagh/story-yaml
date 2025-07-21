@@ -18,14 +18,14 @@ const AppContent = () => {
     }
 
     return (
-        <div className="container-fluid mt-3">
+        <div className="container-fluid mt-3 d-flex flex-column" style={{ height: 'calc(100vh - 1rem)' }}>
             {error && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
                     <strong>YAML Parse Error:</strong> {error}
                     <button type="button" className="btn-close" onClick={() => setError(null)} aria-label="Close"></button>
                 </div>
             )}
-            <div className="row">
+            <div className="row flex-grow-1" style={{ overflowY: 'hidden' }}>
                 <MainLayout />
                 <Sidebar />
             </div>

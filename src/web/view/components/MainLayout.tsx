@@ -27,7 +27,7 @@ export const MainLayout = () => {
     }, [storyData]);
 
     return (
-        <div className="col-md-8">
+        <div className="col-md-8" style={{ height: '100%', overflowY: 'auto' }}>
             <div className="input-group mb-3">
                 <span className="input-group-text">Keyword</span>
                 <input
