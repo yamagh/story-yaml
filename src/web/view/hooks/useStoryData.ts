@@ -61,13 +61,23 @@ const findItemAndParent = (
 
 
 export const useStoryData = () => {
-    const { storyData: initialStoryData, addItem, updateItem, deleteItem, updateStoryFile } = useVscode();
+    const { storyData: initialStoryData, addItem, updateItem, deleteItem: deleteItemInVscode, updateStoryFile } = useVscode();
     const [storyData, setStoryData] = useState<StoryFile | null>(initialStoryData);
     const [state, setState] = useState<StoryDataState>(initialState);
 
     useEffect(() => {
         setStoryData(initialStoryData);
     }, [initialStoryData]);
+
+    const deleteItem = useCallback((title: string) => {
+        deleteItemInVscode({ title });
+        setState(prevState => ({
+            ...prevState,
+            selectedItem: null,
+            selectedItemParent: null,
+            formVisible: false,
+        }));
+    }, [deleteItemInVscode]);
 
     const selectItem = useCallback((item: Item, type: string) => {
         if (!storyData) {

@@ -12,7 +12,7 @@ interface ItemDetailsProps {
     selectedItem: SelectedItem | null;
     selectedItemParent: (Epic | Story | Task) | null;
     onEdit: () => void;
-    onDelete: (item: { title: string }) => void;
+    onDelete: (title: string) => void;
     onAddItem: (itemType: 'stories' | 'subtasks') => void;
     onSelectParent: (item: Item, type: string) => void;
 }
@@ -27,7 +27,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
 
     const handleConfirmDelete = useCallback(() => {
         if (!selectedItem) return;
-        onDelete({ title: selectedItem.title });
+        onDelete(selectedItem.title);
         setConfirmOpen(false);
     }, [selectedItem, onDelete]);
 
