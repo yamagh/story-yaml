@@ -1,6 +1,7 @@
 import React from 'react';
 import { Item } from '../../types';
 import { isStory } from '../../typeGuards';
+import { Badge } from './Badge';
 
 interface ItemPropertiesProps {
     selectedItem: Item & { type: string };
@@ -16,9 +17,11 @@ export const ItemProperties: React.FC<ItemPropertiesProps> = ({ selectedItem }) 
     return (
         <>
             {description && <p>{description}</p>}
-            {status && <p><strong>Status:</strong> <span className="badge bg-secondary">{status}</span></p>}
-            {points !== undefined && <p><strong>Points:</strong> <span className="badge bg-success">{points}</span></p>}
-            {sprint && <p><strong>Sprint:</strong> {sprint}</p>}
+            <div className='d-flex gap-2 mb-3'>
+                {status && <Badge type="status" value={status} />}
+                {points !== undefined && <Badge type="points" value={points} />}
+                {sprint && <Badge type="sprint" value={sprint} />}
+            </div>
             {isStory(selectedItem) && (
                 <div className="card my-3">
                     <div className="card-body">

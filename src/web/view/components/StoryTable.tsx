@@ -7,6 +7,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { StoryFile, SubTask, Epic, Story, Task, Item } from '../../types';
+import { Badge } from './Badge';
 
 // A simple grip icon for the drag handle
 const DragHandle: React.FC = () => (
@@ -60,25 +61,16 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, onShowForm, 
         }
     }
 
-    const getStatusClass = (status: string) => {
-        switch(status) {
-            case 'ToDo': return 'badge bg-secondary-subtle text-dark';
-            case 'WIP': return 'badge bg-primary-subtle text-dark';
-            case 'Done': return 'badge bg-success';
-            default: return 'badge bg-secondary';
-        }
-    }
-
     return (
         <tr ref={setNodeRef} style={style} {...attributes} className={getRowClass()} onClick={() => onSelectRow(item, type)}>
             <td className="text-center align-middle" style={{ cursor: 'grab' }}>
                 <span {...listeners}><DragHandle /></span>
             </td>
-            <td><span className={`badge bg-${type.toLowerCase()}`}>{type}</span></td>
+            <td><Badge type="type" value={type} itemType={type} /></td>
             <td style={{ paddingLeft: `${level * 30 + 10}px` }}>{item.title}</td>
-            <td>{'status' in item ? <span className={getStatusClass(item.status)}>{item.status}</span> : ''}</td>
-            <td>{'points' in item ? <span className="badge bg-secondary-subtle text-dark">{item.points}</span> : ''}</td>
-            <td>{'sprint' in item ? <span className="badge bg-info-subtle text-dark">{item.sprint}</span> : ''}</td>
+            <td>{'status' in item && <Badge type="status" value={item.status} />}</td>
+            <td>{'points' in item && <Badge type="points" value={item.points} />}</td>
+            <td>{'sprint' in item && <Badge type="sprint" value={item.sprint} />}</td>
         </tr>
     );
 };

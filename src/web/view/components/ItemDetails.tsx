@@ -5,6 +5,7 @@ import { ParentInfoCard } from './ParentInfoCard';
 import { ChildrenList } from './ChildrenList';
 import { ItemProperties } from './ItemProperties';
 import { isEpic, isStory } from '../../typeGuards';
+import { Badge } from './Badge';
 
 type SelectedItem = (Epic | Story | Task | SubTask) & { type: string };
 
@@ -58,7 +59,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
             <div className='card p-3 shadow-sm'>
                 <div className="d-flex justify-content-between mb-3">
                     <div>
-                        <span className={`badge bg-${type.toLowerCase()}`}>{type}</span>
+                        <Badge type="type" value={type} itemType={type} />
                     </div>
                     <div>
                         <button className="btn btn-sm btn-primary me-2" onClick={onEdit}>Edit</button>
