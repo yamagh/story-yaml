@@ -1,80 +1,11 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import './App.css';
-import { useStoryData } from './hooks/useStoryData';
-import { useStoryFilter } from './hooks/useStoryFilter';
-import { ItemForm } from './components/ItemForm';
-import { ItemDetails } from './components/ItemDetails';
-import { StoryTable } from './components/StoryTable';
-import { TableHeaderFilter } from './components/TableHeaderFilter';
-import { Status } from '../types';
-import {
-    DndContext,
-    closestCenter,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
-} from '@dnd-kit/core';
+import { StoryDataProvider, useStoryData } from './contexts/StoryDataContext';
+import { MainLayout } from './components/MainLayout';
+import { Sidebar } from './components/Sidebar';
 
-const App = () => {
-    const {
-        storyData,
-        selectedItem,
-        selectedItemParent,
-        formVisible,
-        formType,
-        formItemData,
-        error,
-        setError,
-        selectItem,
-        showAddItemForm,
-        showEditItemForm,
-        hideForm,
-        handleFormSubmit,
-        deleteItem,
-        handleDragEnd,
-    } = useStoryData();
-
-    const {
-        filteredData,
-        setFilterStatus,
-        setFilterSprint,
-        setFilterKeyword,
-        filterStatus,
-        filterSprint,
-        filterKeyword,
-    } = useStoryFilter(storyData);
-
-    const sensors = useSensors(
-        useSensor(PointerSensor),
-        useSensor(KeyboardSensor)
-    );
-
-    const sprints = useMemo(() => {
-        if (!storyData) return [];
-        const sprintSet = new Set<string>();
-        (storyData.epics || []).forEach(epic => {
-            epic.stories?.forEach(story => {
-                if (story.sprint) sprintSet.add(story.sprint);
-            });
-        });
-        (storyData.tasks || []).forEach(task => {
-            if (task.sprint) sprintSet.add(task.sprint);
-        });
-        return Array.from(sprintSet).sort();
-    }, [storyData]);
-
-    const renderForm = () => {
-        if (!formVisible || !formType) return null;
-        return (
-            <ItemForm
-                formType={formType}
-                data={formItemData || {}}
-                onSubmit={handleFormSubmit}
-                onCancel={hideForm}
-            />
-        );
-    };
+const AppContent = () => {
+    const { storyData, error, setError } = useStoryData();
 
     if (!storyData) {
         return (
@@ -95,61 +26,20 @@ const App = () => {
                 </div>
             )}
             <div className="row">
-                <div className="col-md-8">
-                    <div className="input-group mb-3">
-                        <span className="input-group-text">Keyword</span>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={filterKeyword}
-                            onChange={e => setFilterKeyword(e.target.value)}
-                            placeholder="Search by keyword..."
-                        />
-                    </div>
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                        <table className="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th style={{ width: '30px' }}></th>
-                                    <th>Type</th>
-                                    <th>Title</th>
-                                    <TableHeaderFilter
-                                        title="Status"
-                                        options={['ToDo', 'WIP', 'Done'] as Status[]}
-                                        selectedOptions={filterStatus}
-                                        onChange={setFilterStatus}
-                                    />
-                                    <th>Points</th>
-                                    <TableHeaderFilter
-                                        title="Sprint"
-                                        options={sprints}
-                                        selectedOptions={filterSprint ? [filterSprint] : []}
-                                        onChange={(selected) => setFilterSprint(selected[0] || '')}
-                                        singleSelection={true}
-                                        allowEmpty={true}
-                                    />
-                                </tr>
-                            </thead>
-                            <StoryTable
-                                storyData={filteredData}
-                                onSelectRow={selectItem}
-                                onShowForm={showAddItemForm}
-                            />
-                        </table>
-                    </DndContext>
-                </div>
-                <div className="col-md-4">
-                    <div className="mb-3 d-flex justify-content-end">
-                        <button className="btn btn-primary me-2" onClick={() => showAddItemForm('epics')}>Add New Epic</button>
-                        <button className="btn btn-primary" onClick={() => showAddItemForm('tasks')}>Add New Task</button>
-                    </div>
-                    <div className="">
-                      {formVisible ? renderForm() : <ItemDetails selectedItem={selectedItem} selectedItemParent={selectedItemParent} onEdit={showEditItemForm} onDelete={deleteItem} onAddItem={(itemType) => showAddItemForm(itemType, selectedItem?.title || null)} onSelectParent={selectItem} />}
-                    </div>
-                </div>
+                <MainLayout />
+                <Sidebar />
             </div>
         </div>
+    );
+}
+
+const App = () => {
+    return (
+        <StoryDataProvider>
+            <AppContent />
+        </StoryDataProvider>
     );
 };
 
 export default App;
+

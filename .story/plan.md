@@ -1,112 +1,48 @@
-# テーブルヘッダーからのフィルタリング機能 実装計画
+# コードベース改善計画
 
 ## 1. 目的 (Goal)
 
--   現在の `FilterPanel` コンポーネントを廃止し、テーブルのヘッダーから直接フィルタリング（Status, Sprint, Keyword）を行えるようにUIを改善する。
--   UIをより直感的でモダンなものにし、コンポーネント構成をシンプルにする。
+-   コンポーネントとフックの責務を明確に分割し、コードの可読性、保守性、テスト容易性を向上させる。
+-   特に `App.tsx` と `useStoryData.ts` の複雑さを解消し、関心事を分離する。
 
-## 2. 影響範囲 (Affected Files)
+## 2. 改善方針 (Strategy)
 
--   `src/web/view/App.tsx`: `FilterPanel` の削除と、キーワード検索UIの追加。
--   `src/web/view/components/StoryTable.tsx`: ヘッダー (`<thead>`) をインタラクティブにする。
--   `src/web/view/components/FilterPanel.tsx`: **削除**
--   `src/web/view/hooks/useStoryFilter.ts`: 変更なし。ロジックはそのまま再利用する。
--   **新規作成**: `src/web/view/components/TableHeaderFilter.tsx` - ヘッダーにドロップダウンフィルターを追加するための再利用可能なコンポーネント。
+-   **状態管理の分離**: React Context API を導入し、アプリケーション全体で共有される状態（`storyData`, `selectedItem` など）と、それを更新するロジック（`selectItem`, `handleFormSubmit` など）をカプセル化する。
+-   **コンポーネントの責務分割**: `App.tsx` をより小さなコンポーネントに分割し、各コンポーネントが単一の責務を持つようにする。
 
 ## 3. 実装タスクリスト (Task List)
 
-### Step 1: `FilterPanel` のクリーンアップ
+### Step 1: 状態管理コンテキストの作成
 
-1.  **`src/web/view/components/FilterPanel.tsx` を削除する。**
-2.  **`src/web/view/App.tsx` を修正:**
-    -   `FilterPanel` の import 文を削除する。
-    -   JSX 内の `<FilterPanel ... />` コンポーネントを削除する。
+1.  **`src/web/view/contexts/StoryDataContext.tsx` を新規作成:**
+    -   `React.createContext` を使用して `StoryDataContext` を定義する。
+    -   `useStoryData` フックのロジックの大部分をこのファイルに移動させ、`StoryDataProvider` というコンポーネントを作成する。
+    -   `StoryDataProvider` は、`children` を props として受け取り、状態と更新関数を Context の `value` として提供する。
+    -   `useStoryData` というカスタムフックもこのファイルでエクスポートし、コンテキストの利用を簡素化する (`useContext(StoryDataContext)` をラップする)。
 
-### Step 2: キーワード検索UIの再配置
+### Step 2: `App.tsx` のリファクタリング
 
-1.  **`src/web/view/App.tsx` を修正:**
-    -   テーブルの上部（`<DndContext>` の直前など）にキーワード検索用の入力フィールドを配置する。
-    -   Bootstrap の `input-group` を利用して、見た目を整える。
-    -   この入力フィールドは `useStoryFilter` フックから得られる `filterKeyword` と `setFilterKeyword` に接続する。
+1.  **`App.tsx` を修正:**
+    -   `useStoryData` フックの直接呼び出しを削除する。
+    -   コンポーネント全体を `StoryDataProvider` でラップする。
+    -   `App.tsx` を、主にレイアウトとコンポーネントの配置に責任を持つコンポーネントに単純化する。
+    -   例えば、`MainLayout.tsx`, `Sidebar.tsx` のような子コンポーネントに分割する。
 
-    ```tsx
-    // App.tsx に追加するキーワード検索UIの例
-    <div className="input-group mb-3">
-      <span className="input-group-text">Keyword</span>
-      <input
-        type="text"
-        className="form-control"
-        value={filterKeyword}
-        onChange={e => setFilterKeyword(e.target.value)}
-        placeholder="Search by keyword..."
-      />
-    </div>
-    ```
+### Step 3: `useStoryData` フックのクリーンアップ
 
-### Step 3: `TableHeaderFilter` コンポーネントの作成
+1.  **`src/web/view/hooks/useStoryData.ts` を修正 (または削除):**
+    -   状態管理ロジックが `StoryDataContext.tsx` に移動したため、このフックは大幅に簡素化されるか、不要になる。
+    -   もし残す場合は、VS Code APIとの通信など、UIから分離された純粋なデータ取得ロジックのみを担当するようにする。
 
-1.  **`src/web/view/components/TableHeaderFilter.tsx` を新規作成する。**
-    -   このコンポーネントは、テーブルヘッダー (`<th>`) をラップし、フィルタリング機能を提供する。
-    -   Bootstrap の Dropdown コンポーネント (`dropdown`, `dropdown-toggle`, `dropdown-menu`) を使用する。
-    -   Props として、フィルターのタイトル、現在の選択値、選択肢のリスト、および変更を通知するコールバック関数を受け取る。
+### Step 4: 各コンポーネントの修正
 
-    **`TableHeaderFilter.tsx` のインターフェース案:**
-    ```typescript
-    interface TableHeaderFilterProps<T> {
-      title: string;
-      options: T[];
-      selectedOptions: T[];
-      onChange: (selected: T[]) => void;
-      singleSelection?: boolean; // Sprintのように単一選択の場合
-    }
-    ```
+1.  **`ItemDetails.tsx`, `StoryTable.tsx`, `ItemForm.tsx` などを修正:**
+    -   Props を通じて状態や関数を受け取る代わりに、新しく作成した `useStoryData` フック (`useContext` のラッパー) を使って、必要なデータや関数を直接コンテキストから取得するように変更する。
+    -   これにより、Props のバケツリレーが解消され、コンポーネントの見通しが良くなる。
 
-### Step 4: `StoryTable` へのフィルター統合
+## 4. 期待される効果 (Expected Outcome)
 
-1.  **`src/web/view/components/StoryTable.tsx` を修正:**
-    -   `<thead>` 内の `<th>` 要素を、新しく作成した `TableHeaderFilter` コンポーネントで置き換える。
-    -   `Status` と `Sprint` の列に適用する。
-    -   `App.tsx` から渡されたフィルターの状態 (`filterStatus`, `filterSprint`) とセッター関数 (`setFilterStatus`, `setFilterSprint`) を `TableHeaderFilter` に渡す。
-
-    **`StoryTable.tsx` の `<thead>` 修正案:**
-    ```tsx
-    // StoryTable.tsx
-    <thead>
-      <tr>
-        <th style={{ width: '30px' }}></th>
-        <th>Type</th>
-        <th>Title</th>
-        <TableHeaderFilter
-          title="Status"
-          options={['ToDo', 'WIP', 'Done']}
-          selectedOptions={props.statusFilter}
-          onChange={props.onStatusChange}
-        />
-        <th>Points</th>
-        <TableHeaderFilter
-          title="Sprint"
-          options={props.sprints}
-          selectedOptions={props.sprintFilter ? [props.sprintFilter] : []}
-          onChange={(selected) => props.onSprintChange(selected[0] || '')} // Sprintは単一選択
-          singleSelection={true}
-        />
-      </tr>
-    </thead>
-    ```
-    *注: 上記はコンセプトです。実際の props の受け渡し方法は `App.tsx` の構成に合わせて調整します。*
-
-### Step 5: `App.tsx` でのデータフローの最終調整
-
-1.  **`src/web/view/App.tsx` を修正:**
-    -   `useStoryFilter` から得られるフィルター関連の props (`filterStatus`, `setFilterStatus` など) を `StoryTable` コンポーネントに渡すようにする。
-    -   `sprints` のリストも `StoryTable` に渡す。
-
-## 4. テスト計画 (Test Plan)
-
--   **手動テスト:**
-    -   キーワード検索が正しく機能することを確認する。
-    -   Status ヘッダーをクリックすると、ドロップダウンが表示され、ステータス（ToDo, WIP, Done）でフィルタリングできることを確認する。
-    -   Sprint ヘッダーをクリックすると、ドロップダウンが表示され、スプリントでフィルタリングできることを確認する。
-    -   複数のフィルター（キーワード、Status, Sprint）を組み合わせても正しく動作することを確認する。
--   **自動テスト (任意):**
-    -   `TableHeaderFilter.test.tsx` を作成し、ドロップダウンの表示と `onChange` コールバックが正しく呼び出されることをテストする。
+-   **関心の分離**: UIコンポーネント、ビジネスロジック、状態管理が明確に分離される。
+-   **可読性の向上**: 各ファイルが単一の責務を持つようになり、コードが理解しやすくなる。
+-   **保守性の向上**: 機能の追加や修正が、関連するファイルに限定されるため、影響範囲の特定が容易になる。
+-   **再利用性の向上**: 状態から切り離された純粋なUIコンポーネントは、他の場所で再利用しやすくなる。

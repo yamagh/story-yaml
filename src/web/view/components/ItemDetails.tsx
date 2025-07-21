@@ -6,19 +6,10 @@ import { ChildrenList } from './ChildrenList';
 import { ItemProperties } from './ItemProperties';
 import { isEpic, isStory } from '../../typeGuards';
 import { Badge } from './Badge';
+import { useStoryData } from '../contexts/StoryDataContext';
 
-type SelectedItem = (Epic | Story | Task | SubTask) & { type: string };
-
-interface ItemDetailsProps {
-    selectedItem: SelectedItem | null;
-    selectedItemParent: (Epic | Story | Task) | null;
-    onEdit: () => void;
-    onDelete: (title: string) => void;
-    onAddItem: (itemType: 'stories' | 'subtasks') => void;
-    onSelectParent: (item: Item, type: string) => void;
-}
-
-export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, selectedItemParent, onEdit, onDelete, onAddItem, onSelectParent }) => {
+export const ItemDetails: React.FC = memo(() => {
+    const { selectedItem, selectedItemParent, showEditItemForm, deleteItem, selectItem } = useStoryData();
     const [isConfirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = useCallback(() => {
@@ -28,9 +19,9 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
 
     const handleConfirmDelete = useCallback(() => {
         if (!selectedItem) return;
-        onDelete(selectedItem.title);
+        deleteItem(selectedItem.title);
         setConfirmOpen(false);
-    }, [selectedItem, onDelete]);
+    }, [selectedItem, deleteItem]);
 
     const handleSelectParent = useCallback(() => {
         if (!selectedItemParent) return;
@@ -40,8 +31,8 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
         } else if (isStory(selectedItemParent)) {
             parentType = 'Story';
         }
-        onSelectParent(selectedItemParent, parentType);
-    }, [selectedItemParent, onSelectParent]);
+        selectItem(selectedItemParent, parentType);
+    }, [selectedItemParent, selectItem]);
 
     if (!selectedItem) {
         return <div className="alert alert-info">Click on an item to see details or add a new item.</div>;
@@ -62,7 +53,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
                         <Badge type="type" value={type} itemType={type} />
                     </div>
                     <div>
-                        <button className="btn btn-sm btn-primary me-2" onClick={onEdit}>Edit</button>
+                        <button className="btn btn-sm btn-primary me-2" onClick={showEditItemForm}>Edit</button>
                         <button className="btn btn-sm btn-danger" onClick={handleDelete}>Delete</button>
                     </div>
                 </div>
@@ -70,7 +61,7 @@ export const ItemDetails: React.FC<ItemDetailsProps> = memo(({ selectedItem, sel
                 <ItemProperties selectedItem={selectedItem} />
             </div>
             <div className='mt-3'>
-              <ChildrenList selectedItem={selectedItem} onSelectItem={onSelectParent} onAddItem={onAddItem} />
+              <ChildrenList selectedItem={selectedItem} />
             </div>
             <ConfirmDialog
                 isOpen={isConfirmOpen}

@@ -1,16 +1,17 @@
 import React from 'react';
-import { Item, Story, SubTask, Epic } from '../../types';
+import { Item, Story, SubTask } from '../../types';
 import { isEpic, isStory } from '../../typeGuards';
+import { useStoryData } from '../contexts/StoryDataContext';
 
 type SelectedItem = Item & { type: string };
 
 interface ChildrenListProps {
     selectedItem: SelectedItem;
-    onSelectItem: (item: Item, type: string) => void;
-    onAddItem: (itemType: 'stories' | 'subtasks') => void;
 }
 
-export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem, onSelectItem, onAddItem }) => {
+export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem }) => {
+    const { showAddItemForm, selectItem } = useStoryData();
+
     if (!isEpic(selectedItem) && !isStory(selectedItem)) {
         return null;
     }
@@ -19,7 +20,7 @@ export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem, onSele
 
     const handleSelectChild = (child: Story | SubTask) => {
         const childType = isStory(child) ? 'Story' : 'SubTask';
-        onSelectItem(child, childType);
+        selectItem(child, childType);
     };
 
     const title = isEpic(selectedItem) ? 'Stories' : 'Sub-Tasks';
@@ -31,7 +32,7 @@ export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem, onSele
         <div className="card p-3 shadow-sm">
             <div className="d-flex justify-content-between align-items-center">
                 <h5>{title}</h5>
-                <button className="btn btn-success btn-sm" onClick={() => onAddItem(addItemType)}>{addButtonText}</button>
+                <button className="btn btn-success btn-sm" onClick={() => showAddItemForm(addItemType, selectedItem.title)}>{addButtonText}</button>
             </div>
             <ul className="list-group mt-2">
                 {children && children.length > 0 ? (

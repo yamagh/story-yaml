@@ -1,8 +1,30 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useVscode } from './useVscode';
-import { Item, ItemType, Status, Story, Task, StoryFile, Epic, SubTask } from '../../types';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { useVscode } from '../hooks/useVscode';
+import { Item, ItemType, Status, Story, Task, StoryFile, Epic } from '../../types';
 import { DragEndEvent } from '@dnd-kit/core';
 import { isEpic, isStory, isTask } from '../../typeGuards';
+
+// Contextの型定義
+interface StoryDataContextType {
+    storyData: StoryFile | null;
+    selectedItem: (Item & { type: string }) | null;
+    selectedItemParent: (Epic | Story | Task) | null;
+    formVisible: boolean;
+    isEditing: boolean;
+    formType: ItemType | null;
+    formItemData?: Item;
+    error: string | null;
+    setError: (error: string | null) => void;
+    selectItem: (item: Item, type: string) => void;
+    showAddItemForm: (type: ItemType, parentId?: string | null) => void;
+    showEditItemForm: () => void;
+    hideForm: () => void;
+    handleFormSubmit: (e: React.FormEvent) => void;
+    deleteItem: (title: string) => void;
+    handleDragEnd: (event: DragEndEvent) => void;
+}
+
+const StoryDataContext = createContext<StoryDataContextType | undefined>(undefined);
 
 // 状態の型定義
 interface StoryDataState {
@@ -61,8 +83,7 @@ const findItemAndParent = (
     return null;
 };
 
-
-export const useStoryData = () => {
+export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const { storyData: initialStoryData, error, setError, addItem, updateItem, deleteItem: deleteItemInVscode, updateStoryFile } = useVscode();
     const [storyData, setStoryData] = useState<StoryFile | null>(initialStoryData);
     const [state, setState] = useState<StoryDataState>(initialState);
@@ -131,11 +152,9 @@ export const useStoryData = () => {
 
     const hideForm = useCallback(() => {
         if (state.isEditing && state.formItemData) {
-            // Case 1: Cancel while editing -> show original item's details
             const itemType = (state.formItemData as any).type;
             selectItem(state.formItemData, itemType);
         } else if (!state.isEditing && state.formParentId) {
-            // Case 2: Cancel while adding a new child item -> show parent's details
             if (storyData) {
                 const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
                 const parentInfo = findItemAndParent(allTopLevelItems, state.formParentId);
@@ -146,7 +165,6 @@ export const useStoryData = () => {
                 }
             }
         } else {
-            // Case 3: Cancel while adding a new top-level item -> just hide form
             setState(prevState => ({
                 ...prevState,
                 formVisible: false,
@@ -218,68 +236,49 @@ export const useStoryData = () => {
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
-
-        if (!over || !active.id || !over.id || active.id === over.id) {
-            return;
-        }
-
+        if (!over || !active.id || !over.id || active.id === over.id) return;
         const newStoryData = JSON.parse(JSON.stringify(storyData)) as StoryFile;
-        if (!newStoryData) {return;}
-
+        if (!newStoryData) return;
         const allTopLevelItems: (Epic | Task)[] = [...(newStoryData.epics || []), ...(newStoryData.tasks || [])];
-
         const activeInfo = findItemAndParent(allTopLevelItems, active.id.toString());
         const overInfo = findItemAndParent(allTopLevelItems, over.id.toString());
+        if (!activeInfo || !overInfo) return;
 
-        if (!activeInfo || !overInfo) {return;}
-
-        // --- 1. Remove the active item from its original parent ---
         const activeParentCollection: any[] | undefined =
             activeInfo.parent === null
                 ? ('stories' in activeInfo.item ? newStoryData.epics : newStoryData.tasks)
                 : ('stories' in activeInfo.parent ? (activeInfo.parent as Epic).stories : (activeInfo.parent as Story | Task)['sub tasks']);
-
-        if (!activeParentCollection) {return;}
+        if (!activeParentCollection) return;
         const activeIndex = activeParentCollection.findIndex(i => i.title === active.id);
-        if (activeIndex === -1) {return;}
-
+        if (activeIndex === -1) return;
         const [movedItem] = activeParentCollection.splice(activeIndex, 1);
-        if (!movedItem) {return;}
+        if (!movedItem) return;
 
-        // --- 2. Determine destination and insert ---
         const activeType = activeInfo.type;
         const overType = overInfo.type;
-
         let destinationCollection: any[] | undefined;
         let destinationIndex: number;
-
         const isDroppingOnContainer = (activeType === 'stories' && overType === 'epics') || (activeType === 'subtasks' && (overType === 'stories' || overType === 'tasks'));
 
         if (isDroppingOnContainer) {
-            // Case A: Dropping ON a container to reparent the item
             if (overType === 'epics') {
                 const targetEpic = overInfo.item as Epic;
                 destinationCollection = targetEpic.stories = targetEpic.stories || [];
-            } else { // overType is 'stories' or 'tasks'
+            } else {
                 const targetParent = overInfo.item as Story | Task;
                 destinationCollection = targetParent['sub tasks'] = targetParent['sub tasks'] || [];
             }
-            destinationIndex = destinationCollection.length; // Append to the end of the container
+            destinationIndex = destinationCollection.length;
         } else {
-            // Case B: Dropping ON an item to reorder
             destinationCollection = overInfo.parent === null
                 ? ('stories' in overInfo.item ? newStoryData.epics : newStoryData.tasks)
                 : ('stories' in overInfo.parent ? (overInfo.parent as Epic).stories : (overInfo.parent as Story | Task)['sub tasks']);
-
             if (!destinationCollection) {
-                activeParentCollection.splice(activeIndex, 0, movedItem); // Revert
+                activeParentCollection.splice(activeIndex, 0, movedItem);
                 return;
             }
             destinationIndex = destinationCollection.findIndex(i => i.title === over.id);
-
-            // --- Validation for reordering ---
             const destParentType = overInfo.parent ? (('stories' in overInfo.parent) ? 'epics' : ('sub tasks' in overInfo.parent ? 'stories' : 'tasks')) : 'root';
-            
             if (activeType === 'epics' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
             if (activeType === 'tasks' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
             if (activeType === 'stories' && destParentType !== 'epics') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
@@ -287,18 +286,15 @@ export const useStoryData = () => {
         }
 
         if (destinationIndex === -1) {
-            activeParentCollection.splice(activeIndex, 0, movedItem); // Revert
+            activeParentCollection.splice(activeIndex, 0, movedItem);
             return;
         }
-
         destinationCollection.splice(destinationIndex, 0, movedItem);
-
         setStoryData(newStoryData);
         updateStoryFile(newStoryData);
-
     }, [storyData, updateStoryFile]);
 
-    return {
+    const value = {
         storyData,
         ...state,
         error,
@@ -311,4 +307,18 @@ export const useStoryData = () => {
         deleteItem,
         handleDragEnd,
     };
+
+    return (
+        <StoryDataContext.Provider value={value}>
+            {children}
+        </StoryDataContext.Provider>
+    );
+};
+
+export const useStoryData = (): StoryDataContextType => {
+    const context = useContext(StoryDataContext);
+    if (context === undefined) {
+        throw new Error('useStoryData must be used within a StoryDataProvider');
+    }
+    return context;
 };
