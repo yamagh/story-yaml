@@ -36,9 +36,9 @@ export const useStoryFilter = (storyData: StoryFile | null) => {
 
         const combinedFilter = (item: Item) => keywordFilter(item) && statusFilter(item) && sprintFilter(item);
 
-        const filteredTasks = storyData.tasks.filter(combinedFilter);
+        const filteredTasks = (storyData.tasks || []).filter(combinedFilter);
 
-        const filteredEpics = storyData.epics.map(epic => {
+        const filteredEpics = (storyData.epics || []).map(epic => {
             const filteredStories = epic.stories?.filter(combinedFilter) || [];
             
             // Epic itself matches or it has stories that match

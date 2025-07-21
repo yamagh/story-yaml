@@ -52,12 +52,12 @@ const App = () => {
     const sprints = useMemo(() => {
         if (!storyData) return [];
         const sprintSet = new Set<string>();
-        storyData.epics.forEach(epic => {
+        (storyData.epics || []).forEach(epic => {
             epic.stories?.forEach(story => {
                 if (story.sprint) sprintSet.add(story.sprint);
             });
         });
-        storyData.tasks.forEach(task => {
+        (storyData.tasks || []).forEach(task => {
             if (task.sprint) sprintSet.add(task.sprint);
         });
         return Array.from(sprintSet).sort();

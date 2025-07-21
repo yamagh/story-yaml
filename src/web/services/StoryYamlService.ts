@@ -8,7 +8,11 @@ export class StoryYamlService {
     private static loadYaml(content: string): StoryFile {
         try {
             const doc = yaml.load(content) as StoryFile;
-            return doc || { epics: [], tasks: [] };
+            const validatedDoc = doc || { epics: [], tasks: [] };
+            if (!validatedDoc.tasks) {
+                validatedDoc.tasks = [];
+            }
+            return validatedDoc;
         } catch (e) {
             throw e;
         }

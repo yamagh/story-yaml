@@ -180,7 +180,7 @@ describe('ItemDetails', () => {
         );
         fireEvent.click(screen.getByText('Delete'));
         fireEvent.click(screen.getByText('Confirm'));
-        expect(onDelete).toHaveBeenCalledWith({ title: mockStory.title });
+        expect(onDelete).toHaveBeenCalledWith(mockStory.title);
     });
 
     it('calls onAddItem when Add New... button is clicked for an Epic', () => {

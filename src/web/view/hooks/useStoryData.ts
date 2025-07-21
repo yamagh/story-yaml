@@ -89,7 +89,7 @@ export const useStoryData = () => {
             }));
             return;
         }
-        const allTopLevelItems = [...storyData.epics, ...storyData.tasks];
+        const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
         const found = findItemAndParent(allTopLevelItems, item.title);
 
         setState(prevState => ({
@@ -135,7 +135,7 @@ export const useStoryData = () => {
         } else if (!state.isEditing && state.formParentId) {
             // Case 2: Cancel while adding a new child item -> show parent's details
             if (storyData) {
-                const allTopLevelItems = [...storyData.epics, ...storyData.tasks];
+                const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
                 const parentInfo = findItemAndParent(allTopLevelItems, state.formParentId);
                 if (parentInfo) {
                     const parentTypeString = parentInfo.type.slice(0, -1);
@@ -196,7 +196,7 @@ export const useStoryData = () => {
         if (isEditing) {
             parent = formItemParentData || null;
         } else if (formParentId && storyData) {
-            const allTopLevelItems = [...storyData.epics, ...storyData.tasks];
+            const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
             const parentInfo = findItemAndParent(allTopLevelItems, formParentId);
             parent = parentInfo ? parentInfo.item as (Epic | Story | Task) : null;
         }
@@ -225,7 +225,7 @@ export const useStoryData = () => {
         const newStoryData = JSON.parse(JSON.stringify(storyData)) as StoryFile;
         if (!newStoryData) {return;}
 
-        const allTopLevelItems: (Epic | Task)[] = [...newStoryData.epics, ...newStoryData.tasks];
+        const allTopLevelItems: (Epic | Task)[] = [...(newStoryData.epics || []), ...(newStoryData.tasks || [])];
 
         const activeInfo = findItemAndParent(allTopLevelItems, active.id.toString());
         const overInfo = findItemAndParent(allTopLevelItems, over.id.toString());

@@ -169,4 +169,23 @@ describe('StoryYamlService', () => {
             expect(parsedResult.epics[0].stories[0]['sub tasks']!.find(st => st.title === 'SubTask 1-1-1')).toBeUndefined();
         });
     });
+
+    describe('loadYaml', () => {
+        it('should handle yaml content without a tasks field', () => {
+            const yamlWithoutTasks = `
+epics:
+  - title: Epic 1
+    description: Epic 1 Description
+`;
+            // StoryYamlServiceのloadYamlはprivateなので、updateStoryContent経由でテストする
+            const result = StoryYamlService.updateStoryContent(yamlWithoutTasks, {
+                itemType: 'tasks',
+                values: { title: 'New Task' } as Omit<Item, 'stories' | 'sub tasks'>,
+            });
+            const parsedResult = yaml.load(result) as StoryFile;
+            expect(parsedResult.tasks).toBeDefined();
+            expect(parsedResult.tasks).toHaveLength(1);
+            expect(parsedResult.tasks[0].title).toBe('New Task');
+        });
+    });
 });
