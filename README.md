@@ -1,65 +1,81 @@
-# story-yaml README
+# Story YAML
 
-This is the README for your extension "story-yaml". After writing up a brief description, we recommend including the following sections.
+## What is Story YAML?
 
-## Features
+Story YAML is a structured format for defining and managing software development projects using YAML. It allows you to represent high-level concepts like **Epics**, break them down into user-centric **Stories**, and further divide them into actionable **Tasks** and **Sub-Tasks**. This human-readable format serves as a single source of truth for your project's backlog, making it easy to track progress and maintain clarity.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+This VS Code extension provides an interactive user interface to visualize, edit, and manage your `story.yaml` file. Instead of editing the YAML text directly, you can use the webview to:
+- See a high-level overview of your project.
+- Add, edit, and delete items.
+- Track the status, points, and sprint assignments for each item.
 
-For example if there is an image subfolder under your extension project workspace:
+## Sample `story.yaml`
 
-\!\[feature X\]\(images/feature-x.png\)
+To help you understand the structure, here is a sample of a `story.yaml` file. It defines an epic, which contains stories, and a standalone task with sub-tasks.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+```yaml
+epics:
+  - title: User Authentication
+    description: Implement a complete user authentication system.
+    stories:
+      - title: User Registration
+        as: a new user
+        i want: to create an account
+        so that: I can access the platform.
+        description: "Allow users to sign up using their email and password."
+        status: ToDo
+        points: 5
+        sprint: Sprint 1
+        definition of done:
+          - User can register with a unique email.
+          - A confirmation email is sent upon registration.
+      - title: User Login
+        as: a registered user
+        i want: to log in to my account
+        so that: I can use the application's features.
+        description: "Provide a secure login form for returning users."
+        status: ToDo
+        points: 3
+        sprint: Sprint 1
+        definition of done:
+          - User can log in with correct credentials.
+          - An error message is shown for invalid credentials.
 
-## Requirements
+tasks:
+  - title: Set up the development environment
+    description: "Configure the necessary tools and libraries for the project."
+    status: Done
+    points: 2
+    sprint: Sprint 0
+    sub tasks:
+      - title: Install Node.js and npm
+        description: "Use Devbox to ensure consistent versions."
+        status: Done
+      - title: Set up ESLint and Prettier
+        description: "Configure linting and code formatting rules."
+        status: Done
+```
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Preview
+
+The following image shows the interactive webview for editing the `story.yaml` file.
+
+![Story YAML Preview](/docs/images/preview.png)
+
+## Usage
+
+The primary way to use this extension is through the `story.yaml` file and the command palette.
+
+1. **Create a story file**:
+  Create a `story.yaml` file in your project's root directory. You can use the provided snippets to get started (type `epic` or `task` in a YAML file).
+
+2. **Open the Preview**:
+  Open the command palette (`Shift+Cmd+P` on macOS or `Shift+Ctrl+P` on Windows/Linux) and run the **`Story YAML: Preview`** command. This will open the interactive webview.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+This extension does not currently contribute any custom settings.
 
-For example:
+## Motivation
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Story YAML is a VS Code extension that facilitates **Story-Driven Development (SDD)**. It allows developers to manage user stories, tasks, and epics in a structured YAML format and visualize them in an interactive webview. This approach, combined with AI-powered assistance, aims to streamline the development process from conception to implementation.
