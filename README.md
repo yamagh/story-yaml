@@ -60,7 +60,7 @@ tasks:
 
 The following image shows the interactive webview for editing the `story.yaml` file.
 
-![Story YAML Preview](/docs/images/preview.png)
+![Story YAML Preview](https://raw.githubusercontent.com/yamagh/story-yaml/main/docs/images/preview.png)
 
 ## Usage
 
