@@ -16,10 +16,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "story-yaml.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "story-yaml.preview",
         "title": "Story YAML: Preview",
         "category": "Story YAML"
