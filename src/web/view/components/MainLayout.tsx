@@ -44,7 +44,7 @@ export const MainLayout = () => {
                         <tr>
                             <th style={{ width: '30px' }}></th>
                             <th>Type</th>
-                            <th>Title</th>
+                            <th style={{ width: '100%' }}>Title</th>
                             <TableHeaderFilter
                                 title="Status"
                                 options={['ToDo', 'WIP', 'Done'] as Status[]}

@@ -61,7 +61,7 @@ export const ItemDetails: React.FC = memo(() => {
                 <ItemProperties selectedItem={selectedItem} />
             </div>
             <div className='mt-3'>
-              <ChildrenList selectedItem={selectedItem} />
+              {selectedItem.type.toLowerCase() !== 'subtask' && <ChildrenList selectedItem={selectedItem} />}
             </div>
             <ConfirmDialog
                 isOpen={isConfirmOpen}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Item, ItemType, Status, Story, Task } from '../../types';
 
 interface ItemFormProps {
@@ -11,13 +11,20 @@ interface ItemFormProps {
 export const ItemForm: React.FC<ItemFormProps> = ({ formType, data, onSubmit, onCancel }) => {
     const isNew = !data.title;
     const title = `${isNew ? 'Add New' : 'Edit'} ${formType.charAt(0).toUpperCase() + formType.slice(1, -1)}`;
+    const titleRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (titleRef.current) {
+            titleRef.current.focus();
+        }
+    }, []);
 
     return (
         <form onSubmit={onSubmit} className='card p-3 shadow-sm'>
             <h4>{title}</h4>
             <div className="mb-3">
                 <label htmlFor="title" className="form-label">Title</label>
-                <input id="title" name="title" required defaultValue={data.title || ''} className="form-control" />
+                <input id="title" name="title" required defaultValue={data.title || ''} className="form-control" ref={titleRef} />
             </div>
             <div className="mb-3">
                 <label htmlFor="description" className="form-label">Description</label>

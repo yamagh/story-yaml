@@ -54,11 +54,11 @@ const initialState: StoryDataState = {
 
 const findItemAndParent = (
     nodes: Item[],
-    id: string,
+    identifier: string,
     parent: (Epic | Story | Task) | null = null
 ): { item: Item; parent: (Epic | Story | Task) | null; type: ItemType } | null => {
     for (const node of nodes) {
-        if (node.id === id) {
+        if (node.id === identifier || node.title === identifier) {
             let type: ItemType;
             if (isEpic(node)) {
                 type = 'epics';
@@ -72,11 +72,11 @@ const findItemAndParent = (
             return { item: node, parent, type };
         }
         if (isEpic(node) && node.stories) {
-            const found = findItemAndParent(node.stories, id, node);
+            const found = findItemAndParent(node.stories, identifier, node);
             if (found) {return found;}
         }
         if ((isStory(node) || isTask(node)) && node['sub tasks']) {
-            const found = findItemAndParent(node['sub tasks'], id, node);
+            const found = findItemAndParent(node['sub tasks'], identifier, node);
             if (found) {return found;}
         }
     }
@@ -204,8 +204,16 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
         if (isEditing && formItemData) {
             const updatedData = { ...formItemData, ...newOrUpdatedData, type: formType! };
             updateItem({ id: formItemData.id!, updatedData });
+            setState(prevState => ({
+                ...prevState,
+                pendingSelection: formItemData.id!,
+            }));
         } else {
             addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as any });
+            setState(prevState => ({
+                ...prevState,
+                pendingSelection: newOrUpdatedData.title || null,
+            }));
         }
 
         setState(prevState => ({
@@ -216,7 +224,6 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
             formParentId: null,
             formItemData: undefined,
             formItemParentData: undefined,
-            pendingSelection: newOrUpdatedData.title || null,
         }));
 
     }, [state, addItem, updateItem]);
