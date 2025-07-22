@@ -3,6 +3,10 @@
   "displayName": ".",
   "description": "",
   "version": "0.3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yamagh/story-yaml"
+  },
   "engines": {
     "vscode": "^1.102.0"
   },
