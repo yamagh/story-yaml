@@ -5,7 +5,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ItemDetails } from './ItemDetails';
-import { Epic, Story, Task } from '../../types';
+import { Epic, Story, Task, Item } from '../../types';
 import { StoryDataProvider, useStoryData } from '../contexts/StoryDataContext';
 
 vi.mock('../contexts/StoryDataContext');
@@ -52,22 +52,12 @@ const mockStory: Story = {
     ],
 };
 
-const mockTask: Task = {
-    id: 'task-1',
-    title: 'Test Task',
-    description: 'Task Description',
-    status: 'ToDo',
-    points: 3,
-    'definition of done': [],
-    'sub tasks': [],
-};
-
 describe('ItemDetails', () => {
     const showEditItemForm = vi.fn();
     const deleteItem = vi.fn();
     const selectItem = vi.fn();
 
-    const renderComponent = (selectedItem: any, selectedItemParent: any = null) => {
+    const renderComponent = (selectedItem: (Item & { type: string }) | null, selectedItemParent: Epic | Story | Task | null = null) => {
         (useStoryData as vi.Mock).mockReturnValue({
             selectedItem,
             selectedItemParent,

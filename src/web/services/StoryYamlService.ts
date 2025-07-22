@@ -1,5 +1,5 @@
 import * as yaml from 'js-yaml';
-import { StoryFile, Epic, Story, Task, SubTask, Item } from '../types';
+import { StoryFile, Epic, Story, Task, SubTask, Item, AddItemValues } from '../types';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 type ItemData = Epic | Story | Task | SubTask;
@@ -24,32 +24,29 @@ export class StoryYamlService {
     }
 
     public static loadYaml(content: string): StoryFile {
-        try {
-            const doc = yaml.load(content) as StoryFile;
-            const validatedDoc = doc || { epics: [], tasks: [] };
-            if (!validatedDoc.epics) {
-                validatedDoc.epics = [];
-            }
-            if (!validatedDoc.tasks) {
-                validatedDoc.tasks = [];
-            }
-            this.nextId = 0;
-            this.addUniqueIds(validatedDoc.epics);
-            this.addUniqueIds(validatedDoc.tasks);
-            return validatedDoc;
-        } catch (e) {
-            throw e;
+        const doc = yaml.load(content) as StoryFile;
+        const validatedDoc = doc || { epics: [], tasks: [] };
+        if (!validatedDoc.epics) {
+            validatedDoc.epics = [];
         }
+        if (!validatedDoc.tasks) {
+            validatedDoc.tasks = [];
+        }
+        this.nextId = 0;
+        this.addUniqueIds(validatedDoc.epics);
+        this.addUniqueIds(validatedDoc.tasks);
+        return validatedDoc;
     }
 
-    private static removeIds(items: any[]): any[] {
+    private static removeIds(items: Item[]): Omit<Item, 'id'>[] {
         return items.map(item => {
-            const { id, ...rest } = item;
-            if (rest.stories) {
-                rest.stories = this.removeIds(rest.stories);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id: _id, ...rest } = item;
+            if ('stories' in rest && rest.stories) {
+                rest.stories = this.removeIds(rest.stories) as Story[];
             }
-            if (rest['sub tasks']) {
-                rest['sub tasks'] = this.removeIds(rest['sub tasks']);
+            if ('sub tasks' in rest && rest['sub tasks']) {
+                rest['sub tasks'] = this.removeIds(rest['sub tasks']) as SubTask[];
             }
             return rest;
         });
@@ -61,7 +58,7 @@ export class StoryYamlService {
         return yaml.dump({ epics: cleanEpics, tasks: cleanTasks });
     }
 
-    public static updateStoryContent(content: string, item: { itemType: string; parentId?: string; values: Omit<Item, 'stories' | 'sub tasks'> }): string {
+    public static updateStoryContent(content: string, item: { itemType: string; parentId?: string; values: AddItemValues }): string {
         const doc = this.loadYaml(content);
 
         if (!doc.epics) { doc.epics = []; }
@@ -146,10 +143,11 @@ export class StoryYamlService {
         }
     }
 
-    public static updateStoryContentForItemUpdate(content: string, item: { id: string, updatedData: Item & { type: string } }): string {
+    public static updateStoryContentForItemUpdate(content: string, item: { id: string, updatedData: Partial<Item> & { type: string } }): string {
         const doc = this.loadYaml(content);
 
-        const { type, ...newData } = item.updatedData;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { type: _type, ...newData } = item.updatedData;
 
         this.findAndReplace(doc.epics, item.id, newData);
         this.findAndReplace(doc.tasks, item.id, newData);
@@ -178,7 +176,7 @@ export class StoryYamlService {
     public static deleteItemFromStoryFile(content: string, itemToDelete: { id: string }): string {
         const doc = this.loadYaml(content);
 
-        const removeItem = (collection: any[], id: string): boolean => {
+        const removeItem = (collection: Item[], id: string): boolean => {
             if (!collection) { return false; }
             const itemIndex = collection.findIndex(i => i.id === id);
             if (itemIndex > -1) {
@@ -186,10 +184,10 @@ export class StoryYamlService {
                 return true;
             }
             for (const currentItem of collection) {
-                if (currentItem.stories && removeItem(currentItem.stories, id)) {
+                if ('stories' in currentItem && currentItem.stories && removeItem(currentItem.stories, id)) {
                     return true;
                 }
-                if (currentItem['sub tasks'] && removeItem(currentItem['sub tasks'], id)) {
+                if ('sub tasks' in currentItem && currentItem['sub tasks'] && removeItem(currentItem['sub tasks'], id)) {
                     return true;
                 }
             }

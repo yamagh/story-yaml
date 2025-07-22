@@ -54,9 +54,9 @@ export function useVscode() {
 
 // Ensure vscode api is typed
 interface VsCodeApi {
-    postMessage(message: any): void;
-    getState(): any;
-    setState(state: any): void;
+    postMessage(message: WebviewMessage): void;
+    getState(): unknown;
+    setState(state: unknown): void;
 }
 
 declare function acquireVsCodeApi(): VsCodeApi;

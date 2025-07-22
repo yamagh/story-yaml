@@ -1,5 +1,4 @@
 import React, { memo, useCallback, useState } from 'react';
-import { Epic, Story, Task, SubTask, Item } from '../../types';
 import { ConfirmDialog } from './ConfirmDialog';
 import { ParentInfoCard } from './ParentInfoCard';
 import { ChildrenList } from './ChildrenList';
@@ -8,7 +7,7 @@ import { isEpic, isStory } from '../../typeGuards';
 import { Badge } from './Badge';
 import { useStoryData } from '../contexts/StoryDataContext';
 
-export const ItemDetails: React.FC = memo(() => {
+const ItemDetailsFC: React.FC = () => {
     const { selectedItem, selectedItemParent, showEditItemForm, deleteItem, selectItem } = useStoryData();
     const [isConfirmOpen, setConfirmOpen] = useState(false);
 
@@ -72,4 +71,8 @@ export const ItemDetails: React.FC = memo(() => {
             </ConfirmDialog>
         </>
     );
-});
+};
+
+ItemDetailsFC.displayName = 'ItemDetails';
+
+export const ItemDetails = memo(ItemDetailsFC);

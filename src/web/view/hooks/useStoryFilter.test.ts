@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useStoryFilter } from './useStoryFilter';
-import { StoryFile, Epic, Story, Task } from '../../types';
+import { StoryFile } from '../../types';
 
 const mockStoryData: StoryFile = {
   epics: [

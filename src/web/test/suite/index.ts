@@ -1,5 +1,4 @@
-// Imports mocha for the browser, defining the `mocha` global.
-require('mocha/mocha');
+import 'mocha/mocha';
 
 export function run(): Promise<void> {
 
@@ -10,6 +9,7 @@ export function run(): Promise<void> {
 		});
 
 		// Bundles all files in the current directory matching `*.test`
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const importAll = (r: __WebpackModuleApi.RequireContext) => r.keys().forEach(r);
 		importAll(require.context('.', true, /\.test$/));
 

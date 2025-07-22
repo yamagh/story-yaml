@@ -4,7 +4,7 @@ import { useStoryData } from '../contexts/StoryDataContext';
 import { useStoryFilter } from '../hooks/useStoryFilter';
 import { StoryTable } from './StoryTable';
 import { TableHeaderFilter } from './TableHeaderFilter';
-import { Status } from '../../types';
+import { Status, Epic, Story, Task } from '../../types';
 
 export const MainLayout = () => {
     const { storyData, handleDragEnd, selectItem, showAddItemForm } = useStoryData();
@@ -15,12 +15,12 @@ export const MainLayout = () => {
     const sprints = useMemo(() => {
         if (!storyData) return [];
         const sprintSet = new Set<string>();
-        (storyData.epics || []).forEach(epic => {
-            epic.stories?.forEach(story => {
+        (storyData.epics || []).forEach((epic: Epic) => {
+            epic.stories?.forEach((story: Story) => {
                 if (story.sprint) sprintSet.add(story.sprint);
             });
         });
-        (storyData.tasks || []).forEach(task => {
+        (storyData.tasks || []).forEach((task: Task) => {
             if (task.sprint) sprintSet.add(task.sprint);
         });
         return Array.from(sprintSet).sort();

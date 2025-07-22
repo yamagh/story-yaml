@@ -2,8 +2,8 @@
 import { useState, useMemo } from 'react';
 import { StoryFile, Status, Item, Story, Task, Epic } from '../../types';
 
-const itemHasStatus = (item: any): item is Task | Story => 'status' in item;
-const itemHasSprint = (item: any): item is Task | Story => 'sprint' in item;
+const itemHasStatus = (item: Item): item is Task | Story => 'status' in item;
+const itemHasSprint = (item: Item): item is Task | Story => 'sprint' in item;
 
 export const useStoryFilter = (storyData: StoryFile | null) => {
     const [filterStatus, setFilterStatus] = useState<Status[]>([]);

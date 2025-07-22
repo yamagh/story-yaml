@@ -7,9 +7,7 @@ export interface SubTask {
   status: Status;
 }
 
-export interface DefinitionOfDone {
-  [key: string]: any; // Allow flexible structure for now
-}
+
 
 export interface Story {
   id?: string;
@@ -51,11 +49,17 @@ export interface StoryFile {
 export type Item = (Epic | Story | Task | SubTask) & { id?: string };
 export type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 
+export type AddItemValues = 
+    Omit<Epic, 'id' | 'stories'> |
+    (Omit<Story, 'id' | 'sub tasks' | 'status'> & { status?: Status }) |
+    (Omit<Task, 'id' | 'sub tasks' | 'status'> & { status?: Status }) |
+    Omit<SubTask, 'id'>;
+
 // WebView to Extension
 export type WebviewMessage =
     | { command: 'ready' }
-    | { command: 'addItem'; item: { itemType: string; parentId?: string; values: Omit<Item, 'stories' | 'sub tasks'> } }
-    | { command: 'updateItem'; item: { id: string, updatedData: Item & { type: string } } }
+    | { command: 'addItem'; item: { itemType: string; parentId?: string; values: AddItemValues } }
+    | { command: 'updateItem'; item: { id: string, updatedData: Partial<Item> & { type: string } } }
     | { command: 'deleteItem'; item: { id: string } }
     | { command: 'updateStoryFile'; storyFile: StoryFile };
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode, FC } from 'react';
 import { useVscode } from '../hooks/useVscode';
 import { Item, ItemType, Status, Story, Task, StoryFile, Epic } from '../../types';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -34,7 +34,7 @@ interface StoryDataState {
     isEditing: boolean;
     formType: ItemType | null;
     formParentId: string | null;
-    formItemData?: Item;
+    formItemData?: (Item & { type: string });
     formItemParentData?: (Epic | Story | Task) | null;
     pendingSelection: string | null;
 }
@@ -83,7 +83,7 @@ const findItemAndParent = (
     return null;
 };
 
-export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children }) => {
+export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
     const { storyData: initialStoryData, error, setError, addItem, updateItem, deleteItem: deleteItemInVscode, updateStoryFile } = useVscode();
     const [storyData, setStoryData] = useState<StoryFile | null>(initialStoryData);
     const [state, setState] = useState<StoryDataState>(initialState);
@@ -152,7 +152,7 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
 
     const hideForm = useCallback(() => {
         if (state.isEditing && state.formItemData) {
-            const itemType = (state.formItemData as any).type;
+            const itemType = state.formItemData.type;
             selectItem(state.formItemData, itemType);
         } else if (!state.isEditing && state.formParentId) {
             if (storyData) {
@@ -209,7 +209,7 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
                 pendingSelection: formItemData.id!,
             }));
         } else {
-            addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as any });
+            addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'sub tasks'> });
             setState(prevState => ({
                 ...prevState,
                 pendingSelection: newOrUpdatedData.title || null,
@@ -251,7 +251,7 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
         const overInfo = findItemAndParent(allTopLevelItems, over.id.toString());
         if (!activeInfo || !overInfo) return;
 
-        const activeParentCollection: any[] | undefined =
+        const activeParentCollection: Item[] | undefined =
             activeInfo.parent === null
                 ? ('stories' in activeInfo.item ? newStoryData.epics : newStoryData.tasks)
                 : ('stories' in activeInfo.parent ? (activeInfo.parent as Epic).stories : (activeInfo.parent as Story | Task)['sub tasks']);
@@ -263,7 +263,7 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
 
         const activeType = activeInfo.type;
         const overType = overInfo.type;
-        let destinationCollection: any[] | undefined;
+        let destinationCollection: Item[] | undefined;
         let destinationIndex: number;
         const isDroppingOnContainer = (activeType === 'stories' && overType === 'epics') || (activeType === 'subtasks' && (overType === 'stories' || overType === 'tasks'));
 
@@ -303,7 +303,12 @@ export const StoryDataProvider: React.FC<{children: ReactNode}> = ({ children })
 
     const value = {
         storyData,
-        ...state,
+        selectedItem: state.selectedItem,
+        selectedItemParent: state.selectedItemParent,
+        formVisible: state.formVisible,
+        isEditing: state.isEditing,
+        formType: state.formType,
+        formItemData: state.formItemData,
         error,
         setError,
         selectItem,

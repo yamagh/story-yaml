@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import * as yaml from 'js-yaml';
-import { StoryFile, WebviewMessage, ExtensionMessage } from './types';
+import { WebviewMessage, ExtensionMessage } from './types';
 import { StoryYamlService } from './services/StoryYamlService';
 
 export class WebviewPanelManager {

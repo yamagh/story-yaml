@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Item, ItemType, Status, Story, Task } from '../../types';
+import { Item, ItemType, Story, Task } from '../../types';
 
 interface ItemFormProps {
     formType: ItemType;
