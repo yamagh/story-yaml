@@ -48,7 +48,7 @@ export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem }) => {
         <div className="card p-3 shadow-sm">
             <div className="d-flex justify-content-between align-items-center">
                 <h5>{title}</h5>
-                <button className="btn btn-success btn-sm" onClick={() => showAddItemForm(addItemType as ItemType, selectedItem.title)}>{addButtonText}</button>
+                <button className="btn btn-success btn-sm" onClick={() => showAddItemForm(addItemType as ItemType, selectedItem.id)}>{addButtonText}</button>
             </div>
             <ul className="list-group mt-2">
                 {children && children.length > 0 ? (

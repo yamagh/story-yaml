@@ -69,17 +69,18 @@ export class StoryYamlService {
 
         const itemType = item.itemType as ItemType;
         let data: ItemData;
+        const newId = (this.nextId++).toString();
 
         switch (itemType) {
             case 'epics':
-                data = { ...item.values, stories: [] };
+                data = { id: newId, ...item.values, stories: [] };
                 break;
             case 'stories':
             case 'tasks':
-                data = { ...item.values, 'sub tasks': [], status: 'ToDo', ...item.values };
+                data = { id: newId, 'sub tasks': [], status: 'ToDo', ...item.values };
                 break;
             case 'subtasks':
-                data = { status: 'ToDo', ...item.values };
+                data = { id: newId, status: 'ToDo', ...item.values };
                 break;
             default:
                 return content;
