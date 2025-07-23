@@ -36,6 +36,7 @@ interface StoryDataState {
     formParentId: string | null;
     formItemData?: (Item & { type: string });
     formItemParentData?: (Epic | Story | Task) | null;
+    pendingSelection: string | null;
 }
 
 // 初期状態
@@ -48,6 +49,7 @@ const initialState: StoryDataState = {
     formParentId: null,
     formItemData: undefined,
     formItemParentData: undefined,
+    pendingSelection: null,
 };
 
 const findItemAndParent = (
@@ -88,33 +90,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
 
     useEffect(() => {
         setStoryData(initialStoryData);
-        if (state.selectedItem && initialStoryData) {
-            const allTopLevelItems = [...(initialStoryData.epics || []), ...(initialStoryData.tasks || [])];
-            const found = findItemAndParent(allTopLevelItems, state.selectedItem.id!);
-            if (found) {
-                const updatedSelectedItem = { ...found.item, type: state.selectedItem.type };
-                if (JSON.stringify(state.selectedItem) !== JSON.stringify(updatedSelectedItem)) {
-                    setState(prevState => ({
-                        ...prevState,
-                        selectedItem: updatedSelectedItem,
-                        selectedItemParent: found.parent,
-                    }));
-                }
-            } else {
-                setState(prevState => ({ ...prevState, selectedItem: null, selectedItemParent: null }));
-            }
-        }
-    }, [initialStoryData, state.selectedItem]);
-
-    const deleteItem = useCallback((id: string) => {
-        deleteItemInVscode({ id });
-        setState(prevState => ({
-            ...prevState,
-            selectedItem: null,
-            selectedItemParent: null,
-            formVisible: false,
-        }));
-    }, [deleteItemInVscode]);
+    }, [initialStoryData]);
 
     const selectItem = useCallback((item: Item, type: string) => {
         if (!storyData) {
@@ -136,6 +112,29 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
             formVisible: false,
         }));
     }, [storyData]);
+
+    useEffect(() => {
+        if (state.pendingSelection && storyData) {
+            const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
+            const found = findItemAndParent(allTopLevelItems, state.pendingSelection);
+            if (found) {
+                const itemTypeString = found.type.slice(0, -1);
+                const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1);
+                selectItem(found.item, type);
+                setState(prevState => ({ ...prevState, pendingSelection: null }));
+            }
+        }
+    }, [storyData, state.pendingSelection, selectItem]);
+
+    const deleteItem = useCallback((id: string) => {
+        deleteItemInVscode({ id });
+        setState(prevState => ({
+            ...prevState,
+            selectedItem: null,
+            selectedItemParent: null,
+            formVisible: false,
+        }));
+    }, [deleteItemInVscode]);
 
     const showAddItemForm = useCallback((type: ItemType, parentId: string | null = null) => {
         setState({
@@ -239,6 +238,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
                 formParentId: null,
                 formItemData: undefined,
                 formItemParentData: undefined,
+                pendingSelection: newOrUpdatedData.title || null,
             }));
         }
     }, [state, addItem, updateItem]);
