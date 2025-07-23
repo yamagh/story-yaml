@@ -16,7 +16,7 @@ export const ItemProperties: React.FC<ItemPropertiesProps> = ({ selectedItem }) 
 
     return (
         <>
-            {description && <p>{description}</p>}
+            {description && <p style={{ whiteSpace: 'pre-wrap' }}>{description}</p>}
             <div className='d-flex gap-2 mb-3'>
                 {status && <Badge type="status" value={status} />}
                 {points !== undefined && <Badge type="points" value={points} />}

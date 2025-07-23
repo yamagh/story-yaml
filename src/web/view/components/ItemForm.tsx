@@ -26,6 +26,24 @@ export const ItemForm: React.FC<ItemFormProps> = ({ formType, data, onSubmit, on
                 <label htmlFor="title" className="form-label">Title</label>
                 <input id="title" name="title" required defaultValue={data.title || ''} className="form-control" ref={titleRef} />
             </div>
+
+            {formType === 'stories' && (
+                <div id="story-fields">
+                    <div className="mb-3">
+                        <label htmlFor="as" className="form-label">As a</label>
+                        <input id="as" name="as" defaultValue={(data as Story).as || ''} className="form-control" />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="i-want" className="form-label">I want</label>
+                        <input id="i-want" name="i-want" defaultValue={(data as Story)['i want'] || ''} className="form-control" />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="so-that" className="form-label">So that</label>
+                        <input id="so-that" name="so-that" defaultValue={(data as Story)['so that'] || ''} className="form-control" />
+                    </div>
+                </div>
+            )}
+            
             <div className="mb-3">
                 <label htmlFor="description" className="form-label">Description</label>
                 <textarea id="description" name="description" defaultValue={data.description || ''} className="form-control"></textarea>
@@ -57,23 +75,6 @@ export const ItemForm: React.FC<ItemFormProps> = ({ formType, data, onSubmit, on
                         <textarea id="dod" name="dod" rows={3} defaultValue={(data as Task)['definition of done']?.join('\n') || ''} className="form-control"></textarea>
                     </div>
                 </>
-            )}
-
-            {formType === 'stories' && (
-                <div id="story-fields">
-                    <div className="mb-3">
-                        <label htmlFor="as" className="form-label">As a</label>
-                        <input id="as" name="as" defaultValue={(data as Story).as || ''} className="form-control" />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="i-want" className="form-label">I want</label>
-                        <input id="i-want" name="i-want" defaultValue={(data as Story)['i want'] || ''} className="form-control" />
-                    </div>
-                    <div className="mb-3">
-                        <label htmlFor="so-that" className="form-label">So that</label>
-                        <input id="so-that" name="so-that" defaultValue={(data as Story)['so that'] || ''} className="form-control" />
-                    </div>
-                </div>
             )}
 
             <div className="d-flex justify-content-end">
