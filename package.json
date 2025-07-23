@@ -1,6 +1,7 @@
 {
   "name": "story-yaml",
-  "displayName": ".",
+  "displayName": "Story YAML",
+  "publisher": "yamagh",
   "description": "",
   "version": "0.3.0",
   "repository": {
@@ -14,7 +15,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:story-yaml.preview"
+    "onLanguage:yaml"
   ],
   "browser": "./dist/web/extension.js",
   "contributes": {
@@ -22,7 +23,8 @@
       {
         "command": "story-yaml.preview",
         "title": "Story YAML: Preview",
-        "category": "Story YAML"
+        "category": "Story YAML",
+        "when": "editorLangId == 'yaml'"
       }
     ],
     "snippets": [

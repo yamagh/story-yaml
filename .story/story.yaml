@@ -204,3 +204,21 @@ epics:
           - StoryTableコンポーネントがuseStoryDataフックからselectedItemを取得する
           - StoryTableで、現在の行のアイテムがselectedItemと一致する場合、特定のCSSクラス（例：`selected-row`）を行（`<tr>`）に適用する
           - App.cssに`.selected-row`のためのハイライトスタイル（背景色など）が定義されている
+  - title: 拡張機能の最適化
+    description: 拡張機能のパフォーマンスとUXを向上させるための改善を行います。
+    stories:
+      - title: YAMLファイル編集時のみ拡張機能を有効化
+        as: 開発者
+        i want: 拡張機能がYAMLファイルを編集している時にのみ有効化されるようにしたい
+        so that: VS Codeのリソースを効率的に利用し、他の言語の編集時に不要な機能が表示されないようにするため
+        description: |
+          現在の実装では、拡張機能が常にアクティブになっている。
+          リソースを効率的に使用し、ユーザー体験を向上させるため、
+          カレントファイルの言語がYAMLの時にのみ、スニペットやコマンドが有効になるように変更する。
+        status: Done
+        points: 3
+        sprint: Sprint 2
+        definition of done:
+          - "package.jsonのactivationEventsに`onLanguage:yaml`が追加されている"
+          - "package.jsonのcontributes内のコマンドやメニューに`when`句が追加され、`editorLangId == 'yaml'`のコンテキストで表示されるように制限されている"
+          - "スニペットがYAML言語に正しく関連付けられている"
