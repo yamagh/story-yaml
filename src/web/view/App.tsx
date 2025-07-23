@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import { StoryDataProvider, useStoryData } from './contexts/StoryDataContext';
 import { MainLayout } from './components/MainLayout';
 import { Sidebar } from './components/Sidebar';
+import { ResizableBox } from 'react-resizable';
 
 const AppContent = () => {
     const { storyData, error, setError } = useStoryData();
+    const [sidebarWidth, setSidebarWidth] = useState(500);
 
     if (!storyData) {
         return (
@@ -25,9 +27,20 @@ const AppContent = () => {
                     <button type="button" className="btn-close" onClick={() => setError(null)} aria-label="Close"></button>
                 </div>
             )}
-            <div className="row flex-grow-1" style={{ overflowY: 'hidden' }}>
+            <div className="d-flex" style={{ overflowY: 'hidden', flexWrap: 'nowrap' }}>
                 <MainLayout />
-                <Sidebar />
+                <ResizableBox
+                    width={sidebarWidth}
+                    height={Infinity}
+                    axis="x"
+                    minConstraints={[300, Infinity]}
+                    maxConstraints={[800, Infinity]}
+                    onResize={(e, data) => setSidebarWidth(data.size.width)}
+                    className="resizable-box"
+                    resizeHandles={['w']}
+                >
+                    <Sidebar />
+                </ResizableBox>
             </div>
         </div>
     );

@@ -204,6 +204,19 @@ epics:
           - StoryTableコンポーネントがuseStoryDataフックからselectedItemを取得する
           - StoryTableで、現在の行のアイテムがselectedItemと一致する場合、特定のCSSクラス（例：`selected-row`）を行（`<tr>`）に適用する
           - App.cssに`.selected-row`のためのハイライトスタイル（背景色など）が定義されている
+      - title: サイドバーの幅をリサイズ可能にする
+        as: ユーザー
+        i want: サイドバーの幅をドラッグ＆ドロップで変更したい
+        so that: メインの表示領域とサイドバーの表示領域のバランスを自由に変えられるようにするため
+        status: Done
+        points: 3
+        sprint: Sprint 2
+        definition of done:
+          - ユーザーはサイドバーの左端をドラッグすることで、サイドバーの幅を変更できる
+          - 幅の変更は永続的ではなく、リロードすると初期状態に戻る
+          - リサイズ中は、メインコンテンツの幅も動的に調整される
+          - 最小幅と最大幅が設定されており、極端なリサイズはできない
+          - react-resizable ライブラリが導入されている
   - title: 拡張機能の最適化
     description: 拡張機能のパフォーマンスとUXを向上させるための改善を行います。
     stories:
