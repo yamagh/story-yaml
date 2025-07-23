@@ -36,7 +36,6 @@ interface StoryDataState {
     formParentId: string | null;
     formItemData?: (Item & { type: string });
     formItemParentData?: (Epic | Story | Task) | null;
-    pendingSelection: string | null;
 }
 
 // 初期状態
@@ -49,7 +48,6 @@ const initialState: StoryDataState = {
     formParentId: null,
     formItemData: undefined,
     formItemParentData: undefined,
-    pendingSelection: null,
 };
 
 const findItemAndParent = (
@@ -90,7 +88,23 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
 
     useEffect(() => {
         setStoryData(initialStoryData);
-    }, [initialStoryData]);
+        if (state.selectedItem && initialStoryData) {
+            const allTopLevelItems = [...(initialStoryData.epics || []), ...(initialStoryData.tasks || [])];
+            const found = findItemAndParent(allTopLevelItems, state.selectedItem.id!);
+            if (found) {
+                const updatedSelectedItem = { ...found.item, type: state.selectedItem.type };
+                if (JSON.stringify(state.selectedItem) !== JSON.stringify(updatedSelectedItem)) {
+                    setState(prevState => ({
+                        ...prevState,
+                        selectedItem: updatedSelectedItem,
+                        selectedItemParent: found.parent,
+                    }));
+                }
+            } else {
+                setState(prevState => ({ ...prevState, selectedItem: null, selectedItemParent: null }));
+            }
+        }
+    }, [initialStoryData, state.selectedItem]);
 
     const deleteItem = useCallback((id: string) => {
         deleteItemInVscode({ id });
@@ -179,7 +193,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
 
     const handleFormSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        const { isEditing, formType, formParentId, formItemData } = state;
+        const { isEditing, formType, formParentId, formItemData, formItemParentData } = state;
         const formData = new FormData(e.target as HTMLFormElement);
 
         const newOrUpdatedData: Partial<Item> = {
@@ -202,44 +216,32 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
         }
 
         if (isEditing && formItemData) {
-            const updatedData = { ...formItemData, ...newOrUpdatedData, type: formType! };
-            updateItem({ id: formItemData.id!, updatedData });
+            const updatedItem = { ...formItemData, ...newOrUpdatedData, type: formItemData.type };
+            updateItem({ id: formItemData.id!, updatedData: updatedItem });
             setState(prevState => ({
                 ...prevState,
-                pendingSelection: formItemData.id!,
+                formVisible: false,
+                isEditing: false,
+                formType: null,
+                formParentId: null,
+                formItemData: undefined,
+                formItemParentData: undefined,
+                selectedItem: updatedItem,
+                selectedItemParent: formItemParentData || null,
             }));
         } else {
             addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'sub tasks'> });
             setState(prevState => ({
                 ...prevState,
-                pendingSelection: newOrUpdatedData.title || null,
+                formVisible: false,
+                isEditing: false,
+                formType: null,
+                formParentId: null,
+                formItemData: undefined,
+                formItemParentData: undefined,
             }));
         }
-
-        setState(prevState => ({
-            ...prevState,
-            formVisible: false,
-            isEditing: false,
-            formType: null,
-            formParentId: null,
-            formItemData: undefined,
-            formItemParentData: undefined,
-        }));
-
     }, [state, addItem, updateItem]);
-
-    useEffect(() => {
-        if (state.pendingSelection && storyData) {
-            const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
-            const found = findItemAndParent(allTopLevelItems, state.pendingSelection);
-            if (found) {
-                const itemTypeString = found.type.slice(0, -1);
-                const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1);
-                selectItem(found.item, type);
-                setState(prevState => ({ ...prevState, pendingSelection: null }));
-            }
-        }
-    }, [storyData, state.pendingSelection, selectItem]);
 
     const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
