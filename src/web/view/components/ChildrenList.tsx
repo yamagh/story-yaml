@@ -2,6 +2,7 @@ import React from 'react';
 import { Item, Story, SubTask, ItemType } from '../../types';
 import { isEpic, isStory, isTask } from '../../typeGuards';
 import { useStoryData } from '../contexts/StoryDataContext';
+import { Badge } from './Badge';
 
 type SelectedItem = Item & { type: string };
 
@@ -53,8 +54,9 @@ export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem }) => {
             <ul className="list-group mt-2">
                 {children && children.length > 0 ? (
                     children.map((child) => (
-                        <li key={child.title} className="list-group-item list-group-item-action" onClick={() => handleSelectChild(child)} style={{ cursor: 'pointer' }}>
-                            {child.title}
+                        <li key={child.title} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onClick={() => handleSelectChild(child)} style={{ cursor: 'pointer' }}>
+                            <span>{child.title}</span>
+                            <Badge type="status" value={child.status} />
                         </li>
                     ))
                 ) : (
