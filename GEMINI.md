@@ -1,4 +1,3 @@
-```yaml
 environment:
   devbox: true
   instructions: >
@@ -32,157 +31,165 @@ directory_structure:
   - src/: 自動生成コード
   - src/test/: 自動生成テスト
 
-development_flow:
-  policy: >
-    トラブルが発生した場合は、まず .story/issue/ に記録された過去のナレッジを参照すること。
-    類似の解決例が存在しないかを確認してから調査・修正に着手する。
-  steps:
-    - step: 1
-      name: ユーザーストーリー
-      substeps:
-        - step: 1.1
-          name: ブレインストーミング
-          purpose: 自然言語または既存のstory.yamlをもとにブレインストーミングを行い、構想をidea.yamlに出力する。
-          ai_support:
-            - 具体的なストーリー例や改善案、分割案などを論理的に提示する
-            - 必要に応じてINVEST原則、Definition of Doneといったフレームワークに基づきチェックリストやアドバイスを提供する
-            - 表面的な回答だけでなく、「なぜそれが必要か？」「本当にこのストーリーで価値は生まれるか？」など、ユーザーの思考や会話を深める問いを投げかける
-            - 質問やフィードバックのやりとりによってユーザー自身の発見や気づきを促進する
-            - ユーザーやチームに偏らず、第三者的な視点でバランスよく意見やアドバイスする
-            - ベストプラクティスや過去事例など幅広い知識から根拠を示して説明する
-          depends_on: []
-          outputs:
-            - .story/idea.yaml
-          command: '%idea'
+commands:
+  - command: '%help [command]'
+    description: |
+      指定されたコマンドの解説を行うメタコマンド。
+      例: `%help idea` と実行することで `%idea` コマンドの説明が得られる。
 
-        - step: 1.2
-          name: ユーザーストーリー
-          purpose: ブレインストーミングの結果を、story.yamlへ構造的に反映する。
-          ai_support:
-            - 構想からストーリー形式への変換
-            - YAML構造とキーワード整合性の検証
-          depends_on:
-            - .story/idea.yaml
-          outputs:
-            - .story/story.yaml
-          command: '%synthesize'
+  - command: '%story-idea'
+    name: ブレインストーミング
+    description: 新しいユーザーストーリーについてブレインストーミングを行い、構想を出力する。
+    responsibility: |
+      - 具体的なストーリー例を提示する
+      - ベストプラクティスや過去事例など幅広い知識から根拠を示してストーリーを提示する
+      - 新しいコンセプトを追加したストーリーを提示する
+      - すでにあるコンセプトを拡張したストーリーを提示する
+    inputs: []
+    outputs:
+      - .story/story-idea.yaml
+  
+  - command: '%story-approve'
+    name: 新しいユーザーストーリー追加
+    description: ブレインストーミングの結果を、story.yamlへ構造的に反映する。
+    responsibility: |
+      - 構想からストーリー形式への変換
+      - YAML構造とキーワード整合性の検証
+    inputs:
+      - .story/story-idea.yaml
+    outputs:
+      - .story/story.yaml
 
-    - step: 2
-      name: 実装・テスト計画
-      command: '%plan'
-      substeps:
-        - step: 2.1
-          name: 実装計画
-          purpose: ストーリーとコードベースを元に実行可能なタスクリストを含む plan.md を作成する
-          responsibility:
-            - ゴール/要件から逆算して必要なタスクの洗い出しと優先度付け
-            - 現状の課題やリソースを把握し、実装したい範囲（スコープ）を明確に設定
-            - いきなり全体計画を漠然と立てるのではなく、まずスモールスタート（小さなゴールの設定）を行い、進捗状況や効果を見ながら段階的にスコープや難易度を拡張する計画立案
-            - 実装計画の精度を上げるために、過去の事例や既存のリソース・データベースを検索・分析し、「どういう実装が最適か」を確認
-            - ステップバイステップで実行可能な実装のためのタスクリストを含める
-          depends_on:
-            - .story/story.md
-          outputs:
-            - .story/plan.md
-        - step: 2.2
-          name: テスト戦略の定義
-          purpose: 実装計画を元にテストのためのタスクリストを plan.md に追加する
-          responsibility:
-            - ユニットテスト、インテグレーションテスト、手動テストで何を確認するか境界線を明確にする。特に、ファイルシステム、ネットワーク、VS Code APIなど、外部環境への依存度が高い機能については、モック化のコストと効果を考慮し、テストアプローチを決定する。
-            - ステップバイステップで実行可能なテストのためのタスクリストを含める
-          depends_on:
-            - .story/plan.yaml
-          outputs:
-            - .story/plan.yaml
+  - command: '%story-invest'
+    name: ストーリーの品質評価 (INVEST原則)
+    description: |
+      より質の高い、実装しやすいストーリーを作成できるように各ストーリーがINVEST原則（独立しているか、交渉可能か、価値があるか、見積もり可能か、小さいか、テスト可能か）を満たしているか評価する
+    responsibility:
+      - story.yaml の各ストーリーをINVEST原則に基づいて評価する
+      - 評価結果は、具体的で分かりやすいフィードバックとしてユーザーに提示する
+    inputs:
+      - .story/story.yaml
+    outputs:
+      - .story/story-invest.md
 
-    - step: 3
-      name: 実装とテスト
-      command: '%dev'
-      substeps:
-        - step: 3.1
-          name: テストコードの作成
-          purpose: 実装に先立ってテストコードを生成する。TDDの原則に基づき、失敗するテストを先に設計することで、仕様を明確化する。
-          responsibility:
-            - 単体/結合テストケースを自動生成する
-            - テストを満たす最小限のコードを生成する
-            - コードに必要なドキュメントとコメントを出力する
-            - 画面やUIに関するテストコードは不要。人間に依頼する。
-          depends_on:
-            - .story/plan.yaml
-          outputs:
-            - src/
-            - src/test/
-          command: '%implement'
+  - command: '%story-dod'
+    name: 完了条件(DoD)の具体化支援
+    description: |
+      `definition of done` が曖昧な箇所を指摘し、より具体的でテスト可能な記述の提案をする
+    responsibility:
+      - story.yaml の `definition of done` を分析し、曖昧な表現や不十分な点を特定する
+      - より具体的で検証可能な完了条件の代替案を提案する
+      - 元のストーリーの意図を汲んだ提案をする
+    inputs:
+      - .story/story.yaml
+    outputs:
+      - .story/story-dod.md
 
-        - step: 3.2
-          name: 実装とテスト
-          purpose: 生成されたテストコードに基づいて最小限の実装を行い、テストを実行する。失敗した場合は原因を特定し修正を繰り返す。
-          depends_on:
-            - src/
-            - src/test/
-          outputs:
-            - test-report.log
-          command: '%test'
-          responsibility:
-            - テストを自動実行しログを収集する
-            - エラーの要因を分析し修正案を提示する
+  - command: '%story-dependency'
+    name: ストーリー間の依存関係の可視化
+    description: |
+      ストーリー間の隠れた依存関係や実行順序の矛盾を指摘する
+    responsibility:
+      - story.yaml 内の各アイテム（Epic, Story, Task）間の依存関係を解析する
+      - 解析結果に基づき、依存関係のリストや、矛盾点（例：循環参照）をレポートとして出力する
+      - ユーザーは実装順序の決定や計画の見直しを行えるレポートを出力する
+    inputs:
+      - .story/story.yaml
+    outputs:
+      - .story/story-dependency.md
 
-    - step: 4
-      name: 改善
-      command: '%improve'
-      substeps:
-        - step: 4.1
-          name: 改善計画
-          purpose: |
-            コードベース改善のための多角的なレビューと計画を行う
-          depends_on: []
-          outputs:
-            - .story/plan.md
-          command: '%improve-plan'
-          responsibility:
-            - 技術的負債の解消
-            - リファクタリング
-            - 責務分割
-            - パフォーマンスの最適化
-            - エラーハンドリングの強化
-            - テストの拡充
-            - ドキュメントの整備
-            - ベストプラクティスの適用
-        - step: 4.2
-          name: 改善実行
-          purpose:
-          depends_on:
-            - .story/plan.md
-          outputs: []
-          command: '%improve-execute'
-          responsibility:
-            - コードベースの改善を実行する
+  - command: '%dev-plan'
+    name: 実装計画
+    description: ストーリーとコードベースを元に実行可能なタスクリストを作成する
+    responsibility: |
+      - ゴール/要件から逆算して必要なタスクの洗い出しと優先度付け
+      - 現状の課題やリソースを把握し、実装したい範囲（スコープ）を明確に設定
+      - いきなり全体計画を漠然と立てるのではなく、まずスモールスタート（小さなゴールの設定）を行い、進捗状況や効果を見ながら段階的にスコープや難易度を拡張する計画立案
+      - 実装計画の精度を上げるために、過去の事例や既存のリソース・データベースを検索・分析し、「どういう実装が最適か」を確認
+      - ステップバイステップで実行可能な実装のためのタスクリストを含める
+    inputs:
+      - .story/story.yaml
+    outputs:
+      - .story/dev-plan.md
 
-    - step: 5
-      name: 不具合対応
-      purpose: 指摘された不具合に対して、step 3 の実装・テスト・リファクタリング・最適化のフローを再適用して修正を行う。
-      depends_on: []
-      command: '%fix'
-      responsibility:
-        - 不具合の原因を特定する
-        - 修正内容に応じて step 3 の各プロセス（テストコード作成、実装、リファクタリング、最適化）を再実行する
-        - 修正後の動作確認を行い、test-report.log を更新する
-      outputs:
-        - src/
-        - src/test/
+  - command: '%test-plan'
+    name: テスト戦略の定義
+    description: 実装計画を元にテストのためタスクリストを作成する
+    responsibility: |
+      - ユニットテスト、インテグレーションテスト、手動テストで何を確認するか境界線を明確にする。
+      - ファイルシステム、ネットワーク、VS Code APIなど、外部環境への依存度が高い機能については、モック化のコストと効果を考慮し、テストアプローチを決定する。
+      - ステップバイステップで実行可能なテストのためのタスクリストを含める
+    inputs:
+      - .story/dev-plan.md'
+    outputs:
+      - .story/test-plan.md
 
-    - step: 6
-      name: Issue記録
-      purpose: 直前のタスクで直面したトラブルやその解決方法、試行錯誤の過程を記録し、GitHub Issuesの一般的な使い方に準じた形式で .story/issue/ に保存する。
-      depends_on: []
-      outputs:
-        - .story/issue/
-      command: '%issue'
-      responsibility:
-        - 問題の背景、発生条件、現象を明確に記録する
-        - 原因の特定および修正内容を記載する
-        - 次回以降の参考になるよう時系列や試行錯誤も含める
-        - GitHub Issues の記法（タイトル、説明、再現手順、期待結果など）に準じて記述する
+  - command: '%dev'
+    name: 実装
+    description: |
+      TDDで開発する
+    responsibility: |
+      - 実装に先立ってテストコードを生成する。TDDの原則に基づき、失敗するテストを先に設計することで、仕様を明確化する。
+      - 生成されたテストコードに基づいて最小限の実装を行い、テストを実行する。失敗した場合は原因を特定し修正を繰り返す。
+    inputs:
+      - .story/dev-plan.md
+      - .story/test-plan.md
+    outputs:
+      - src/*
+
+  - command: '%improve-plan'
+    name: 改善計画
+    description: |
+      コードベース改善のための次の観点で多角的なレビューと計画を行う
+      - 技術的負債の解消
+      - リファクタリング
+      - 責務分割
+      - パフォーマンスの強化
+      - テストの拡充
+      - ドキュメントの整備
+      - ベストプラクティスの適用
+    inputs: []
+    outputs:
+      - .story/improve-plan.md
+
+  - command: '%improve-run'
+    name: 改善計画実行
+    description: 改善計画の記載内容に従って実行する
+    inputs:
+      - .story/improve-plan.md
+    outputs: []
+
+  - command: '%fix-plan'
+    name: 不具合修正方法検討
+    description: |
+      不具合が発見されたとき、コードベースやログを調査して原因を推定し、修正案を出力する。
+    responsibility: |
+      ステップバイステップで実行可能な実装のためのタスクリストを含める
+    inputs: []
+    outputs:
+      - .story/fix-plan.md
+
+  - command: '%fix-run'
+    name: 不具合修正
+    description: |
+      不具合修正案の記載内容に従って実行する
+    inputs:
+      - .story/fix-plan.md
+    outputs:
+      - src/*
+
+  - command: '%issue'
+    name: 課題追加
+    description: |
+      直前のタスクで直面したトラブルやその解決方法、試行錯誤の過程を記録し、GitHub Issuesの一般的な使い方に準じた形式で .story/issue/ に保存する。
+    responsibility:
+      - 問題の背景、発生条件、現象を明確に記録する
+      - 原因の特定および修正内容を記載する
+      - 次回以降の参考になるよう時系列や試行錯誤も含める
+      - GitHub Issues の記法（タイトル、説明、再現手順、期待結果など）に準じて記述する
+    inputs: []
+    outputs:
+      - .story/issue/
 
 glossary:
   - term: ストーリー駆動開発（Story-Driven Development）
@@ -226,4 +233,3 @@ glossary:
               description: 説明
               status: ToDo
       ```
-```
