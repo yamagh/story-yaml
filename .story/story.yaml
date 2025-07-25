@@ -166,7 +166,7 @@ epics:
         as: ユーザー
         i want: アイテム詳細画面で子アイテムのリストを確認し、そこから子アイテムの詳細表示に素早く切り替えたい
         so that: アイテムの階層関係を直感的に把握し、効率的にナビゲーションできるようにするため
-        status: ToDo
+        status: Done
         points: 3
         sprint: Sprint 2 # 仮
         definition of done:
@@ -178,7 +178,7 @@ epics:
         as: ユーザー
         i want: テーブルのヘッダーをクリックしてフィルタリングしたい
         so that: より直感的にデータを絞り込めるように
-        status: ToDo
+        status: Done
         points: 5
         sprint: Sprint 2
         description: |
@@ -196,7 +196,7 @@ epics:
         so that: どのアイテムの詳細を見ているか、視覚的にすぐにわかるようにするため
         description: |
           アイテム詳細（ItemDetails）でアイテムが選択されているとき、StoryTableの対応する行をハイライトし、ユーザーがどのアイテムを見ているか視覚的に分かりやすくします。
-        status: ToDo
+        status: Done
         points: 2
         sprint: Sprint 2
         definition of done:
