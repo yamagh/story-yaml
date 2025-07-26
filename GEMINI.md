@@ -49,12 +49,10 @@ commands:
     outputs:
       - .story/story-idea.yaml
   
-  - command: '%story-approve'
-    name: 新しいユーザーストーリー追加
-    description: ブレインストーミングの結果を、story.yamlへ構造的に反映する。
-    responsibility: |
-      - 構想からストーリー形式への変換
-      - YAML構造とキーワード整合性の検証
+  - command: '%story-merge'
+    name: ユーザーストーリーのマージ
+    description: |
+      @.story/story-idea.yaml にある新しいストーリーのアイデアを、プロジェクトの公式なストーリー定義ファイルである @.story/story.yaml へマージします
     inputs:
       - .story/story-idea.yaml
     outputs:
