@@ -1,0 +1,10 @@
+description="完了条件(DoD)の具体化支援"
+prompt = """
+`definition of done` が曖昧な箇所を指摘し、より具体的でテスト可能な記述を提案せよ
+
+手順:
+1. @.story/story.yaml の `definition of done` を分析し、曖昧な表現や不十分な点を特定する
+2. より具体的で検証可能な完了条件の代替案を検討する
+3. 元のストーリーの意図を汲んだ案を検討する
+4. @.story/story.yaml を更新する
+"""

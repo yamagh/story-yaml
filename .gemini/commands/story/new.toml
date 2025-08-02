@@ -1,0 +1,55 @@
+description="新しいユーザーストーリーを追加"
+prompt = """
+アイデアをユーザーストーリーに変換せよ
+
+手順:
+1. 次のアイデアについてユーザーストーリーYAML形式に変換して @.story/story.yaml に追加せよ。
+
+アイデア:
+> {{args}}
+
+ユーザーストーリーYAML形式のサンプル:
+
+```yaml
+epics:
+  - title: User Authentication
+    description: Implement a complete user authentication system.
+    stories:
+      - title: User Registration
+        as: a new user
+        i want: to create an account
+        so that: I can access the platform.
+        description: "Allow users to sign up using their email and password."
+        status: ToDo
+        points: 5
+        sprint: Sprint 1
+        definition of done:
+          - User can register with a unique email.
+          - A confirmation email is sent upon registration.
+      - title: User Login
+        as: a registered user
+        i want: to log in to my account
+        so that: I can use the application's features.
+        description: "Provide a secure login form for returning users."
+        status: ToDo
+        points: 3
+        sprint: Sprint 1
+        definition of done:
+          - User can log in with correct credentials.
+          - An error message is shown for invalid credentials.
+
+tasks:
+  - title: Set up the development environment
+    description: "Configure the necessary tools and libraries for the project."
+    status: Done
+    points: 2
+    sprint: Sprint 0
+    sub tasks:
+      - title: Install Node.js and npm
+        description: "Use Devbox to ensure consistent versions."
+        status: Done
+      - title: Set up ESLint and Prettier
+        description: "Configure linting and code formatting rules."
+        status: Done
+```
+"""
