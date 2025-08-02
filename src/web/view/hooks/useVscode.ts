@@ -32,7 +32,7 @@ export function useVscode() {
         vscode.postMessage(message);
     };
 
-    const addItem = (item: { itemType: string, parentId?: string, values: Omit<Item, 'stories' | 'sub tasks'> }) => {
+    const addItem = (item: { itemType: string, parentId?: string, values: Omit<Item, 'stories' | 'subtasks'> }) => {
         postMessage({ command: 'addItem', item });
     };
 

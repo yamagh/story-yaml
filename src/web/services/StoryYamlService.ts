@@ -15,8 +15,8 @@ export class StoryYamlService {
             if ('stories' in item && item.stories) {
                 item.stories.forEach(assignId);
             }
-            if ('sub tasks' in item && item['sub tasks']) {
-                item['sub tasks'].forEach(assignId);
+            if ('subtasks' in item && item['subtasks']) {
+                item['subtasks'].forEach(assignId);
             }
         };
         items.forEach(assignId);
@@ -45,8 +45,8 @@ export class StoryYamlService {
             if ('stories' in rest && rest.stories) {
                 rest.stories = this.removeIds(rest.stories) as Story[];
             }
-            if ('sub tasks' in rest && rest['sub tasks']) {
-                rest['sub tasks'] = this.removeIds(rest['sub tasks']) as SubTask[];
+            if ('subtasks' in rest && rest['subtasks']) {
+                rest['subtasks'] = this.removeIds(rest['subtasks']) as SubTask[];
             }
             return rest;
         });
@@ -74,7 +74,7 @@ export class StoryYamlService {
                 break;
             case 'stories':
             case 'tasks':
-                data = { id: newId, 'sub tasks': [], status: 'ToDo', ...item.values };
+                data = { id: newId, 'subtasks': [], status: 'ToDo', ...item.values };
                 break;
             case 'subtasks':
                 data = { id: newId, status: 'ToDo', ...item.values };
@@ -125,8 +125,8 @@ export class StoryYamlService {
                     const found = findParent(item.stories);
                     if (found) { return found; }
                 }
-                if ('sub tasks' in item && item['sub tasks']) {
-                    const found = findParent(item['sub tasks']);
+                if ('subtasks' in item && item['subtasks']) {
+                    const found = findParent(item['subtasks']);
                     if (found) { return found; }
                 }
             }
@@ -135,11 +135,11 @@ export class StoryYamlService {
 
         const parent = findParent(doc.epics) || findParent(doc.tasks);
 
-        if (parent && 'sub tasks' in parent) {
-            if (!parent['sub tasks']) {
-                parent['sub tasks'] = [];
+        if (parent && 'subtasks' in parent) {
+            if (!parent['subtasks']) {
+                parent['subtasks'] = [];
             }
-            parent['sub tasks'].push(subTask);
+            parent['subtasks'].push(subTask);
         }
     }
 
@@ -166,7 +166,7 @@ export class StoryYamlService {
             if ('stories' in currentItem && currentItem.stories && this.findAndReplace(currentItem.stories, id, newData)) {
                 return true;
             }
-            if ('sub tasks' in currentItem && currentItem['sub tasks'] && this.findAndReplace(currentItem['sub tasks'], id, newData)) {
+            if ('subtasks' in currentItem && currentItem['subtasks'] && this.findAndReplace(currentItem['subtasks'], id, newData)) {
                 return true;
             }
         }
@@ -187,7 +187,7 @@ export class StoryYamlService {
                 if ('stories' in currentItem && currentItem.stories && removeItem(currentItem.stories, id)) {
                     return true;
                 }
-                if ('sub tasks' in currentItem && currentItem['sub tasks'] && removeItem(currentItem['sub tasks'], id)) {
+                if ('subtasks' in currentItem && currentItem['subtasks'] && removeItem(currentItem['subtasks'], id)) {
                     return true;
                 }
             }

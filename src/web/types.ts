@@ -20,7 +20,7 @@ export interface Story {
   points?: number;
   sprint?: string;
   'definition of done'?: string[];
-  'sub tasks'?: SubTask[];
+  'subtasks'?: SubTask[];
 }
 
 export interface Task {
@@ -31,7 +31,7 @@ export interface Task {
   points?: number;
   sprint?: string;
   'definition of done'?: string[];
-  'sub tasks'?: SubTask[];
+  'subtasks'?: SubTask[];
 }
 
 export interface Epic {
@@ -51,8 +51,8 @@ export type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 
 export type AddItemValues = 
     Omit<Epic, 'id' | 'stories'> |
-    (Omit<Story, 'id' | 'sub tasks' | 'status'> & { status?: Status }) |
-    (Omit<Task, 'id' | 'sub tasks' | 'status'> & { status?: Status }) |
+    (Omit<Story, 'id' | 'subtasks' | 'status'> & { status?: Status }) |
+    (Omit<Task, 'id' | 'subtasks' | 'status'> & { status?: Status }) |
     Omit<SubTask, 'id'>;
 
 // WebView to Extension

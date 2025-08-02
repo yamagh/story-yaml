@@ -75,8 +75,8 @@ const findItemAndParent = (
             const found = findItemAndParent(node.stories, identifier, node);
             if (found) {return found;}
         }
-        if ((isStory(node) || isTask(node)) && node['sub tasks']) {
-            const found = findItemAndParent(node['sub tasks'], identifier, node);
+        if ((isStory(node) || isTask(node)) && node['subtasks']) {
+            const found = findItemAndParent(node['subtasks'], identifier, node);
             if (found) {return found;}
         }
     }
@@ -229,7 +229,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
                 selectedItemParent: formItemParentData || null,
             }));
         } else {
-            addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'sub tasks'> });
+            addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'subtasks'> });
             setState(prevState => ({
                 ...prevState,
                 formVisible: false,
@@ -256,7 +256,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
         const activeParentCollection: Item[] | undefined =
             activeInfo.parent === null
                 ? ('stories' in activeInfo.item ? newStoryData.epics : newStoryData.tasks)
-                : ('stories' in activeInfo.parent ? (activeInfo.parent as Epic).stories : (activeInfo.parent as Story | Task)['sub tasks']);
+                : ('stories' in activeInfo.parent ? (activeInfo.parent as Epic).stories : (activeInfo.parent as Story | Task)['subtasks']);
         if (!activeParentCollection) return;
         const activeIndex = activeParentCollection.findIndex(i => i.id === active.id);
         if (activeIndex === -1) return;
@@ -275,19 +275,19 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
                 destinationCollection = targetEpic.stories = targetEpic.stories || [];
             } else {
                 const targetParent = overInfo.item as Story | Task;
-                destinationCollection = targetParent['sub tasks'] = targetParent['sub tasks'] || [];
+                destinationCollection = targetParent['subtasks'] = targetParent['subtasks'] || [];
             }
             destinationIndex = destinationCollection.length;
         } else {
             destinationCollection = overInfo.parent === null
                 ? ('stories' in overInfo.item ? newStoryData.epics : newStoryData.tasks)
-                : ('stories' in overInfo.parent ? (overInfo.parent as Epic).stories : (overInfo.parent as Story | Task)['sub tasks']);
+                : ('stories' in overInfo.parent ? (overInfo.parent as Epic).stories : (overInfo.parent as Story | Task)['subtasks']);
             if (!destinationCollection) {
                 activeParentCollection.splice(activeIndex, 0, movedItem);
                 return;
             }
             destinationIndex = destinationCollection.findIndex(i => i.id === over.id);
-            const destParentType = overInfo.parent ? (('stories' in overInfo.parent) ? 'epics' : ('sub tasks' in overInfo.parent ? 'stories' : 'tasks')) : 'root';
+            const destParentType = overInfo.parent ? (('stories' in overInfo.parent) ? 'epics' : ('subtasks' in overInfo.parent ? 'stories' : 'tasks')) : 'root';
             if (activeType === 'epics' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
             if (activeType === 'tasks' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
             if (activeType === 'stories' && destParentType !== 'epics') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }

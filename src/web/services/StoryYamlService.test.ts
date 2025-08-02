@@ -19,7 +19,7 @@ epics:
         definition of done:
           - Done 1
           - Done 2
-        sub tasks:
+        subtasks:
           - title: SubTask 1-1-1
             description: SubTask 1-1-1 Description
             status: ToDo
@@ -29,7 +29,7 @@ tasks:
     status: ToDo
     points: 5
     sprint: Sprint 1
-    sub tasks:
+    subtasks:
       - title: SubTask T1-1
         description: SubTask T1-1 Description
         status: ToDo
@@ -60,7 +60,7 @@ describe('StoryYamlService', () => {
             };
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'epics',
-                values: newEpic as Omit<Item, 'stories' | 'sub tasks'>,
+                values: newEpic as Omit<Item, 'stories' | 'subtasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
             expect(parsedResult.epics).toHaveLength(2);
@@ -75,7 +75,7 @@ describe('StoryYamlService', () => {
             };
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'tasks',
-                values: newTask as Omit<Item, 'stories' | 'sub tasks'>,
+                values: newTask as Omit<Item, 'stories' | 'subtasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
             expect(parsedResult.tasks).toHaveLength(2);
@@ -92,7 +92,7 @@ describe('StoryYamlService', () => {
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'stories',
                 parentId: parentEpicId,
-                values: newStory as Omit<Item, 'stories' | 'sub tasks'>,
+                values: newStory as Omit<Item, 'stories' | 'subtasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
             expect(parsedResult.epics[0].stories).toHaveLength(2);
@@ -109,11 +109,11 @@ describe('StoryYamlService', () => {
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'subtasks',
                 parentId: parentStoryId,
-                values: newSubTask as Omit<Item, 'stories' | 'sub tasks'>,
+                values: newSubTask as Omit<Item, 'stories' | 'subtasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
-            expect(parsedResult.epics[0].stories[0]['sub tasks']).toHaveLength(2);
-            expect(parsedResult.epics[0].stories[0]['sub tasks']![1]).toMatchObject(newSubTask);
+            expect(parsedResult.epics[0].stories[0]['subtasks']).toHaveLength(2);
+            expect(parsedResult.epics[0].stories[0]['subtasks']![1]).toMatchObject(newSubTask);
         });
 
         it('should add a new subtask to a task', () => {
@@ -126,11 +126,11 @@ describe('StoryYamlService', () => {
             const result = StoryYamlService.updateStoryContent(initialYamlContent, {
                 itemType: 'subtasks',
                 parentId: parentTaskId,
-                values: newSubTask as Omit<Item, 'stories' | 'sub tasks'>,
+                values: newSubTask as Omit<Item, 'stories' | 'subtasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
-            expect(parsedResult.tasks[0]['sub tasks']).toHaveLength(2);
-            expect(parsedResult.tasks[0]['sub tasks']![1]).toMatchObject(newSubTask);
+            expect(parsedResult.tasks[0]['subtasks']).toHaveLength(2);
+            expect(parsedResult.tasks[0]['subtasks']![1]).toMatchObject(newSubTask);
         });
     });
 
@@ -159,7 +159,7 @@ describe('StoryYamlService', () => {
 
         it('should update a nested subtask', () => {
             const doc = StoryYamlService.loadYaml(initialYamlContent);
-            const subtaskToUpdateId = doc.epics[0].stories[0]['sub tasks']![0].id;
+            const subtaskToUpdateId = doc.epics[0].stories[0]['subtasks']![0].id;
             const updatedSubTaskData = {
                 type: 'subtasks',
                 title: 'SubTask 1-1-1',
@@ -170,7 +170,7 @@ describe('StoryYamlService', () => {
                 updatedData: updatedSubTaskData as Item & { type: string },
             });
             const parsedResult = yaml.load(result) as StoryFile;
-            const subtask = parsedResult.epics[0].stories[0]['sub tasks']![0];
+            const subtask = parsedResult.epics[0].stories[0]['subtasks']![0];
             expect(subtask.status).toBe('WIP');
         });
 
@@ -212,10 +212,10 @@ describe('StoryYamlService', () => {
 
         it('should delete a subtask', () => {
             const doc = StoryYamlService.loadYaml(initialYamlContent);
-            const subtaskToDeleteId = doc.epics[0].stories[0]['sub tasks']![0].id;
+            const subtaskToDeleteId = doc.epics[0].stories[0]['subtasks']![0].id;
             const result = StoryYamlService.deleteItemFromStoryFile(initialYamlContent, { id: subtaskToDeleteId! });
             const parsedResult = yaml.load(result) as StoryFile;
-            expect(parsedResult.epics[0].stories[0]['sub tasks']!.find(st => st.title === 'SubTask 1-1-1')).toBeUndefined();
+            expect(parsedResult.epics[0].stories[0]['subtasks']!.find(st => st.title === 'SubTask 1-1-1')).toBeUndefined();
         });
 
         it('should delete the correct item when titles are duplicated', () => {
@@ -237,7 +237,7 @@ epics:
 `;
             const result = StoryYamlService.updateStoryContent(yamlWithoutTasks, {
                 itemType: 'tasks',
-                values: { title: 'New Task' } as Omit<Item, 'stories' | 'sub tasks'>,
+                values: { title: 'New Task' } as Omit<Item, 'stories' | 'subtasks'>,
             });
             const parsedResult = yaml.load(result) as StoryFile;
             expect(parsedResult.tasks).toBeDefined();
@@ -256,8 +256,8 @@ epics:
                     if ('stories' in item && item.stories) {
                         checkIds(item.stories);
                     }
-                    if ('sub tasks' in item && item['sub tasks']) {
-                        checkIds(item['sub tasks']);
+                    if ('subtasks' in item && item['subtasks']) {
+                        checkIds(item['subtasks']);
                     }
                 });
             };

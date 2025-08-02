@@ -20,7 +20,7 @@ export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem }) => {
     const children: (Story | SubTask)[] = isEpic(selectedItem)
         ? selectedItem.stories
         : (isStory(selectedItem) || isTask(selectedItem))
-            ? selectedItem['sub tasks'] || []
+            ? selectedItem['subtasks'] || []
             : [];
 
     const handleSelectChild = (child: Story | SubTask) => {

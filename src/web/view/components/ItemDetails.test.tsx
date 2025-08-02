@@ -26,7 +26,7 @@ const mockEpic: Epic = {
             points: 5,
             sprint: 'Sprint 1',
             'definition of done': [],
-            'sub tasks': [],
+            'subtasks': [],
         }
     ],
 };
@@ -42,7 +42,7 @@ const mockStory: Story = {
     points: 5,
     sprint: 'Sprint 1',
     'definition of done': [],
-    'sub tasks': [
+    'subtasks': [
         {
             id: 'subtask-1',
             title: 'Test SubTask',

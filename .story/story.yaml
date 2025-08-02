@@ -239,14 +239,14 @@ epics:
         as: 開発者
         i want: 属性値が初期値（ブランク、0など）の場合、YAMLファイルに出力されないようにしたい
         so that: 使用しない属性を省略し、YAMLの可読性を高めたいから
-        description: "属性（as, i want, so that, description, points, sprint, status, definition of done, sub tasks など)の値がブランクや0など初期値の場合、yaml には反映したくない。理由：場合により使用しない属性もあるため、使用しない属性はyamlから省略することで申請を高めたいから。"
+        description: "属性（as, i want, so that, description, points, sprint, status, definition of done, subtasks など)の値がブランクや0など初期値の場合、yaml には反映したくない。理由：場合により使用しない属性もあるため、使用しない属性はyamlから省略することで申請を高めたいから。"
         status: ToDo
         points: 5
         definition of done:
           - as, i want, so that, description, sprint 属性が空文字列の場合、YAMLに出力されない
           - points 属性が 0 の場合、YAMLに出力されない
           - definition of done が空または要素がない場合、YAMLに出力されない
-          - sub tasks が空または要素がない場合、YAMLに出力されない
+          - subtasks が空または要素がない場合、YAMLに出力されない
           - 既存のアイテムを編集して値をブランク/0にした場合も、YAMLからその属性が削除される
           - 新規アイテム作成時に初期値のままの属性は、YAMLに出力されない
   - title: AIによるストーリー作成・改善支援

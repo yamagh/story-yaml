@@ -44,7 +44,7 @@ tasks:
     status: Done
     points: 2
     sprint: Sprint 0
-    sub tasks:
+    subtasks:
       - title: Install Node.js and npm
         description: "Use Devbox to ensure consistent versions."
         status: Done

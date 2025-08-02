@@ -23,7 +23,7 @@ const mockStoryFile: StoryFile = {
           id: 'story-1-1',
           title: 'Story 1.1',
           status: 'ToDo',
-          'sub tasks': [
+          'subtasks': [
             { id: 'subtask-1-1-1', title: 'Subtask 1.1.1', status: 'ToDo' },
           ],
         },
@@ -87,7 +87,7 @@ describe('useStoryData', () => {
   
   it('should select a sub-task and its story parent', () => {
     const { result } = renderHook(() => useStoryData(), { wrapper });
-    const subtaskToSelect = mockStoryFile.epics[0].stories[0]['sub tasks']![0];
+    const subtaskToSelect = mockStoryFile.epics[0].stories[0]['subtasks']![0];
 
     act(() => {
         result.current.selectItem(subtaskToSelect, 'SubTask');

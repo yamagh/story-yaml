@@ -22,7 +22,7 @@
       "  points: ${5:1}",
       "  acceptance criteria:",
       "    - ${6:受け入れ基準１}",
-      "  sub tasks:",
+      "  subtasks:",
       "    - ${7:サブタスク１}"
     ],
     "description": "新しいストーリーを作成します"

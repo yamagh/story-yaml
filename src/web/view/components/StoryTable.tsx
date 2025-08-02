@@ -82,12 +82,12 @@ const StoryTableFC: React.FC<StoryTableProps> = ({ storyData, onSelectRow }) => 
             items.push(epic);
             epic.stories?.forEach(story => {
                 items.push(story);
-                story['sub tasks']?.forEach(sub => items.push(sub));
+                story['subtasks']?.forEach(sub => items.push(sub));
             });
         });
         storyData.tasks.forEach(task => {
             items.push(task);
-            task['sub tasks']?.forEach(sub => items.push(sub));
+            task['subtasks']?.forEach(sub => items.push(sub));
         });
         return items;
     }, [storyData]);
@@ -112,7 +112,7 @@ const StoryTableFC: React.FC<StoryTableProps> = ({ storyData, onSelectRow }) => 
                         {epic.stories?.map((story) => (
                             <React.Fragment key={story.id}>
                                 <SortableRow item={story} type="Story" onSelectRow={onSelectRow} level={1} />
-                                {renderSubTasks(story['sub tasks'] || [], 2)}
+                                {renderSubTasks(story['subtasks'] || [], 2)}
                             </React.Fragment>
                         ))}
                     </React.Fragment>
@@ -120,7 +120,7 @@ const StoryTableFC: React.FC<StoryTableProps> = ({ storyData, onSelectRow }) => 
                 {tasks.map((task) => (
                     <React.Fragment key={task.id}>
                         <SortableRow item={task} type="Task" onSelectRow={onSelectRow} level={0} />
-                        {renderSubTasks(task['sub tasks'] || [], 1)}
+                        {renderSubTasks(task['subtasks'] || [], 1)}
                     </React.Fragment>
                 ))}
             </SortableContext>

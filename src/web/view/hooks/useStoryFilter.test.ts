@@ -20,7 +20,7 @@ const mockStoryData: StoryFile = {
           points: 5,
           sprint: 'Sprint 1',
           'definition of done': [],
-          'sub tasks': [],
+          'subtasks': [],
         },
         {
           title: 'Story 1-2',
@@ -32,7 +32,7 @@ const mockStoryData: StoryFile = {
           points: 3,
           sprint: 'Sprint 2',
           'definition of done': [],
-          'sub tasks': [],
+          'subtasks': [],
         },
       ],
     },
@@ -45,7 +45,7 @@ const mockStoryData: StoryFile = {
       points: 8,
       sprint: 'Sprint 1',
       'definition of done': [],
-      'sub tasks': [],
+      'subtasks': [],
     },
     {
         title: 'Task 2',
@@ -54,7 +54,7 @@ const mockStoryData: StoryFile = {
         points: 2,
         sprint: 'Sprint 3',
         'definition of done': [],
-        'sub tasks': [],
+        'subtasks': [],
       },
   ],
 };

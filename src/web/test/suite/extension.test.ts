@@ -40,7 +40,7 @@ suite('Extension Logic Test Suite', () => {
     });
 
     test('updateStoryContent should add a new sub-task to a story', () => {
-        const initialContent = yaml.dump({ epics: [{ title: 'Epic', stories: [{ title: 'Parent Story', 'sub tasks': [] }] }] });
+        const initialContent = yaml.dump({ epics: [{ title: 'Epic', stories: [{ title: 'Parent Story', 'subtasks': [] }] }] });
         const doc = StoryYamlService.loadYaml(initialContent);
         const parentStoryId = doc.epics[0].stories[0].id;
         const newItem: Extract<WebviewMessage, { command: 'addItem' }>['item'] = {
@@ -49,7 +49,7 @@ suite('Extension Logic Test Suite', () => {
             values: { title: 'New Sub-task', status: 'ToDo' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem)) as StoryFile;
-        const subTasks = updatedDoc.epics[0].stories[0]['sub tasks'];
+        const subTasks = updatedDoc.epics[0].stories[0]['subtasks'];
         assert.strictEqual(subTasks?.length, 1);
         assert.deepStrictEqual(subTasks?.[0], { title: 'New Sub-task', status: 'ToDo' });
     });
@@ -67,7 +67,7 @@ suite('Item Update Logic Test Suite', () => {
                     title: 'Story to Edit',
                     description: 'Initial story description',
                     status: 'ToDo',
-                    'sub tasks': [{ title: 'Sub-task to Edit', status: 'ToDo' }]
+                    'subtasks': [{ title: 'Sub-task to Edit', status: 'ToDo' }]
                 }]
             }],
             tasks: [{
@@ -117,13 +117,13 @@ suite('Item Update Logic Test Suite', () => {
     test('should update a nested sub-task', () => {
         const initialContent = yaml.dump(initialDoc);
         const doc = StoryYamlService.loadYaml(initialContent);
-        const subtaskToUpdateId = doc.epics[0].stories[0]['sub tasks']![0].id;
+        const subtaskToUpdateId = doc.epics[0].stories[0]['subtasks']![0].id;
         const itemToUpdate: Extract<WebviewMessage, { command: 'updateItem' }>['item'] = {
             id: subtaskToUpdateId!,
             updatedData: { type: 'subtasks', status: 'WIP' }
         };
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate)) as StoryFile;
-        assert.strictEqual(updatedDoc.epics[0].stories[0]['sub tasks']![0].status, 'WIP');
+        assert.strictEqual(updatedDoc.epics[0].stories[0]['subtasks']![0].status, 'WIP');
     });
 });
 
@@ -140,7 +140,7 @@ suite('Item Deletion Logic Test Suite', () => {
             tasks: [{
                 title: 'Task To Delete',
                 status: 'ToDo',
-                'sub tasks': [{ title: 'Sub-task To Keep', status: 'ToDo' }]
+                'subtasks': [{ title: 'Sub-task To Keep', status: 'ToDo' }]
             }]
         };
     });
