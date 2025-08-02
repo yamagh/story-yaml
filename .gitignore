@@ -6,4 +6,5 @@ node_modules
 .env
 .story/plan.md
 .story/idea.yaml
+.story/tmp.yaml
 .story/issue/
