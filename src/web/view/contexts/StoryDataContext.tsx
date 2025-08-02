@@ -84,13 +84,19 @@ const findItemAndParent = (
 };
 
 export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
-    const { storyData: initialStoryData, error, setError, addItem, updateItem, deleteItem: deleteItemInVscode, updateStoryFile } = useVscode();
+    const { storyData: initialStoryData, error, newId, setError, addItem, updateItem, deleteItem: deleteItemInVscode, updateStoryFile } = useVscode();
     const [storyData, setStoryData] = useState<StoryFile | null>(initialStoryData);
     const [state, setState] = useState<StoryDataState>(initialState);
 
     useEffect(() => {
         setStoryData(initialStoryData);
     }, [initialStoryData]);
+
+    useEffect(() => {
+        if (newId) {
+            setState(prevState => ({ ...prevState, pendingSelection: newId }));
+        }
+    }, [newId]);
 
     const selectItem = useCallback((item: Item, type: string) => {
         if (!storyData) {
@@ -225,8 +231,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
                 formParentId: null,
                 formItemData: undefined,
                 formItemParentData: undefined,
-                selectedItem: updatedItem,
-                selectedItemParent: formItemParentData || null,
+                pendingSelection: formItemData.id!,
             }));
         } else {
             addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'subtasks'> });
@@ -238,7 +243,6 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
                 formParentId: null,
                 formItemData: undefined,
                 formItemParentData: undefined,
-                pendingSelection: newOrUpdatedData.title || null,
             }));
         }
     }, [state, addItem, updateItem]);

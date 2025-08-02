@@ -58,7 +58,7 @@ export class StoryYamlService {
         return yaml.dump({ epics: cleanEpics, tasks: cleanTasks });
     }
 
-    public static updateStoryContent(content: string, item: { itemType: string; parentId?: string; values: AddItemValues }): string {
+    public static updateStoryContent(content: string, item: { itemType: string; parentId?: string; values: AddItemValues }): { content: string; newId: string, storyFile: StoryFile } {
         const doc = this.loadYaml(content);
 
         if (!doc.epics) { doc.epics = []; }
@@ -80,12 +80,12 @@ export class StoryYamlService {
                 data = { id: newId, status: 'ToDo', ...item.values };
                 break;
             default:
-                return content;
+                return { content, newId: '', storyFile: doc };
         }
 
         this.addItem(doc, { itemType, data, parentId: item.parentId });
 
-        return this.saveStoryFile(doc);
+        return { content: this.saveStoryFile(doc), newId, storyFile: doc };
     }
 
     private static addItem(doc: StoryFile, item: { itemType: ItemType; data: ItemData; parentId?: string }) {

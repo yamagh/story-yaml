@@ -47,7 +47,6 @@ export class WebviewPanelManager {
                         return;
                     case 'addItem':
                         await this.addItemToStoryFile(message);
-                        this.update();
                         return;
                     case 'updateItem':
                         await this.updateItemInStoryFile(message);
@@ -114,10 +113,13 @@ export class WebviewPanelManager {
     private async addItemToStoryFile(message: WebviewMessage & { command: 'addItem' }) {
         if (!this._document) { return; }
         try {
-            const newContent = StoryYamlService.updateStoryContent(this._document.getText(), message.item);
+            const { content: newContent, newId, storyFile } = StoryYamlService.updateStoryContent(this._document.getText(), message.item);
             const edit = new vscode.WorkspaceEdit();
             edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
             await vscode.workspace.applyEdit(edit);
+
+            this.postMessage({ command: 'update', storyFile, newId });
+
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
             vscode.window.showErrorMessage(`Error processing YAML: ${errorMessage}`);

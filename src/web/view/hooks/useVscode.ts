@@ -6,12 +6,16 @@ const vscode = acquireVsCodeApi();
 export function useVscode() {
     const [storyData, setStoryData] = useState<StoryFile | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [newId, setNewId] = useState<string | null>(null);
 
     const handleMessage = useCallback((event: MessageEvent<ExtensionMessage>) => {
         const message = event.data;
         switch (message.command) {
             case 'update':
                 setStoryData(message.storyFile);
+                if (message.newId) {
+                    setNewId(message.newId);
+                }
                 setError(null); // Clear error on successful update
                 break;
             case 'yamlError':
@@ -33,6 +37,7 @@ export function useVscode() {
     };
 
     const addItem = (item: { itemType: string, parentId?: string, values: Omit<Item, 'stories' | 'subtasks'> }) => {
+        setNewId(null); // Reset newId before adding a new item
         postMessage({ command: 'addItem', item });
     };
 
@@ -48,7 +53,7 @@ export function useVscode() {
         postMessage({ command: 'updateStoryFile', storyFile });
     };
 
-    return { storyData, error, setError, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
+    return { storyData, error, newId, setError, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
 }
 
 

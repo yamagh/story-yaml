@@ -11,7 +11,7 @@ suite('Extension Logic Test Suite', () => {
             itemType: 'epics',
             values: { title: 'New Epic' }
         };
-        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem)) as StoryFile;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem).content) as StoryFile;
         assert.strictEqual(updatedDoc.epics[0].title, 'New Epic');
     });
 
@@ -24,7 +24,7 @@ suite('Extension Logic Test Suite', () => {
             parentId: parentEpicId,
             values: { title: 'New Story' }
         };
-        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem)) as StoryFile;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem).content) as StoryFile;
         assert.strictEqual(updatedDoc.epics[0].stories.length, 1);
         assert.strictEqual(updatedDoc.epics[0].stories[0].title, 'New Story');
     });
@@ -35,7 +35,7 @@ suite('Extension Logic Test Suite', () => {
             itemType: 'tasks',
             values: { title: 'New Root Task' }
         };
-        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem)) as StoryFile;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem).content) as StoryFile;
         assert.strictEqual(updatedDoc.tasks[0].title, 'New Root Task');
     });
 
@@ -48,7 +48,7 @@ suite('Extension Logic Test Suite', () => {
             parentId: parentStoryId,
             values: { title: 'New Sub-task', status: 'ToDo' }
         };
-        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem)) as StoryFile;
+        const updatedDoc = yaml.load(StoryYamlService.updateStoryContent(initialContent, newItem).content) as StoryFile;
         const subTasks = updatedDoc.epics[0].stories[0]['subtasks'];
         assert.strictEqual(subTasks?.length, 1);
         assert.deepStrictEqual(subTasks?.[0], { title: 'New Sub-task', status: 'ToDo' });
