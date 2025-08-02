@@ -2,7 +2,7 @@ import React from 'react';
 import { Item, Story, SubTask, ItemType } from '../../types';
 import { isEpic, isStory, isTask } from '../../typeGuards';
 import { useStoryData } from '../contexts/StoryDataContext';
-import { Badge } from './Badge';
+import Badge from './Badge';
 
 type SelectedItem = Item & { type: string };
 

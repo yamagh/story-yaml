@@ -5,7 +5,6 @@ type BadgeType = 'status' | 'points' | 'sprint' | 'type';
 interface BadgeProps {
   type: BadgeType;
   value: string | number | undefined;
-  itemType?: string; // Only for type='type'
 }
 
 const getStatusClass = (status: string) => {
@@ -15,9 +14,9 @@ const getStatusClass = (status: string) => {
     case 'WIP':
       return 'badge bg-primary-subtle text-dark';
     case 'Done':
-      return 'badge bg-success';
+      return 'badge bg-success-subtle text-dark';
     default:
-      return 'badge bg-secondary';
+      return 'badge bg-light text-dark';
   }
 };
 
@@ -33,27 +32,37 @@ const getTypeClass = (type: string) => {
         case 'subtask':
             return 'badge bg-subtask text-light';
         default:
-            return 'badge bg-secondary-subtle text-dark';
+            return 'badge bg-secondary';
     }
 }
 
-export const Badge: React.FC<BadgeProps> = ({ type, value, itemType }) => {
-  const getClass = () => {
-    switch (type) {
-      case 'status':
-        return getStatusClass(value as string);
-      case 'points':
-        return 'badge bg-secondary-subtle text-dark';
-      case 'sprint':
-        return 'badge bg-info-subtle text-dark';
-      case 'type':
-        return getTypeClass(itemType || '');
-      default:
-        return 'badge bg-light';
-    }
-  };
+const Badge: React.FC<BadgeProps> = ({ type, value }) => {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
 
-  if (!value) return null;
+  let className = 'badge';
+  let text = value.toString();
 
-  return <span className={getClass()}>{type === 'type' ? itemType : value}</span>;
+  switch (type) {
+    case 'status':
+      className = getStatusClass(value.toString());
+      break;
+    case 'type':
+      className = getTypeClass(value.toString());
+      break;
+    case 'points':
+      className = 'badge bg-info-subtle text-dark';
+      text = `${value} pts`;
+      break;
+    case 'sprint':
+      className = 'badge bg-warning-subtle text-dark';
+      break;
+    default:
+      className = 'badge bg-secondary';
+  }
+
+  return <span className={className}>{text}</span>;
 };
+
+export default Badge;

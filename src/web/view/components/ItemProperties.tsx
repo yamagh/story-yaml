@@ -1,7 +1,7 @@
 import React from 'react';
 import { Item } from '../../types';
 import { isStory } from '../../typeGuards';
-import { Badge } from './Badge';
+import Badge from './Badge';
 
 interface ItemPropertiesProps {
     selectedItem: Item & { type: string };

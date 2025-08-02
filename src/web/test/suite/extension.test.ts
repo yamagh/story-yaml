@@ -53,6 +53,17 @@ suite('Extension Logic Test Suite', () => {
         assert.strictEqual(subTasks?.length, 1);
         assert.deepStrictEqual(subTasks?.[0], { title: 'New Sub-task', status: 'ToDo' });
     });
+
+    test('updateStoryContent should not add a story if parent epic is not found', () => {
+        const initialContent = yaml.dump({ epics: [] });
+        const newItem: Extract<WebviewMessage, { command: 'addItem' }>['item'] = {
+            itemType: 'stories',
+            parentId: 'non-existent-id',
+            values: { title: 'New Story' }
+        };
+        const result = StoryYamlService.updateStoryContent(initialContent, newItem);
+        assert.strictEqual(result.content, initialContent);
+    });
 });
 
 suite('Item Update Logic Test Suite', () => {
@@ -125,6 +136,16 @@ suite('Item Update Logic Test Suite', () => {
         const updatedDoc = yaml.load(StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate)) as StoryFile;
         assert.strictEqual(updatedDoc.epics[0].stories[0]['subtasks']![0].status, 'WIP');
     });
+
+    test('should not update if item ID is not found', () => {
+        const initialContent = yaml.dump(initialDoc);
+        const itemToUpdate: Extract<WebviewMessage, { command: 'updateItem' }>['item'] = {
+            id: 'non-existent-id',
+            updatedData: { type: 'epics', description: 'This should not be applied' }
+        };
+        const result = StoryYamlService.updateStoryContentForItemUpdate(initialContent, itemToUpdate);
+        assert.strictEqual(result, initialContent);
+    });
 });
 
 
@@ -161,6 +182,13 @@ suite('Item Deletion Logic Test Suite', () => {
         const itemToDelete = { id: taskToDeleteId! };
         const updatedDoc = yaml.load(StoryYamlService.deleteItemFromStoryFile(initialContent, itemToDelete)) as StoryFile;
         assert.strictEqual(updatedDoc.tasks.length, 0);
+    });
+
+    test('should not delete if item ID is not found', () => {
+        const initialContent = yaml.dump(initialDoc);
+        const itemToDelete = { id: 'non-existent-id' };
+        const result = StoryYamlService.deleteItemFromStoryFile(initialContent, itemToDelete);
+        assert.strictEqual(result, initialContent);
     });
 });
 

@@ -6,7 +6,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { StoryFile, SubTask, Item } from '../../types';
-import { Badge } from './Badge';
+import Badge from './Badge';
 import { useStoryData } from '../contexts/StoryDataContext';
 
 // A simple grip icon for the drag handle
@@ -58,7 +58,7 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, level = 0 })
             <td className="text-center align-middle" style={{ cursor: 'grab' }}>
                 <span {...listeners}><DragHandle /></span>
             </td>
-            <td><Badge type="type" value={type} itemType={type} /></td>
+            <td><Badge type="type" value={type} /></td>
             <td style={{ paddingLeft: `${level * 30 + 10}px` }}>{item.title}</td>
             <td>{'status' in item && <Badge type="status" value={item.status} />}</td>
             <td>{'points' in item && <Badge type="points" value={item.points} />}</td>

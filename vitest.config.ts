@@ -12,5 +12,15 @@ export default defineConfig({
       usePolling: true,
       interval: 100,
     },
+    deps: {
+      inline: [
+        /@testing-library\/react/,
+        './src/web/view/components/ConfirmDialog.tsx',
+        './src/web/view/components/ParentInfoCard.tsx',
+        './src/web/view/components/ChildrenList.tsx',
+        './src/web/view/components/ItemProperties.tsx',
+        './src/web/view/components/Badge.tsx',
+      ],
+    },
   },
 });
