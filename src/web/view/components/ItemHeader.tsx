@@ -22,7 +22,7 @@ export const ItemHeader: React.FC<ItemHeaderProps> = ({ item, onEdit, onDelete }
                     <button className="btn btn-sm btn-danger" onClick={onDelete}>Delete</button>
                 </div>
             </div>
-            <h4 className="mb-0">{title}</h4>
+            <h4 className="mb-0" data-testid="item-details-title">{title}</h4>
         </div>
     );
 };

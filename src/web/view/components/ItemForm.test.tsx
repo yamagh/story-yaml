@@ -1,12 +1,11 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import React, { useState } from 'react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import App from '../App';
 import { StoryFile } from '../../types';
 import * as vscode from '../hooks/useVscode';
 
 // Mock useVscode hook
-const mockUpdateStoryFile = vi.fn();
 const mockPostMessage = vi.fn();
 
 const initialStoryData: StoryFile = {
@@ -18,25 +17,30 @@ const initialStoryData: StoryFile = {
     ],
 };
 
-// Custom render function to wrap providers
-const renderApp = (storyData: StoryFile | null = initialStoryData) => {
+const TestApp = () => {
+    const [storyData, setStoryData] = useState<StoryFile | null>(initialStoryData);
+
     vi.spyOn(vscode, 'useVscode').mockReturnValue({
         storyData,
         error: null,
-        updateStoryFile: mockUpdateStoryFile,
+        updateStoryFile: (newStoryData) => {
+            setStoryData(newStoryData);
+        },
         postMessage: mockPostMessage,
     });
 
-    return render(<App />);
-};
+    return <App />;
+}
 
 describe('ItemForm Submission and Selection', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // Reset story data for each test
+        initialStoryData.tasks = [{ id: 'task-1', title: 'Task 1', type: 'Task', status: 'ToDo' }];
     });
 
     it('should select the new item in StoryTable and ItemDetails after saving', async () => {
-        renderApp();
+        render(<TestApp />);
 
         // 1. Wait for the app to load
         await waitFor(() => {
@@ -44,8 +48,6 @@ describe('ItemForm Submission and Selection', () => {
         });
 
         // 2. Click "Add New Task" button to show the form
-        // Assuming there's a button with this text. Let's find it.
-        // We need to know where the "Add" buttons are. Let's assume they are in SidebarContent.
         const addTaskButton = screen.getByRole('button', { name: /add new task/i });
         fireEvent.click(addTaskButton);
 
@@ -70,17 +72,13 @@ describe('ItemForm Submission and Selection', () => {
             expect(screen.queryByRole('heading', { name: /add new task/i })).not.toBeInTheDocument();
             
             // New item is in the ItemDetails view
-            const itemDetailsTitle = screen.getByTestId('item-details-title'); // Assuming ItemDetails has a title with this test-id
+            const itemDetailsTitle = screen.getByTestId('item-details-title');
             expect(itemDetailsTitle).toHaveTextContent(newTaskTitle);
 
             // New item is selected in the table
-            const tableRow = screen.getByRole('row', { name: new RegExp(newTaskTitle, 'i') });
-            expect(tableRow).toHaveClass('table-active');
+            const table = screen.getByRole('table');
+            const tableRow = within(table).getByText(newTaskTitle).closest('tr');
+            expect(tableRow).toHaveClass('selected-row');
         });
-
-        // 7. Check if updateStoryFile was called
-        expect(mockUpdateStoryFile).toHaveBeenCalledTimes(1);
-        const updatedStoryFile = mockUpdateStoryFile.mock.calls[0][0] as StoryFile;
-        expect(updatedStoryFile.tasks.some(t => t.title === newTaskTitle)).toBe(true);
     });
 });
