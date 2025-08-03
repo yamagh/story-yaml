@@ -91,18 +91,21 @@ export class StoryModel {
         return find([...this.storyFile.epics, ...this.storyFile.tasks]);
     }
 
-    public addItem(itemType: ItemType, values: AddItemValues, parentId?: string): string {
+    public addItem(itemType: ItemType, values: AddItemValues, parentId?: string): Item {
         const newId = getNextId();
+        let newItem: Item;
 
         switch (itemType) {
             case 'epics': {
                 const newEpic: Epic = { type: 'Epic', id: newId, ...values, stories: [] };
                 this.storyFile.epics.push(newEpic);
+                newItem = newEpic;
                 break;
             }
             case 'tasks': {
                 const newTask: Task = { type: 'Task', id: newId, status: 'ToDo', ...values, subtasks: [] };
                 this.storyFile.tasks.push(newTask);
+                newItem = newTask;
                 break;
             }
             case 'stories': {
@@ -112,6 +115,7 @@ export class StoryModel {
                     parentEpic.stories = parentEpic.stories || [];
                     parentEpic.stories.push(newStory);
                 }
+                newItem = newStory;
                 break;
             }
             case 'subtasks': {
@@ -121,12 +125,13 @@ export class StoryModel {
                     parentItem.subtasks = parentItem.subtasks || [];
                     parentItem.subtasks.push(newSubTask);
                 }
+                newItem = newSubTask;
                 break;
             }
             default:
                 throw new Error(`Unknown item type: ${itemType}`);
         }
-        return newId;
+        return newItem;
     }
 
     private updateItemRecursive(collection: Item[], id: string, updatedData: Partial<Omit<Item, 'type'>>): boolean {

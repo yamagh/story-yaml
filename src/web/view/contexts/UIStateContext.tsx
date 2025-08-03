@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode, FC, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, FC, useMemo, useEffect } from 'react';
 import { Item, ItemType, Story, Task, Epic, AddItemValues, UpdateItemValues } from '../../types';
 import { useStoryData } from './StoryDataContext';
 
@@ -43,8 +43,8 @@ const initialState: UIState = {
 };
 
 export const UIStateProvider: FC<{children: ReactNode}> = ({ children }) => {
-    const { state: storyState, dispatch, findItemAndParent } = useStoryData();
-    const { storyData } = storyState;
+    const { state: storyState, dispatch: storyDispatch, findItemAndParent } = useStoryData();
+    const { storyData, lastAddedItem } = storyState;
     const [state, setState] = useState<UIState>(initialState);
 
     const selectItem = useCallback((item: Item) => {
@@ -67,6 +67,13 @@ export const UIStateProvider: FC<{children: ReactNode}> = ({ children }) => {
             formVisible: false,
         }));
     }, [storyData, findItemAndParent]);
+
+    useEffect(() => {
+        if (lastAddedItem) {
+            selectItem(lastAddedItem);
+            storyDispatch({ type: 'CLEAR_LAST_ADDED_ITEM' });
+        }
+    }, [lastAddedItem, selectItem, storyDispatch]);
 
     const showAddItemForm = useCallback((type: ItemType, parentId: string | null = null) => {
         setState({
@@ -131,12 +138,12 @@ export const UIStateProvider: FC<{children: ReactNode}> = ({ children }) => {
         const values = Object.fromEntries(formData.entries());
 
         if (state.isEditing && state.formItemData) {
-            dispatch({ type: 'UPDATE_ITEM', payload: { id: state.formItemData.id!, updatedData: values as UpdateItemValues } });
+            storyDispatch({ type: 'UPDATE_ITEM', payload: { id: state.formItemData.id!, updatedData: values as UpdateItemValues } });
+            hideForm();
         } else {
-            dispatch({ type: 'ADD_ITEM', payload: { itemType: state.formType, values: values as AddItemValues, parentId: state.formParentId || undefined } });
+            storyDispatch({ type: 'ADD_ITEM', payload: { itemType: state.formType, values: values as AddItemValues, parentId: state.formParentId || undefined } });
         }
-        hideForm();
-    }, [state, dispatch, hideForm]);
+    }, [state, storyDispatch, hideForm]);
 
     const value = useMemo(() => ({
         ...state,

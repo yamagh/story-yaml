@@ -9,6 +9,7 @@ import { findItemAndParent } from '../../utils';
 interface StoryDataState {
     storyData: StoryFile | null;
     error: string | null;
+    lastAddedItem?: Item;
 }
 
 type StoryAction =
@@ -17,19 +18,20 @@ type StoryAction =
     | { type: 'ADD_ITEM'; payload: { itemType: 'epics' | 'stories' | 'tasks' | 'subtasks'; values: AddItemValues; parentId?: string } }
     | { type: 'UPDATE_ITEM'; payload: { id: string; updatedData: UpdateItemValues } }
     | { type: 'DELETE_ITEM'; payload: { id: string } }
-    | { type: 'HANDLE_DRAG_END'; payload: DragEndEvent; findItem: typeof findItemAndParent };
+    | { type: 'HANDLE_DRAG_END'; payload: DragEndEvent; findItem: typeof findItemAndParent }
+    | { type: 'CLEAR_LAST_ADDED_ITEM' };
 
 const storyReducer = (state: StoryDataState, action: StoryAction): StoryDataState => {
     switch (action.type) {
         case 'SET_STORY_DATA':
-            return { ...state, storyData: action.payload };
+            return { ...state, storyData: action.payload, lastAddedItem: undefined };
         case 'SET_ERROR':
             return { ...state, error: action.payload };
         case 'ADD_ITEM': {
             if (!state.storyData) return state;
             const model = new StoryModel(state.storyData);
-            model.addItem(action.payload.itemType, action.payload.values, action.payload.parentId);
-            return { ...state, storyData: model.getStoryFile() };
+            const newItem = model.addItem(action.payload.itemType, action.payload.values, action.payload.parentId);
+            return { ...state, storyData: model.getStoryFile(), lastAddedItem: newItem };
         }
         case 'UPDATE_ITEM': {
             if (!state.storyData) return state;
@@ -43,6 +45,8 @@ const storyReducer = (state: StoryDataState, action: StoryAction): StoryDataStat
             model.deleteItem(action.payload.id);
             return { ...state, storyData: model.getStoryFile() };
         }
+        case 'CLEAR_LAST_ADDED_ITEM':
+            return { ...state, lastAddedItem: undefined };
         case 'HANDLE_DRAG_END': {
             const { active, over } = action.payload;
             if (!over || active.id === over.id || !state.storyData) return state;

@@ -35,7 +35,8 @@ export class StoryEditorService {
         let newId = '';
         const storyFile = await this.applyStoryChange(document, (storyModel) => {
             const mappedItemType = uiToDataMap[item.itemType];
-            newId = storyModel.addItem(mappedItemType, item.values, item.parentId);
+            const newItem = storyModel.addItem(mappedItemType, item.values, item.parentId);
+            newId = newItem.id!;
         });
         return { storyFile, newId };
     }
