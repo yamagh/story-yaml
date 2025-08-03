@@ -86,7 +86,23 @@ const webviewConfig = {
 			}]
 		}, {
 			test: /\.css$/,
-			use: ['style-loader', 'css-loader']
+			exclude: /\.module\.css$/,
+			use: ['style-loader', 'css-loader'],
+		}, {
+			test: /\.module\.css$/,
+			use: [
+				'style-loader',
+				{
+					loader: 'css-loader',
+					options: {
+						importLoaders: 1,
+						modules: {
+							localIdentName: '[name]__[local]--[hash:base64:5]',
+						},
+						esModule: true,
+					},
+				},
+			],
 		}]
 	},
 	plugins: [
