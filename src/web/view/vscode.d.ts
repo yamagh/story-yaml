@@ -1,11 +1,10 @@
-import { WebviewMessage } from "./types.js";
-
-// src/web/view/vscode.d.ts
-
-interface VsCodeApi {
-    postMessage(message: WebviewMessage): void;
-    getState(): unknown;
-    setState(newState: unknown): void;
+declare module '*.module.css' {
+    const classes: { [key: string]: string };
+    export default classes;
 }
 
-declare function acquireVsCodeApi(): VsCodeApi;
+declare const acquireVsCodeApi: () => {
+    getState: () => any;
+    setState: (newState: any) => void;
+    postMessage: (message: any) => void;
+};

@@ -3,6 +3,7 @@ import { WebviewMessage, ExtensionMessage, YamlParseError, FileUpdateError } fro
 import { StoryYamlService } from './services/StoryYamlService';
 import { WorkspaceService } from './services/WorkspaceService';
 import { StoryEditorService } from './services/StoryEditorService';
+import { getNonce } from './utils';
 
 export class WebviewPanelManager {
     private static readonly viewType = 'storyYamlPreview';
@@ -83,6 +84,7 @@ export class WebviewPanelManager {
                     } else if (e instanceof FileUpdateError) {
                         vscode.window.showErrorMessage(e.message);
                     } else {
+                        console.error(e);
                         const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
                         vscode.window.showErrorMessage(`An unexpected error occurred: ${errorMessage}`);
                     }
@@ -142,11 +144,3 @@ export class WebviewPanelManager {
     }
 }
 
-function getNonce() {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-}

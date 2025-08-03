@@ -3,7 +3,7 @@ import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
 // Mock the global acquireVsCodeApi function
-(globalThis as any).acquireVsCodeApi = vi.fn(() => ({
+(globalThis as typeof globalThis & { acquireVsCodeApi: unknown }).acquireVsCodeApi = vi.fn(() => ({
     postMessage: vi.fn(),
     getState: vi.fn(),
     setState: vi.fn(),
