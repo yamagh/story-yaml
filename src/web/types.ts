@@ -69,6 +69,17 @@ export type ExtensionMessage =
     | { command: 'update'; storyFile: StoryFile, newId?: string }
     | { command: 'yamlError'; error: string };
 
+export type UiItemType = 'epic' | 'userStory' | 'task' | 'bug' | 'subtask';
+export type DataItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
+
+export const uiToDataMap: Record<UiItemType, DataItemType> = {
+    epic: 'epics',
+    userStory: 'stories',
+    task: 'tasks',
+    bug: 'tasks', // Bugs are treated as tasks in the data layer
+    subtask: 'subtasks',
+};
+
 // Custom Errors
 export class YamlParseError extends Error {
   constructor(message: string) {

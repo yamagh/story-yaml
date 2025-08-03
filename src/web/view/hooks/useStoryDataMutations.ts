@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { DragEndEvent } from '@dnd-kit/core';
-import { Item, ItemType, Status, Story, Task, StoryFile, Epic } from '../../types';
+import { Item, ItemType, Status, Story, Task, StoryFile, Epic, UiItemType } from '../../types';
 import { isEpic, isStory, isTask } from '../../typeGuards';
 
 type SetState<T> = React.Dispatch<React.SetStateAction<T>>;
@@ -17,7 +17,7 @@ interface StoryDataState {
 }
 
 interface VscodeApi {
-    addItem: (args: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask'; parentId?: string; values: Omit<Item, 'stories' | 'subtasks'> }) => void;
+    addItem: (args: { itemType: UiItemType; parentId?: string; values: Omit<Item, 'stories' | 'subtasks'> }) => void;
     updateItem: (args: { id: string; updatedData: Item & { type: string } }) => void;
     deleteItem: (args: { id: string }) => void;
     updateStoryFile: (storyFile: StoryFile) => void;
@@ -110,13 +110,13 @@ export const useStoryDataMutations = (
                 pendingSelection: formItemData.id!,
             }));
         } else {
-            const itemTypeMap = {
+            const dataToUiMap: { [key in ItemType]: UiItemType } = {
                 epics: 'epic',
                 stories: 'userStory',
                 tasks: 'task',
                 subtasks: 'subtask',
             };
-            const mappedItemType = itemTypeMap[formType!] as 'epic' | 'userStory' | 'task' | 'subtask';
+            const mappedItemType = dataToUiMap[formType!];
             addItem({ itemType: mappedItemType, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'subtasks'> });
             setState(prevState => ({
                 ...prevState,

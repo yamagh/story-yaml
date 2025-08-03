@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect, Rea
 import { useVscode } from '../hooks/useVscode';
 import { Item, ItemType, Story, Task, StoryFile, Epic } from '../../types';
 import { useStoryDataMutations } from '../hooks/useStoryDataMutations';
-import { isEpic, isStory, isTask } from '../../typeGuards';
+import { DragEndEvent } from '@dnd-kit/core';
 
 // Contextの型定義
 interface StoryDataContextType {
@@ -21,7 +21,7 @@ interface StoryDataContextType {
     hideForm: () => void;
     handleFormSubmit: (e: React.FormEvent) => void;
     deleteItem: (id: string) => void;
-    handleDragEnd: (event: any) => void;
+    handleDragEnd: (event: DragEndEvent) => void;
 }
 
 const StoryDataContext = createContext<StoryDataContextType | undefined>(undefined);

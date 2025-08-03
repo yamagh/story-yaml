@@ -9,7 +9,7 @@ describe('StoryEditorService', () => {
     let editorService: StoryEditorService;
     let workspaceService: WorkspaceService;
     let storyYamlService: StoryYamlService;
-    let mockDocument: any;
+    let mockDocument: { uri: { path: string }; getText: () => string; };
 
     beforeEach(() => {
         workspaceService = new WorkspaceService();

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { StoryFile, AddItemValues, UpdateItemValues } from '../types';
+import { StoryFile, AddItemValues, UpdateItemValues, UiItemType, uiToDataMap } from '../types';
 import { StoryModel } from './StoryModel';
 import { StoryYamlService } from './StoryYamlService';
 import { WorkspaceService } from './WorkspaceService';
@@ -30,18 +30,11 @@ export class StoryEditorService {
 
     public async addItem(
         document: vscode.TextDocument,
-        item: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask', values: AddItemValues, parentId?: string }
+        item: { itemType: UiItemType, values: AddItemValues, parentId?: string }
     ): Promise<{ storyFile: StoryFile, newId: string }> {
         let newId = '';
         const storyFile = await this.applyStoryChange(document, (storyModel) => {
-            const itemTypeMap = {
-                epic: 'epics',
-                userStory: 'stories',
-                task: 'tasks',
-                bug: 'tasks',
-                subtask: 'subtasks'
-            };
-            const mappedItemType = itemTypeMap[item.itemType] as 'epics' | 'stories' | 'tasks' | 'subtasks';
+            const mappedItemType = uiToDataMap[item.itemType];
             newId = storyModel.addItem(mappedItemType, item.values, item.parentId);
         });
         return { storyFile, newId };

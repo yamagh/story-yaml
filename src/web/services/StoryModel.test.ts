@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StoryModel } from './StoryModel';
-import { StoryFile, Epic, Story, Task, SubTask, AddItemValues } from '../types';
+import { StoryFile, AddItemValues } from '../types';
 import { initializeAndAssignIds } from './idGenerator';
 
 const getInitialStoryFile = (): StoryFile => {
