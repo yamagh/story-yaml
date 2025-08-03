@@ -7,7 +7,7 @@ import { DragEndEvent } from '@dnd-kit/core';
 // Contextの型定義
 interface StoryDataContextType {
     storyData: StoryFile | null;
-    selectedItem: (Item & { type: string }) | null;
+    selectedItem: Item | null;
     selectedItemParent: (Epic | Story | Task) | null;
     formVisible: boolean;
     isEditing: boolean;
@@ -15,7 +15,7 @@ interface StoryDataContextType {
     formItemData?: Item;
     error: string | null;
     setError: (error: string | null) => void;
-    selectItem: (item: Item, type: string) => void;
+    selectItem: (item: Item) => void;
     showAddItemForm: (type: ItemType, parentId?: string | null) => void;
     showEditItemForm: () => void;
     hideForm: () => void;
@@ -28,13 +28,13 @@ const StoryDataContext = createContext<StoryDataContextType | undefined>(undefin
 
 // 状態の型定義
 interface StoryDataState {
-    selectedItem: (Item & { type: string }) | null;
+    selectedItem: Item | null;
     selectedItemParent: (Epic | Story | Task) | null;
     formVisible: boolean;
     isEditing: boolean;
     formType: ItemType | null;
     formParentId: string | null;
-    formItemData?: (Item & { type: string });
+    formItemData?: Item;
     pendingSelection: string | null;
 }
 
@@ -73,11 +73,11 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
         }
     }, [newId]);
 
-    const selectItem = useCallback((item: Item, type: string) => {
+    const selectItem = useCallback((item: Item) => {
         if (!storyData) {
             setState(prevState => ({
                 ...prevState,
-                selectedItem: { ...item, type },
+                selectedItem: item,
                 selectedItemParent: null,
                 formVisible: false,
             }));
@@ -88,7 +88,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
 
         setState(prevState => ({
             ...prevState,
-            selectedItem: { ...item, type },
+            selectedItem: item,
             selectedItemParent: found ? found.parent : null,
             formVisible: false,
         }));
@@ -99,9 +99,7 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
             const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
             const found = findItemAndParent(allTopLevelItems, state.pendingSelection);
             if (found) {
-                const itemTypeString = found.type.slice(0, -1);
-                const type = itemTypeString.charAt(0).toUpperCase() + itemTypeString.slice(1);
-                selectItem(found.item, type);
+                selectItem(found.item);
                 setState(prevState => ({ ...prevState, pendingSelection: null }));
             }
         }
@@ -120,8 +118,13 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
 
     const showEditItemForm = useCallback(() => {
         if (!state.selectedItem) {return;}
-        const typeStr = state.selectedItem.type.toLowerCase().replace(' ', '');
-        const itemType = (typeStr === 'story' ? 'stories' : typeStr + 's') as ItemType;
+        const typeMap: Record<Item['type'], ItemType> = {
+            'Epic': 'epics',
+            'Story': 'stories',
+            'Task': 'tasks',
+            'SubTask': 'subtasks'
+        };
+        const itemType = typeMap[state.selectedItem.type];
         setState({
             ...initialState,
             formVisible: true,
@@ -135,16 +138,13 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
 
     const hideForm = useCallback(() => {
         if (state.isEditing && state.formItemData) {
-            const itemType = state.formItemData.type;
-            selectItem(state.formItemData, itemType);
+            selectItem(state.formItemData);
         } else if (!state.isEditing && state.formParentId) {
             if (storyData) {
                 const allTopLevelItems = [...(storyData.epics || []), ...(storyData.tasks || [])];
                 const parentInfo = findItemAndParent(allTopLevelItems, state.formParentId);
                 if (parentInfo) {
-                    const parentTypeString = parentInfo.type.slice(0, -1);
-                    const type = parentTypeString.charAt(0).toUpperCase() + parentTypeString.slice(1);
-                    selectItem(parentInfo.item, type);
+                    selectItem(parentInfo.item);
                 }
             }
         } else {

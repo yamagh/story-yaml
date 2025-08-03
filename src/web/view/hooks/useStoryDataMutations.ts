@@ -27,20 +27,10 @@ const findItemAndParent = (
     nodes: Item[],
     identifier: string,
     parent: (Epic | Story | Task) | null = null
-): { item: Item; parent: (Epic | Story | Task) | null; type: ItemType } | null => {
+): { item: Item; parent: (Epic | Story | Task) | null } | null => {
     for (const node of nodes) {
         if (node.id === identifier || node.title === identifier) {
-            let type: ItemType;
-            if (isEpic(node)) {
-                type = 'epics';
-            } else if (parent === null) {
-                type = 'tasks'; // Top-level task
-            } else if (isEpic(parent)) {
-                type = 'stories';
-            } else {
-                type = 'subtasks';
-            }
-            return { item: node, parent, type };
+            return { item: node, parent };
         }
         if (isEpic(node) && node.stories) {
             const found = findItemAndParent(node.stories, identifier, node);
@@ -98,7 +88,9 @@ export const useStoryDataMutations = (
         }
 
         if (isEditing && formItemData) {
-            const updatedItem = { ...formItemData, ...newOrUpdatedData, type: formItemData.type };
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { type, ...newOrUpdatedDataWithoutType } = newOrUpdatedData;
+            const updatedItem = { ...formItemData, ...newOrUpdatedDataWithoutType };
             updateItem({ id: formItemData.id!, updatedData: updatedItem });
             setState(prevState => ({
                 ...prevState,
@@ -149,14 +141,14 @@ export const useStoryDataMutations = (
         const [movedItem] = activeParentCollection.splice(activeIndex, 1);
         if (!movedItem) return;
 
-        const activeType = activeInfo.type;
-        const overType = overInfo.type;
+        const activeType = activeInfo.item.type;
+        const overType = overInfo.item.type;
         let destinationCollection: Item[] | undefined;
         let destinationIndex: number;
-        const isDroppingOnContainer = (activeType === 'stories' && overType === 'epics') || (activeType === 'subtasks' && (overType === 'stories' || overType === 'tasks'));
+        const isDroppingOnContainer = (activeType === 'Story' && overType === 'Epic') || (activeType === 'SubTask' && (overType === 'Story' || overType === 'Task'));
 
         if (isDroppingOnContainer) {
-            if (overType === 'epics') {
+            if (overType === 'Epic') {
                 const targetEpic = overInfo.item as Epic;
                 destinationCollection = targetEpic.stories = targetEpic.stories || [];
             } else {
@@ -173,11 +165,11 @@ export const useStoryDataMutations = (
                 return;
             }
             destinationIndex = destinationCollection.findIndex(i => i.id === over.id);
-            const destParentType = overInfo.parent ? (('stories' in overInfo.parent) ? 'epics' : ('subtasks' in overInfo.parent ? 'stories' : 'tasks')) : 'root';
-            if (activeType === 'epics' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
-            if (activeType === 'tasks' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
-            if (activeType === 'stories' && destParentType !== 'epics') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
-            if (activeType === 'subtasks' && destParentType !== 'stories' && destParentType !== 'tasks') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+            const destParentType = overInfo.parent ? overInfo.parent.type : 'root';
+            if (activeType === 'Epic' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+            if (activeType === 'Task' && destParentType !== 'root') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+            if (activeType === 'Story' && destParentType !== 'Epic') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
+            if (activeType === 'SubTask' && destParentType !== 'Story' && destParentType !== 'Task') { activeParentCollection.splice(activeIndex, 0, movedItem); return; }
         }
 
         if (destinationIndex === -1) {

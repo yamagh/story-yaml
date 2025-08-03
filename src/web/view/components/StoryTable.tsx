@@ -22,7 +22,7 @@ type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 interface RowProps {
     item: Item;
     type: string;
-    onSelectRow: (item: Item, type: string) => void;
+    onSelectRow: (item: Item) => void;
     children?: React.ReactNode;
     level?: number;
 }
@@ -54,7 +54,7 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, level = 0 })
     }
 
     return (
-        <tr ref={setNodeRef} style={style} {...attributes} className={getRowClass()} onClick={() => onSelectRow(item, type)}>
+        <tr ref={setNodeRef} style={style} {...attributes} className={getRowClass()} onClick={() => onSelectRow(item)}>
             <td className="text-center align-middle" style={{ cursor: 'grab' }}>
                 <span {...listeners}><DragHandle /></span>
             </td>
@@ -70,7 +70,7 @@ const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, level = 0 })
 
 interface StoryTableProps {
     storyData: StoryFile | null;
-    onSelectRow: (item: Item, type: string) => void;
+    onSelectRow: (item: Item) => void;
     onShowForm: (type: ItemType, parentId: string | null) => void;
 }
 

@@ -65,32 +65,31 @@ export class StoryModel {
 
     public addItem(itemType: ItemType, values: AddItemValues, parentId?: string): string {
         const newId = getNextId();
-        let newItem: Item;
 
         switch (itemType) {
             case 'epics':
-                newItem = { id: newId, ...values, stories: [] };
-                this.storyFile.epics.push(newItem as Epic);
+                const newEpic: Epic = { type: 'Epic', id: newId, ...(values as any), stories: [] };
+                this.storyFile.epics.push(newEpic);
                 break;
             case 'tasks':
-                newItem = { id: newId, status: 'ToDo', ...values, subtasks: [] };
-                this.storyFile.tasks.push(newItem as Task);
+                const newTask: Task = { type: 'Task', id: newId, status: 'ToDo', ...(values as any), subtasks: [] };
+                this.storyFile.tasks.push(newTask);
                 break;
             case 'stories': {
-                newItem = { id: newId, status: 'ToDo', ...values, subtasks: [] };
+                const newStory: Story = { type: 'Story', id: newId, status: 'ToDo', ...(values as any), subtasks: [] };
                 const parentEpic = this.findItemRecursive(this.storyFile.epics, parentId!) as Epic | null;
                 if (parentEpic) {
                     parentEpic.stories = parentEpic.stories || [];
-                    parentEpic.stories.push(newItem as Story);
+                    parentEpic.stories.push(newStory);
                 }
                 break;
             }
             case 'subtasks': {
-                newItem = { id: newId, status: 'ToDo', ...values };
+                const newSubTask: SubTask = { type: 'SubTask', id: newId, status: 'ToDo', ...(values as any) };
                 const parentItem = this.findItemRecursive([...this.storyFile.epics, ...this.storyFile.tasks], parentId!) as Story | Task | null;
                 if (parentItem) {
                     parentItem.subtasks = parentItem.subtasks || [];
-                    parentItem.subtasks.push(newItem as SubTask);
+                    parentItem.subtasks.push(newSubTask);
                 }
                 break;
             }
@@ -100,10 +99,10 @@ export class StoryModel {
         return newId;
     }
 
-    private updateItemRecursive(collection: Item[], id: string, updatedData: Partial<Item>): boolean {
+    private updateItemRecursive(collection: Item[], id: string, updatedData: Partial<Omit<Item, 'type'>>): boolean {
         const itemIndex = collection.findIndex(i => i.id === id);
         if (itemIndex > -1) {
-            collection[itemIndex] = { ...collection[itemIndex], ...updatedData };
+            collection[itemIndex] = { ...collection[itemIndex], ...updatedData } as Item;
             return true;
         }
 
@@ -118,7 +117,7 @@ export class StoryModel {
         return false;
     }
 
-    public updateItem(id: string, updatedData: Partial<Item>): boolean {
+    public updateItem(id: string, updatedData: Partial<Omit<Item, 'type'>>): boolean {
         if (this.updateItemRecursive(this.storyFile.epics, id, updatedData)) {
             return true;
         }

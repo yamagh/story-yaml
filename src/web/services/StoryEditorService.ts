@@ -44,10 +44,8 @@ export class StoryEditorService {
         document: vscode.TextDocument,
         item: { id: string, updatedData: UpdateItemValues }
     ): Promise<StoryFile> {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { type: _type, ...newData } = item.updatedData;
         return this.applyStoryChange(document, (storyModel) => {
-            storyModel.updateItem(item.id, newData);
+            storyModel.updateItem(item.id, item.updatedData);
         });
     }
 

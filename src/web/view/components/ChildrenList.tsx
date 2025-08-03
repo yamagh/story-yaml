@@ -24,8 +24,7 @@ export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem }) => {
             : [];
 
     const handleSelectChild = (child: Story | SubTask) => {
-        const childType = isStory(child) ? 'Story' : 'SubTask';
-        selectItem(child, childType);
+        selectItem(child);
     };
 
     let title = '';

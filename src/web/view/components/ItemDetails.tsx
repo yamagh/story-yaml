@@ -24,13 +24,7 @@ const ItemDetailsFC: React.FC = () => {
 
     const handleSelectParent = useCallback(() => {
         if (!selectedItemParent) return;
-        let parentType = 'Task';
-        if (isEpic(selectedItemParent)) {
-            parentType = 'Epic';
-        } else if (isStory(selectedItemParent)) {
-            parentType = 'Story';
-        }
-        selectItem(selectedItemParent, parentType);
+        selectItem(selectedItemParent);
     }, [selectedItemParent, selectItem]);
 
     if (!selectedItem) {

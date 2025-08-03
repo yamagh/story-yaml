@@ -7,10 +7,12 @@ const getInitialStoryFile = (): StoryFile => {
     const storyFile: StoryFile = {
         epics: [
             {
+                type: 'Epic',
                 title: 'Epic 1',
                 description: 'Epic 1 Description',
                 stories: [
                     {
+                        type: 'Story',
                         title: 'Story 1.1',
                         as: 'User',
                         'i want': 'to do something',
@@ -18,6 +20,7 @@ const getInitialStoryFile = (): StoryFile => {
                         status: 'ToDo',
                         subtasks: [
                             {
+                                type: 'SubTask',
                                 title: 'Subtask 1.1.1',
                                 status: 'ToDo',
                             },
@@ -28,6 +31,7 @@ const getInitialStoryFile = (): StoryFile => {
         ],
         tasks: [
             {
+                type: 'Task',
                 title: 'Task 1',
                 description: 'A standalone task',
                 status: 'Done',
@@ -50,7 +54,7 @@ describe('StoryModel', () => {
     });
 
     describe('addItem', () => {
-        it('should add a new epic', () => {
+        it('should add a new epic with the correct type', () => {
             const newEpic: AddItemValues = {
                 title: 'New Epic',
                 description: 'A brand new epic',
@@ -59,9 +63,10 @@ describe('StoryModel', () => {
             const epics = storyModel.getStoryFile().epics;
             expect(epics).toHaveLength(2);
             expect(epics[1].title).toBe('New Epic');
+            expect(epics[1].type).toBe('Epic');
         });
 
-        it('should add a new story to an epic', () => {
+        it('should add a new story to an epic with the correct type', () => {
             const newStory: AddItemValues = {
                 title: 'New Story',
                 as: 'Dev',
@@ -74,6 +79,7 @@ describe('StoryModel', () => {
             const epic = storyModel.getStoryFile().epics[0];
             expect(epic.stories).toHaveLength(2);
             expect(epic.stories![1].title).toBe('New Story');
+            expect(epic.stories![1].type).toBe('Story');
         });
     });
 

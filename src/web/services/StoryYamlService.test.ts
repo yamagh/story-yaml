@@ -54,33 +54,42 @@ epics:
             expect(storyFile.tasks).toHaveLength(0);
         });
 
-        it('should assign unique IDs to all items', () => {
+        it('should assign unique IDs and types to all items', () => {
             const model = storyYamlService.load(initialYamlContent);
             const storyFile = model.getStoryFile();
             const ids = new Set<string>();
-            const checkIds = (items: Item[]) => {
-                items.forEach(item => {
+            
+            const checkItems = (items: Item[], expectedTypes: string[]) => {
+                items.forEach((item, index) => {
                     expect(item.id).toBeDefined();
                     expect(ids.has(item.id!)).toBe(false);
                     ids.add(item.id!);
+                    
+                    // Check type assignment
+                    const expectedType = expectedTypes[index] || expectedTypes[0];
+                    expect(item.type).toBe(expectedType);
+    
                     if ('stories' in item && item.stories) {
-                        checkIds(item.stories);
+                        checkItems(item.stories, ['Story']);
                     }
                     if ('subtasks' in item && item.subtasks) {
-                        checkIds(item.subtasks);
+                        checkItems(item.subtasks, ['SubTask']);
                     }
                 });
             };
-            checkIds([...storyFile.epics, ...storyFile.tasks]);
+    
+            checkItems(storyFile.epics, ['Epic']);
+            checkItems(storyFile.tasks, ['Task']);
             expect(ids.size).toBe(5); // 1 epic, 2 stories, 1 subtask, 1 task
         });
     });
 
     describe('save', () => {
-        it('should remove id fields before saving', () => {
+        it('should remove id and type fields before saving', () => {
             const model = storyYamlService.load(initialYamlContent);
             const yamlString = storyYamlService.save(model);
             expect(yamlString).not.toContain('id:');
+            expect(yamlString).not.toContain('type:');
         });
 
         it('should produce a valid YAML string', () => {

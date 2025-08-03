@@ -1,6 +1,7 @@
 export type Status = 'ToDo' | 'WIP' | 'Done';
 
 export interface SubTask {
+  type: 'SubTask';
   id?: string;
   title: string;
   description?: string;
@@ -10,6 +11,7 @@ export interface SubTask {
 
 
 export interface Story {
+  type: 'Story';
   id?: string;
   title: string;
   as?: string;
@@ -24,6 +26,7 @@ export interface Story {
 }
 
 export interface Task {
+  type: 'Task';
   id?: string;
   title: string;
   description?: string;
@@ -35,6 +38,7 @@ export interface Task {
 }
 
 export interface Epic {
+  type: 'Epic';
   id?: string;
   title: string;
   description?: string;
@@ -50,12 +54,12 @@ export type Item = (Epic | Story | Task | SubTask) & { id?: string };
 export type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 
 export type AddItemValues = 
-    Omit<Epic, 'id' | 'stories'> |
-    (Omit<Story, 'id' | 'subtasks' | 'status'> & { status?: Status }) |
-    (Omit<Task, 'id' | 'subtasks' | 'status'> & { status?: Status }) |
-    Omit<SubTask, 'id'>;
+    Omit<Epic, 'id' | 'stories' | 'type'> |
+    (Omit<Story, 'id' | 'subtasks' | 'status' | 'type'> & { status?: Status }) |
+    (Omit<Task, 'id' | 'subtasks' | 'status' | 'type'> & { status?: Status }) |
+    Omit<SubTask, 'id' | 'type'>;
 
-export type UpdateItemValues = Partial<Item> & { type: string };
+export type UpdateItemValues = Partial<Omit<Item, 'type'>>;
 
 // WebView to Extension
 export type WebviewMessage =

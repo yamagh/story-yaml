@@ -1,9 +1,33 @@
 import * as yaml from 'js-yaml';
-import { StoryFile, Item, Story, SubTask, YamlParseError } from '../types';
+import { StoryFile, Item, Story, SubTask, YamlParseError, Epic, Task } from '../types';
 import { initializeAndAssignIds } from './idGenerator';
 import { StoryModel } from './StoryModel';
 
 export class StoryYamlService {
+
+    private assignTypes(epics: Epic[], tasks: Task[]): void {
+        epics.forEach(epic => {
+            epic.type = 'Epic';
+            if (epic.stories) {
+                epic.stories.forEach(story => {
+                    story.type = 'Story';
+                    if (story.subtasks) {
+                        story.subtasks.forEach(subtask => {
+                            subtask.type = 'SubTask';
+                        });
+                    }
+                });
+            }
+        });
+        tasks.forEach(task => {
+            task.type = 'Task';
+            if (task.subtasks) {
+                task.subtasks.forEach(subtask => {
+                    subtask.type = 'SubTask';
+                });
+            }
+        });
+    }
 
     public load(content: string): StoryModel {
         try {
@@ -16,6 +40,7 @@ export class StoryYamlService {
                 validatedDoc.tasks = [];
             }
             
+            this.assignTypes(validatedDoc.epics, validatedDoc.tasks);
             const allItems = [...validatedDoc.epics, ...validatedDoc.tasks];
             initializeAndAssignIds(allItems);
             
@@ -28,15 +53,14 @@ export class StoryYamlService {
         }
     }
 
-    private removeIds(items: Item[]): Omit<Item, 'id'>[] {
+    private cleanItemsForSave(items: Item[]): Omit<Item, 'id' | 'type'>[] {
         return items.map(item => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { id: _id, ...rest } = item;
+            const { id: _id, type: _type, ...rest } = item;
             if ('stories' in rest && rest.stories) {
-                rest.stories = this.removeIds(rest.stories) as Story[];
+                rest.stories = this.cleanItemsForSave(rest.stories) as Story[];
             }
             if ('subtasks' in rest && rest.subtasks) {
-                rest.subtasks = this.removeIds(rest.subtasks) as SubTask[];
+                rest.subtasks = this.cleanItemsForSave(rest.subtasks) as SubTask[];
             }
             return rest;
         });
@@ -44,8 +68,8 @@ export class StoryYamlService {
 
     public save(storyModel: StoryModel): string {
         const storyFile = storyModel.getStoryFile();
-        const cleanEpics = this.removeIds(storyFile.epics);
-        const cleanTasks = this.removeIds(storyFile.tasks);
+        const cleanEpics = this.cleanItemsForSave(storyFile.epics);
+        const cleanTasks = this.cleanItemsForSave(storyFile.tasks);
         return yaml.dump({ epics: cleanEpics, tasks: cleanTasks });
     }
 }

@@ -15,23 +15,25 @@ vi.mock('./useVscode', () => ({
 const mockStoryFile: StoryFile = {
   epics: [
     {
+      type: 'Epic',
       id: 'epic-1',
       title: 'Epic 1',
       description: 'First epic',
       stories: [
         {
+          type: 'Story',
           id: 'story-1-1',
           title: 'Story 1.1',
           status: 'ToDo',
-          'subtasks': [
-            { id: 'subtask-1-1-1', title: 'Subtask 1.1.1', status: 'ToDo' },
+          subtasks: [
+            { type: 'SubTask', id: 'subtask-1-1-1', title: 'Subtask 1.1.1', status: 'ToDo' },
           ],
         },
       ],
     },
   ],
   tasks: [
-    { id: 'task-1', title: 'Task 1', status: 'WIP' },
+    { type: 'Task', id: 'task-1', title: 'Task 1', status: 'WIP' },
   ],
 };
 
@@ -45,8 +47,19 @@ const wrapper: FC<PropsWithChildren> = ({ children }) => (
 
 describe('useStoryData', () => {
   beforeEach(() => {
+    const typedMockStoryFile = JSON.parse(JSON.stringify(mockStoryFile));
+    // Manually assign types like StoryYamlService would
+    typedMockStoryFile.epics.forEach((e: any) => {
+      e.type = 'Epic';
+      e.stories.forEach((s: any) => {
+        s.type = 'Story';
+        s.subtasks.forEach((st: any) => st.type = 'SubTask');
+      });
+    });
+    typedMockStoryFile.tasks.forEach((t: any) => t.type = 'Task');
+
     (useVscode as Mock).mockReturnValue({
-      storyData: JSON.parse(JSON.stringify(mockStoryFile)), // Deep copy to isolate tests
+      storyData: typedMockStoryFile,
       addItem: mockAddItem,
       updateItem: mockUpdateItem,
       deleteItem: mockDeleteItem,
