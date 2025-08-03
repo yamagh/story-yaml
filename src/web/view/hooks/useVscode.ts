@@ -6,16 +6,12 @@ const vscode = acquireVsCodeApi();
 export function useVscode() {
     const [storyData, setStoryData] = useState<StoryFile | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [newId, setNewId] = useState<string | null>(null);
 
     const handleMessage = useCallback((event: MessageEvent<ExtensionMessage>) => {
         const message = event.data;
         switch (message.command) {
             case 'update':
                 setStoryData(message.storyFile);
-                if (message.newId) {
-                    setNewId(message.newId);
-                }
                 setError(null); // Clear error on successful update
                 break;
             case 'yamlError':
@@ -37,7 +33,6 @@ export function useVscode() {
     };
 
     const addItem = (item: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask', parentId?: string, values: AddItemValues }) => {
-        setNewId(null); // Reset newId before adding a new item
         postMessage({ command: 'addItem', item });
     };
 
@@ -49,11 +44,11 @@ export function useVscode() {
         postMessage({ command: 'deleteItem', item });
     };
 
-    const updateStoryFile = (storyFile: StoryFile) => {
-        postMessage({ command: 'updateStoryFile', storyFile });
+    const updateStoryFile = (storyFile: StoryFile, newId?: string) => {
+        postMessage({ command: 'updateStoryFile', storyFile, newId });
     };
 
-    return { storyData, error, newId, setError, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
+    return { storyData, error, setError, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
 }
 
 
@@ -65,4 +60,3 @@ interface VsCodeApi {
 }
 
 declare function acquireVsCodeApi(): VsCodeApi;
-

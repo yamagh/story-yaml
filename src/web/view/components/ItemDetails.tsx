@@ -5,10 +5,12 @@ import { ChildrenList } from './ChildrenList';
 import { ItemProperties } from './ItemProperties';
 import { isEpic, isStory } from '../../typeGuards';
 import Badge from './Badge';
+import { useUIState } from '../contexts/UIStateContext';
 import { useStoryData } from '../contexts/StoryDataContext';
 
 const ItemDetailsFC: React.FC = () => {
-    const { selectedItem, selectedItemParent, showEditItemForm, deleteItem, selectItem } = useStoryData();
+    const { selectedItem, selectedItemParent, showEditItemForm, selectItem } = useUIState();
+    const { deleteItem } = useStoryData();
     const [isConfirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = useCallback(() => {

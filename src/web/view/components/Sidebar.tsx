@@ -1,12 +1,12 @@
 import React from 'react';
-import { useStoryData } from '../contexts/StoryDataContext';
+import { useUIState } from '../contexts/UIStateContext';
 
 interface SidebarProps {
     children: React.ReactNode;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ children }) => {
-    const { showAddItemForm } = useStoryData();
+    const { showAddItemForm } = useUIState();
 
     return (
         <div style={{ height: '100%', overflowY: 'auto', padding: '1rem' }}>

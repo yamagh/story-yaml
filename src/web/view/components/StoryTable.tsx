@@ -7,7 +7,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { StoryFile, SubTask, Item } from '../../types';
 import Badge from './Badge';
-import { useStoryData } from '../contexts/StoryDataContext';
+import { useUIState } from '../contexts/UIStateContext';
 
 // A simple grip icon for the drag handle
 const DragHandle: React.FC = () => (
@@ -28,7 +28,7 @@ interface RowProps {
 }
 
 const SortableRow: React.FC<RowProps> = ({ item, type, onSelectRow, level = 0 }) => {
-    const { selectedItem } = useStoryData();
+    const { selectedItem } = useUIState();
     const {
         attributes,
         listeners,

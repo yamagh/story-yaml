@@ -67,7 +67,7 @@ export type WebviewMessage =
     | { command: 'addItem'; item: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask'; parentId?: string; values: AddItemValues } }
     | { command: 'updateItem'; item: { id: string, updatedData: UpdateItemValues } }
     | { command: 'deleteItem'; item: { id: string } }
-    | { command: 'updateStoryFile'; storyFile: StoryFile };
+    | { command: 'updateStoryFile'; storyFile: StoryFile, newId?: string };
 
 export type ExtensionMessage =
     | { command: 'update'; storyFile: StoryFile, newId?: string }

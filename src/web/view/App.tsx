@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import { StoryDataProvider, useStoryData } from './contexts/StoryDataContext';
+import { UIStateProvider } from './contexts/UIStateContext';
 import { MainLayout } from './components/MainLayout';
 import { Sidebar } from './components/Sidebar';
 import { SidebarContent } from './components/SidebarContent';
@@ -52,7 +53,9 @@ const AppContent = () => {
 const App = () => {
     return (
         <StoryDataProvider>
-            <AppContent />
+            <UIStateProvider>
+                <AppContent />
+            </UIStateProvider>
         </StoryDataProvider>
     );
 };

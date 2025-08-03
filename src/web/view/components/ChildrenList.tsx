@@ -1,7 +1,7 @@
 import React from 'react';
 import { Item, Story, SubTask, ItemType } from '../../types';
 import { isEpic, isStory, isTask } from '../../typeGuards';
-import { useStoryData } from '../contexts/StoryDataContext';
+import { useUIState } from '../contexts/UIStateContext';
 import Badge from './Badge';
 
 type SelectedItem = Item & { type: string };
@@ -11,7 +11,7 @@ interface ChildrenListProps {
 }
 
 export const ChildrenList: React.FC<ChildrenListProps> = ({ selectedItem }) => {
-    const { showAddItemForm, selectItem } = useStoryData();
+    const { showAddItemForm, selectItem } = useUIState();
 
     if (!isEpic(selectedItem) && !isStory(selectedItem) && !isTask(selectedItem)) {
         return null;

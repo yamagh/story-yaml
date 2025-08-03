@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStoryData } from '../contexts/StoryDataContext';
+import { useUIState } from '../contexts/UIStateContext';
 import { ItemForm } from './ItemForm';
 import { ItemDetails } from './ItemDetails';
 
@@ -10,7 +10,7 @@ export const SidebarContent = () => {
         formItemData,
         handleFormSubmit,
         hideForm,
-    } = useStoryData();
+    } = useUIState();
 
     if (formVisible && formType) {
         return (

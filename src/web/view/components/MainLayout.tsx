@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useStoryData } from '../contexts/StoryDataContext';
+import { useUIState } from '../contexts/UIStateContext';
 import { useStoryFilter } from '../hooks/useStoryFilter';
 import { StoryTable } from './StoryTable';
 import { TableHeaderFilter } from './TableHeaderFilter';
 import { Status, Epic, Story, Task } from '../../types';
 
 export const MainLayout = () => {
-    const { storyData, handleDragEnd, selectItem, showAddItemForm } = useStoryData();
+    const { storyData, handleDragEnd } = useStoryData();
+    const { selectItem, showAddItemForm } = useUIState();
     const { filteredData, setFilterStatus, setFilterSprint, setFilterKeyword, filterStatus, filterSprint, filterKeyword } = useStoryFilter(storyData);
 
     const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor));
