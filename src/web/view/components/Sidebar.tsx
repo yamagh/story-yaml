@@ -1,29 +1,12 @@
 import React from 'react';
 import { useStoryData } from '../contexts/StoryDataContext';
-import { ItemForm } from './ItemForm';
-import { ItemDetails } from './ItemDetails';
 
-export const Sidebar = () => {
-    const {
-        formVisible,
-        formType,
-        formItemData,
-        handleFormSubmit,
-        hideForm,
-        showAddItemForm,
-    } = useStoryData();
+interface SidebarProps {
+    children: React.ReactNode;
+}
 
-    const renderForm = () => {
-        if (!formVisible || !formType) return null;
-        return (
-            <ItemForm
-                formType={formType}
-                data={formItemData || {}}
-                onSubmit={handleFormSubmit}
-                onCancel={hideForm}
-            />
-        );
-    };
+export const Sidebar: React.FC<SidebarProps> = ({ children }) => {
+    const { showAddItemForm } = useStoryData();
 
     return (
         <div style={{ height: '100%', overflowY: 'auto', padding: '1rem' }}>
@@ -32,7 +15,7 @@ export const Sidebar = () => {
                 <button className="btn btn-primary" onClick={() => showAddItemForm('tasks')}>Add New Task</button>
             </div>
             <div className="">
-                {formVisible ? renderForm() : <ItemDetails />}
+                {children}
             </div>
         </div>
     );

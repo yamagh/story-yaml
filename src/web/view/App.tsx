@@ -3,6 +3,7 @@ import './App.css';
 import { StoryDataProvider, useStoryData } from './contexts/StoryDataContext';
 import { MainLayout } from './components/MainLayout';
 import { Sidebar } from './components/Sidebar';
+import { SidebarContent } from './components/SidebarContent';
 import { ResizableBox } from 'react-resizable';
 
 const AppContent = () => {
@@ -39,7 +40,9 @@ const AppContent = () => {
                     className="resizableBox"
                     resizeHandles={['w']}
                 >
-                    <Sidebar />
+                    <Sidebar>
+                        <SidebarContent />
+                    </Sidebar>
                 </ResizableBox>
             </div>
         </div>

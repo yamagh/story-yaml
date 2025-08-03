@@ -2,13 +2,14 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ItemDetails } from './ItemDetails';
-import { Epic, Story, Task, Item, StoryFile } from '../../types';
+import { Epic, Story, Task, Item } from '../../types';
 import { StoryDataProvider, useStoryData } from '../contexts/StoryDataContext';
 import { useVscode } from '../hooks/useVscode';
 import { Sidebar } from './Sidebar';
+import { SidebarContent } from './SidebarContent';
 
 vi.mock('../hooks/useVscode');
 
@@ -135,35 +136,96 @@ describe('ItemDetails (Unit)', () => {
 
 describe('ItemDetails (Integration with ItemForm)', () => {
     const mockSetSelectedItem = vi.fn();
-    const mockShowEditItemForm = vi.fn();
     const mockDeleteItem = vi.fn();
+    let formVisible = false;
+
+    const mockShowEditItemForm = vi.fn(() => {
+        formVisible = true;
+    });
+    const mockHideForm = vi.fn(() => {
+        formVisible = false;
+    });
+
 
     const renderWithProvider = (
         selectedItem: (Item & { type: string }) | null,
         selectedItemParent: Epic | Story | Task | null = null
     ) => {
-        (useStoryData as vi.Mock).mockReturnValue({
+        (useStoryData as vi.Mock).mockImplementation(() => ({
             selectedItem,
             selectedItemParent,
             selectItem: mockSetSelectedItem,
             showEditItemForm: mockShowEditItemForm,
             deleteItem: mockDeleteItem,
             storyData: { epics: [mockEpic], tasks: [] },
-        });
+            formVisible: formVisible,
+            formType: formVisible ? 'edit' : null,
+            formItemData: formVisible ? selectedItem : null,
+            handleFormSubmit: vi.fn(),
+            hideForm: mockHideForm,
+            showAddItemForm: vi.fn(),
+        }));
 
         return render(
             <StoryDataProvider>
-                <Sidebar />
+                <Sidebar>
+                    <SidebarContent />
+                </Sidebar>
             </StoryDataProvider>
         );
     };
 
+    beforeEach(() => {
+        formVisible = false;
+        vi.clearAllMocks();
+    });
+
     it('updates item details after editing and saving', async () => {
-        renderWithProvider({ ...mockStory, type: 'Story' }, mockEpic);
+        const { rerender } = renderWithProvider({ ...mockStory, type: 'Story' }, mockEpic);
 
         expect(screen.getByText('Test Story')).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', { name: /edit/i }));
         expect(mockShowEditItemForm).toHaveBeenCalled();
+
+        // Re-render with the updated state after showing the form
+        rerender(
+            <StoryDataProvider>
+                <Sidebar>
+                    <SidebarContent />
+                </Sidebar>
+            </StoryDataProvider>
+        );
+
+        // Now the form should be visible
+        expect(screen.getByLabelText(/title/i)).toHaveValue('Test Story');
+
+        // Simulate user typing
+        fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Updated Test Story' } });
+
+        // Mock the form submission which would update the storyData
+        const updatedStory = { ...mockStory, title: 'Updated Test Story' };
+        (useStoryData as vi.Mock).mockImplementation(() => ({
+            selectedItem: { ...updatedStory, type: 'Story' },
+            selectedItemParent: mockEpic,
+            selectItem: mockSetSelectedItem,
+            showEditItemForm: mockShowEditItemForm,
+            deleteItem: mockDeleteItem,
+            storyData: { epics: [{...mockEpic, stories: [updatedStory]}], tasks: [] },
+            formVisible: false, // Form is hidden after submit
+            hideForm: mockHideForm,
+        }));
+
+        // Re-render after "submission"
+        rerender(
+            <StoryDataProvider>
+                <Sidebar>
+                    <SidebarContent />
+                </Sidebar>
+            </StoryDataProvider>
+        );
+
+        // Check if the updated title is displayed in ItemDetails
+        expect(screen.getByText('Updated Test Story')).toBeInTheDocument();
     });
 });
