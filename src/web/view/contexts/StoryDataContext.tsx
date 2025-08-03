@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, FC, useMemo, Dispatch } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, FC, useMemo, Dispatch, useRef } from 'react';
 import { useVscode } from '../hooks/useVscode';
 import { Item, Story, Task, StoryFile, Epic, SubTask, AddItemValues, UpdateItemValues } from '../../types';
 import { DragEndEvent } from '@dnd-kit/core';
@@ -100,17 +100,32 @@ const StoryDataContext = createContext<StoryDataContextType | undefined>(undefin
 
 // Provider
 export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
-    const vscodeApi = useVscode();
-    const { storyData: initialStoryData, error: initialError } = vscodeApi;
+    const { 
+        storyData: initialStoryData, 
+        error: initialError,
+        updateStoryFile
+    } = useVscode();
 
     const [state, dispatch] = useReducer(storyReducer, {
         storyData: null,
         error: null,
     });
 
+    // Ref to track if the last update was from the UI, to prevent echo updates.
+    const isUiUpdate = useRef(false);
+
+    // Effect to sync state from VS Code
     useEffect(() => {
         if (initialStoryData) {
-            dispatch({ type: 'SET_STORY_DATA', payload: initialStoryData });
+            // If an update from VS Code comes while we just sent one, ignore it.
+            if (isUiUpdate.current) {
+                isUiUpdate.current = false;
+                return;
+            }
+            // Only update if data is different
+            if (JSON.stringify(state.storyData) !== JSON.stringify(initialStoryData)) {
+                dispatch({ type: 'SET_STORY_DATA', payload: initialStoryData });
+            }
         }
     }, [initialStoryData]);
 
@@ -120,12 +135,13 @@ export const StoryDataProvider: FC<{children: ReactNode}> = ({ children }) => {
         }
     }, [initialError]);
     
-    // Effect to notify VS Code of changes
+    // Effect to notify VS Code of changes from the UI
     useEffect(() => {
-        if (state.storyData) {
-            vscodeApi.updateStoryFile(state.storyData);
+        if (state.storyData && state.storyData !== initialStoryData) {
+            isUiUpdate.current = true;
+            updateStoryFile(state.storyData);
         }
-    }, [state.storyData, vscodeApi]);
+    }, [state.storyData]);
 
     const value = useMemo(() => ({
         state,

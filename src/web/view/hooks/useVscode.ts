@@ -32,21 +32,21 @@ export function useVscode() {
         vscode.postMessage(message);
     };
 
-    const addItem = (item: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask', parentId?: string, values: AddItemValues }) => {
+    const addItem = useCallback((item: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask', parentId?: string, values: AddItemValues }) => {
         postMessage({ command: 'addItem', item });
-    };
+    }, []);
 
-    const updateItem = (item: { id: string, updatedData: Item & { type: string } }) => {
+    const updateItem = useCallback((item: { id: string, updatedData: Item & { type: string } }) => {
         postMessage({ command: 'updateItem', item });
-    };
+    }, []);
 
-    const deleteItem = (item: { id: string }) => {
+    const deleteItem = useCallback((item: { id: string }) => {
         postMessage({ command: 'deleteItem', item });
-    };
+    }, []);
 
-    const updateStoryFile = (storyFile: StoryFile, newId?: string) => {
+    const updateStoryFile = useCallback((storyFile: StoryFile, newId?: string) => {
         postMessage({ command: 'updateStoryFile', storyFile, newId });
-    };
+    }, []);
 
     return { storyData, error, setError, setStoryData, addItem, updateItem, deleteItem, updateStoryFile };
 }

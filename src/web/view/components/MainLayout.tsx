@@ -72,7 +72,6 @@ export const MainLayout = () => {
                     <StoryTable
                         storyData={filteredData}
                         onSelectRow={selectItem}
-                        onShowForm={showAddItemForm}
                     />
                 </table>
             </DndContext>
