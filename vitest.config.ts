@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -21,6 +22,11 @@ export default defineConfig({
         './src/web/view/components/ItemProperties.tsx',
         './src/web/view/components/Badge.tsx',
       ],
+    },
+  },
+  resolve: {
+    alias: {
+      'vscode': path.resolve(__dirname, './src/web/test/vscode-mock.ts'),
     },
   },
 });

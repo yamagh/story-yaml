@@ -23,13 +23,11 @@ const webExtensionConfig = {
 		mainFields: ['browser', 'module', 'main'], // look for `browser` entry point in imported node modules
 		extensions: ['.ts', '.tsx', '.js'], // support ts-files and js-files
 		alias: {
-			// provides alternate implementation for node module and source files
+			'sinon': require.resolve('sinon/pkg/sinon.js')
 		},
 		fallback: {
-			// Webpack 5 no longer polyfills Node.js core modules automatically.
-			// see https://webpack.js.org/configuration/resolve/#resolvefallback
-			// for the list of Node.js core module polyfills.
-			'assert': require.resolve('assert')
+			'assert': require.resolve('assert'),
+			'process': require.resolve('process/browser')
 		}
 	},
 	module: {

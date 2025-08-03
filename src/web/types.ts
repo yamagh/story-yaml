@@ -55,14 +55,31 @@ export type AddItemValues =
     (Omit<Task, 'id' | 'subtasks' | 'status'> & { status?: Status }) |
     Omit<SubTask, 'id'>;
 
+export type UpdateItemValues = Partial<Item> & { type: string };
+
 // WebView to Extension
 export type WebviewMessage =
     | { command: 'ready' }
-    | { command: 'addItem'; item: { itemType: string; parentId?: string; values: AddItemValues } }
-    | { command: 'updateItem'; item: { id: string, updatedData: Partial<Item> & { type: string } } }
+    | { command: 'addItem'; item: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask'; parentId?: string; values: AddItemValues } }
+    | { command: 'updateItem'; item: { id: string, updatedData: UpdateItemValues } }
     | { command: 'deleteItem'; item: { id: string } }
     | { command: 'updateStoryFile'; storyFile: StoryFile };
 
 export type ExtensionMessage =
     | { command: 'update'; storyFile: StoryFile, newId?: string }
     | { command: 'yamlError'; error: string };
+
+// Custom Errors
+export class YamlParseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'YamlParseError';
+  }
+}
+
+export class FileUpdateError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'FileUpdateError';
+  }
+}

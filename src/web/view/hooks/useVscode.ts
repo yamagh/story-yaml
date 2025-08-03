@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { StoryFile, Item, WebviewMessage, ExtensionMessage } from '../../types';
+import { StoryFile, Item, WebviewMessage, ExtensionMessage, AddItemValues } from '../../types';
 
 const vscode = acquireVsCodeApi();
 
@@ -36,7 +36,7 @@ export function useVscode() {
         vscode.postMessage(message);
     };
 
-    const addItem = (item: { itemType: string, parentId?: string, values: Omit<Item, 'stories' | 'subtasks'> }) => {
+    const addItem = (item: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask', parentId?: string, values: AddItemValues }) => {
         setNewId(null); // Reset newId before adding a new item
         postMessage({ command: 'addItem', item });
     };

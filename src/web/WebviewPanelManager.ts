@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
-import { WebviewMessage, ExtensionMessage } from './types';
+import { WebviewMessage, ExtensionMessage, YamlParseError, FileUpdateError } from './types';
 import { StoryYamlService } from './services/StoryYamlService';
+import { WorkspaceService } from './services/WorkspaceService';
+import { StoryEditorService } from './services/StoryEditorService';
 
 export class WebviewPanelManager {
     private static readonly viewType = 'storyYamlPreview';
@@ -9,8 +11,15 @@ export class WebviewPanelManager {
     private readonly _extensionUri: vscode.Uri;
     private _disposables: vscode.Disposable[] = [];
 
+    private readonly workspaceService: WorkspaceService;
+    private readonly storyYamlService: StoryYamlService;
+    private readonly storyEditorService: StoryEditorService;
+
     constructor(extensionUri: vscode.Uri) {
         this._extensionUri = extensionUri;
+        this.workspaceService = new WorkspaceService();
+        this.storyYamlService = new StoryYamlService();
+        this.storyEditorService = new StoryEditorService(this.workspaceService, this.storyYamlService);
     }
 
     public async createOrShow(document: vscode.TextDocument) {
@@ -41,24 +50,42 @@ export class WebviewPanelManager {
 
         this._panel.webview.onDidReceiveMessage(
             async (message: WebviewMessage) => {
-                switch (message.command) {
-                    case 'ready':
-                        this.update();
-                        return;
-                    case 'addItem':
-                        await this.addItemToStoryFile(message);
-                        return;
-                    case 'updateItem':
-                        await this.updateItemInStoryFile(message);
-                        this.update();
-                        return;
-                    case 'deleteItem':
-                        await this.deleteItemFromStoryFile(message);
-                        this.update();
-                        return;
-                    case 'updateStoryFile':
-                        await this.updateStoryFile(message);
-                        return;
+                if (!this._document) { return; }
+                try {
+                    switch (message.command) {
+                        case 'ready':
+                            this.update();
+                            return;
+                        case 'addItem': {
+                            const { storyFile, newId } = await this.storyEditorService.addItem(this._document, message.item);
+                            this.postMessage({ command: 'update', storyFile, newId });
+                            return;
+                        }
+                        case 'updateItem': {
+                            const storyFile = await this.storyEditorService.updateItem(this._document, message.item);
+                            this.postMessage({ command: 'update', storyFile });
+                            return;
+                        }
+                        case 'deleteItem': {
+                            const storyFile = await this.storyEditorService.deleteItem(this._document, message.item);
+                            this.postMessage({ command: 'update', storyFile });
+                            return;
+                        }
+                        case 'updateStoryFile': {
+                            await this.storyEditorService.updateStory(this._document, message.storyFile);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    if (e instanceof YamlParseError) {
+                        vscode.window.showErrorMessage(e.message);
+                        this.postMessage({ command: 'yamlError', error: e.message });
+                    } else if (e instanceof FileUpdateError) {
+                        vscode.window.showErrorMessage(e.message);
+                    } else {
+                        const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+                        vscode.window.showErrorMessage(`An unexpected error occurred: ${errorMessage}`);
+                    }
                 }
             },
             null,
@@ -71,13 +98,18 @@ export class WebviewPanelManager {
             return;
         }
         try {
-            const content = this._document.getText();
-            const storyFile = StoryYamlService.loadYaml(content);
-            this.postMessage({ command: 'update', storyFile: storyFile || { epics: [], tasks: [] } });
+            const content = this.workspaceService.readDocument(this._document);
+            const storyModel = this.storyYamlService.load(content);
+            this.postMessage({ command: 'update', storyFile: storyModel.getStoryFile() });
         } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred while parsing YAML.';
-            vscode.window.showErrorMessage(`Error parsing YAML: ${errorMessage}`);
-            this.postMessage({ command: 'yamlError', error: errorMessage });
+            if (e instanceof YamlParseError) {
+                vscode.window.showErrorMessage(e.message);
+                this.postMessage({ command: 'yamlError', error: e.message });
+            } else {
+                const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred while parsing YAML.';
+                vscode.window.showErrorMessage(`Error parsing YAML: ${errorMessage}`);
+                this.postMessage({ command: 'yamlError', error: errorMessage });
+            }
         }
     }
 
@@ -94,65 +126,6 @@ export class WebviewPanelManager {
 
     private postMessage(message: ExtensionMessage) {
         this._panel?.webview.postMessage(message);
-    }
-
-    private async updateStoryFile(message: WebviewMessage & { command: 'updateStoryFile' }) {
-        if (!this._document) { return; }
-        try {
-            const newContent = StoryYamlService.saveStoryFile(message.storyFile);
-            const edit = new vscode.WorkspaceEdit();
-            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-            await vscode.workspace.applyEdit(edit);
-        } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
-            vscode.window.showErrorMessage(`Error saving YAML: ${errorMessage}`);
-            this.postMessage({ command: 'yamlError', error: errorMessage });
-        }
-    }
-
-    private async addItemToStoryFile(message: WebviewMessage & { command: 'addItem' }) {
-        if (!this._document) { return; }
-        try {
-            const { content: newContent, newId, storyFile } = StoryYamlService.updateStoryContent(this._document.getText(), message.item);
-            const edit = new vscode.WorkspaceEdit();
-            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-            await vscode.workspace.applyEdit(edit);
-
-            this.postMessage({ command: 'update', storyFile, newId });
-
-        } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
-            vscode.window.showErrorMessage(`Error processing YAML: ${errorMessage}`);
-            this.postMessage({ command: 'yamlError', error: errorMessage });
-        }
-    }
-
-    private async updateItemInStoryFile(message: WebviewMessage & { command: 'updateItem' }) {
-        if (!this._document) { return; }
-        try {
-            const newContent = StoryYamlService.updateStoryContentForItemUpdate(this._document.getText(), message.item);
-            const edit = new vscode.WorkspaceEdit();
-            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-            await vscode.workspace.applyEdit(edit);
-        } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
-            vscode.window.showErrorMessage(`Error processing YAML: ${errorMessage}`);
-            this.postMessage({ command: 'yamlError', error: errorMessage });
-        }
-    }
-
-    private async deleteItemFromStoryFile(message: WebviewMessage & { command: 'deleteItem' }) {
-        if (!this._document) { return; }
-        try {
-            const newContent = StoryYamlService.deleteItemFromStoryFile(this._document.getText(), message.item);
-            const edit = new vscode.WorkspaceEdit();
-            edit.replace(this._document.uri, new vscode.Range(0, 0, this._document.lineCount, 0), newContent);
-            await vscode.workspace.applyEdit(edit);
-        } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
-            vscode.window.showErrorMessage(`Error processing YAML: ${errorMessage}`);
-            this.postMessage({ command: 'yamlError', error: errorMessage });
-        }
     }
 
     private async _getHtmlForWebview(webview: vscode.Webview): Promise<string> {

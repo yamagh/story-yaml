@@ -187,7 +187,7 @@ describe('useStoryData', () => {
     });
 
     expect(mockAddItem).toHaveBeenCalledWith({
-      itemType: 'tasks',
+      itemType: 'task',
       parentId: undefined,
       values: expect.objectContaining({ title: 'New Task Title' }),
     });

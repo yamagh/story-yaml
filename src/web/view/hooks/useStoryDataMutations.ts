@@ -17,8 +17,8 @@ interface StoryDataState {
 }
 
 interface VscodeApi {
-    addItem: (args: { itemType: ItemType; parentId?: string; values: Omit<Item, 'stories' | 'subtasks'> }) => void;
-    updateItem: (args: { id: string; updatedData: Partial<Item> }) => void;
+    addItem: (args: { itemType: 'epic' | 'userStory' | 'task' | 'bug' | 'subtask'; parentId?: string; values: Omit<Item, 'stories' | 'subtasks'> }) => void;
+    updateItem: (args: { id: string; updatedData: Item & { type: string } }) => void;
     deleteItem: (args: { id: string }) => void;
     updateStoryFile: (storyFile: StoryFile) => void;
 }
@@ -110,7 +110,14 @@ export const useStoryDataMutations = (
                 pendingSelection: formItemData.id!,
             }));
         } else {
-            addItem({ itemType: formType!, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'subtasks'> });
+            const itemTypeMap = {
+                epics: 'epic',
+                stories: 'userStory',
+                tasks: 'task',
+                subtasks: 'subtask',
+            };
+            const mappedItemType = itemTypeMap[formType!] as 'epic' | 'userStory' | 'task' | 'subtask';
+            addItem({ itemType: mappedItemType, parentId: formParentId || undefined, values: newOrUpdatedData as Omit<Item, 'stories' | 'subtasks'> });
             setState(prevState => ({
                 ...prevState,
                 formVisible: false,

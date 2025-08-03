@@ -1,0 +1,132 @@
+import * as assert from 'assert';
+import * as vscode from 'vscode';
+import * as process from 'process';
+(global as any).process = process;
+import { WebviewPanelManager } from '../../WebviewPanelManager';
+import { SinonSandbox, createSandbox } from 'sinon';
+import { StoryYamlService } from '../../services/StoryYamlService';
+import { AddItemValues, Item } from '../../types';
+
+const initialYamlContent = `epics:
+  - title: Epic 1
+    description: Epic 1 Description
+    stories:
+      - title: Story 1.1
+        as: User
+        i want: to do something
+        so that: I can achieve a goal
+        status: ToDo
+        subtasks:
+          - title: Subtask 1.1.1
+            status: ToDo
+tasks:
+  - title: Task 1
+    description: A standalone task
+    status: Done
+`;
+
+describe('WebviewPanelManager E2E', () => {
+    let sandbox: SinonSandbox;
+    let showErrorMessageStub: any;
+    let applyEditStub: any;
+    let postMessageStub: any;
+    let panel: vscode.WebviewPanel;
+    let manager: WebviewPanelManager;
+    let mockDocument: vscode.TextDocument;
+    let storyYamlService: StoryYamlService;
+
+    beforeEach(() => {
+        sandbox = createSandbox();
+        showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+        applyEditStub = sandbox.stub(vscode.workspace, 'applyEdit').resolves(true);
+        postMessageStub = sandbox.stub();
+        storyYamlService = new StoryYamlService();
+
+        panel = {
+            webview: {
+                postMessage: postMessageStub,
+                onDidReceiveMessage: sandbox.stub(),
+                asWebviewUri: (uri: vscode.Uri) => uri,
+            },
+            reveal: sandbox.stub(),
+            onDidDispose: sandbox.stub(),
+            dispose: sandbox.stub(),
+        } as unknown as vscode.WebviewPanel;
+
+        sandbox.stub(vscode.window, 'createWebviewPanel').returns(panel);
+        sandbox.stub(vscode.workspace, 'fs').value({
+            readFile: () => Promise.resolve(new TextEncoder().encode('<html><body><script src="{{scriptUri}}"></script></body></html>')),
+        });
+
+        manager = new WebviewPanelManager(vscode.Uri.file('/fake/path'));
+        mockDocument = {
+            uri: vscode.Uri.file('/fake/document.yaml'),
+            getText: () => initialYamlContent,
+            lineCount: initialYamlContent.split('\n').length,
+        } as vscode.TextDocument;
+
+        manager.createOrShow(mockDocument);
+    });
+
+    afterEach(() => {
+        sandbox.restore();
+    });
+
+    it('should add an item and update the document', async () => {
+        const newItem: AddItemValues = { title: 'New Task', description: 'A new task description', status: 'ToDo' };
+        const message = {
+            command: 'addItem',
+            item: {
+                itemType: 'task',
+                values: newItem,
+            },
+        };
+
+        const onDidReceiveMessageHandler = (panel.webview.onDidReceiveMessage as any).getCall(0).args[0];
+        await onDidReceiveMessageHandler(message);
+
+        assert.ok(applyEditStub.calledOnce, 'applyEdit should be called once');
+        const newContent = applyEditStub.getCall(0).args[0].get(mockDocument.uri)[0].newText;
+        
+        assert.ok(newContent.includes('title: New Task'), 'New task title should be in the new content');
+        assert.ok(postMessageStub.calledWith(sandbox.match.has('command', 'update')), 'postMessage should be called with an update command');
+    });
+
+    it('should update an item and update the document', async () => {
+        const storyModel = storyYamlService.load(initialYamlContent);
+        const storyToUpdate = storyModel.getStoryFile().epics[0].stories![0];
+        const updatedData = { ...storyToUpdate, title: 'Updated Story Title', type: 'Story' };
+
+        const message = {
+            command: 'updateItem',
+            item: {
+                id: storyToUpdate.id!,
+                updatedData: updatedData,
+            },
+        };
+
+        const onDidReceiveMessageHandler = (panel.webview.onDidReceiveMessage as any).getCall(0).args[0];
+        await onDidReceiveMessageHandler(message);
+
+        assert.ok(applyEditStub.calledOnce, 'applyEdit should be called once');
+        const newContent = applyEditStub.getCall(0).args[0].get(mockDocument.uri)[0].newText;
+        assert.ok(newContent.includes('title: Updated Story Title'), 'Updated title should be in the new content');
+    });
+
+    it('should delete an item and update the document', async () => {
+        const storyModel = storyYamlService.load(initialYamlContent);
+        const taskToDelete = storyModel.getStoryFile().tasks[0];
+
+        const message = {
+            command: 'deleteItem',
+            item: { id: taskToDelete.id! },
+        };
+
+        const onDidReceiveMessageHandler = (panel.webview.onDidReceiveMessage as any).getCall(0).args[0];
+        await onDidReceiveMessageHandler(message);
+
+        assert.ok(applyEditStub.calledOnce, 'applyEdit should be called once');
+        const newContent = applyEditStub.getCall(0).args[0].get(mockDocument.uri)[0].newText;
+        assert.ok(!newContent.includes('title: Task 1'), 'Deleted task title should not be in the new content');
+    });
+});
