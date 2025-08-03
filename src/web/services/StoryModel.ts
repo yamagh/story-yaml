@@ -1,5 +1,5 @@
 import { StoryFile, Item, Epic, Story, Task, SubTask, AddItemValues } from '../types';
-import { getNextId } from './idGenerator';
+import { getNextId, initializeAndAssignIds } from './idGenerator';
 
 type ItemType = 'epics' | 'stories' | 'tasks' | 'subtasks';
 
@@ -7,18 +7,46 @@ export class StoryModel {
     private storyFile: StoryFile;
 
     constructor(storyFile: StoryFile) {
-        this.storyFile = { ...storyFile };
+        this.storyFile = JSON.parse(JSON.stringify(storyFile));
+
         if (!this.storyFile.epics) {
             this.storyFile.epics = [];
         }
         if (!this.storyFile.tasks) {
             this.storyFile.tasks = [];
         }
+        this.assignTypes(this.storyFile.epics, this.storyFile.tasks);
+        initializeAndAssignIds([...this.storyFile.epics, ...this.storyFile.tasks]);
+    }
+
+    private assignTypes(epics: Epic[], tasks: Task[]): void {
+        epics.forEach(epic => {
+            epic.type = 'Epic';
+            if (epic.stories) {
+                epic.stories.forEach(story => {
+                    story.type = 'Story';
+                    if (story.subtasks) {
+                        story.subtasks.forEach(subtask => {
+                            subtask.type = 'SubTask';
+                        });
+                    }
+                });
+            }
+        });
+        tasks.forEach(task => {
+            task.type = 'Task';
+            if (task.subtasks) {
+                task.subtasks.forEach(subtask => {
+                    subtask.type = 'SubTask';
+                });
+            }
+        });
     }
 
     public getStoryFile(): StoryFile {
         return this.storyFile;
     }
+
 
     private findItemRecursive(
         collection: Item[],
@@ -41,7 +69,7 @@ export class StoryModel {
     }
 
     public findParent(targetId: string): Item | null {
-        const find = (collection: Item[], parent: Item | null): Item | null => {
+        const find = (collection: Item[]): Item | null => {
             for (const item of collection) {
                 if ('stories' in item && item.stories?.some(child => child.id === targetId)) {
                     return item;
@@ -50,33 +78,35 @@ export class StoryModel {
                     return item;
                 }
                 if ('stories' in item && item.stories) {
-                    const found = find(item.stories, item);
+                    const found = find(item.stories);
                     if (found) return found;
                 }
                 if ('subtasks' in item && item.subtasks) {
-                    const found = find(item.subtasks, item);
+                    const found = find(item.subtasks);
                     if (found) return found;
                 }
             }
             return null;
-        }
-        return find([...this.storyFile.epics, ...this.storyFile.tasks], null);
+        };
+        return find([...this.storyFile.epics, ...this.storyFile.tasks]);
     }
 
     public addItem(itemType: ItemType, values: AddItemValues, parentId?: string): string {
         const newId = getNextId();
 
         switch (itemType) {
-            case 'epics':
-                const newEpic: Epic = { type: 'Epic', id: newId, ...(values as any), stories: [] };
+            case 'epics': {
+                const newEpic: Epic = { type: 'Epic', id: newId, ...values, stories: [] };
                 this.storyFile.epics.push(newEpic);
                 break;
-            case 'tasks':
-                const newTask: Task = { type: 'Task', id: newId, status: 'ToDo', ...(values as any), subtasks: [] };
+            }
+            case 'tasks': {
+                const newTask: Task = { type: 'Task', id: newId, status: 'ToDo', ...values, subtasks: [] };
                 this.storyFile.tasks.push(newTask);
                 break;
+            }
             case 'stories': {
-                const newStory: Story = { type: 'Story', id: newId, status: 'ToDo', ...(values as any), subtasks: [] };
+                const newStory: Story = { type: 'Story', id: newId, status: 'ToDo', ...values, subtasks: [] };
                 const parentEpic = this.findItemRecursive(this.storyFile.epics, parentId!) as Epic | null;
                 if (parentEpic) {
                     parentEpic.stories = parentEpic.stories || [];
@@ -85,7 +115,7 @@ export class StoryModel {
                 break;
             }
             case 'subtasks': {
-                const newSubTask: SubTask = { type: 'SubTask', id: newId, status: 'ToDo', ...(values as any) };
+                const newSubTask: SubTask = { type: 'SubTask', id: newId, status: 'ToDo', ...values };
                 const parentItem = this.findItemRecursive([...this.storyFile.epics, ...this.storyFile.tasks], parentId!) as Story | Task | null;
                 if (parentItem) {
                     parentItem.subtasks = parentItem.subtasks || [];

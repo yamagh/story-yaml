@@ -10,7 +10,7 @@ import { useStoryData } from '../contexts/StoryDataContext';
 
 const ItemDetailsFC: React.FC = () => {
     const { selectedItem, selectedItemParent, showEditItemForm, selectItem } = useUIState();
-    const { deleteItem } = useStoryData();
+    const { dispatch } = useStoryData();
     const [isConfirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = useCallback(() => {
@@ -20,9 +20,9 @@ const ItemDetailsFC: React.FC = () => {
 
     const handleConfirmDelete = useCallback(() => {
         if (!selectedItem) return;
-        deleteItem(selectedItem.id!);
+        dispatch({ type: 'DELETE_ITEM', payload: { id: selectedItem.id! } });
         setConfirmOpen(false);
-    }, [selectedItem, deleteItem]);
+    }, [selectedItem, dispatch]);
 
     const handleSelectParent = useCallback(() => {
         if (!selectedItemParent) return;

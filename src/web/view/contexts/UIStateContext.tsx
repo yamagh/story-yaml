@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, FC, useMemo } from 'react';
-import { Item, ItemType, Story, Task, Epic } from '../../types';
+import { Item, ItemType, Story, Task, Epic, AddItemValues, UpdateItemValues } from '../../types';
 import { useStoryData } from './StoryDataContext';
 
 // UI状態コンテキストの型定義
@@ -43,7 +43,8 @@ const initialState: UIState = {
 };
 
 export const UIStateProvider: FC<{children: ReactNode}> = ({ children }) => {
-    const { storyData, addItem, updateItem, findItemAndParent } = useStoryData();
+    const { state: storyState, dispatch, findItemAndParent } = useStoryData();
+    const { storyData } = storyState;
     const [state, setState] = useState<UIState>(initialState);
 
     const selectItem = useCallback((item: Item) => {
@@ -130,12 +131,12 @@ export const UIStateProvider: FC<{children: ReactNode}> = ({ children }) => {
         const values = Object.fromEntries(formData.entries());
 
         if (state.isEditing && state.formItemData) {
-            updateItem(state.formItemData.id!, values);
+            dispatch({ type: 'UPDATE_ITEM', payload: { id: state.formItemData.id!, updatedData: values as UpdateItemValues } });
         } else {
-            addItem(state.formType, values, state.formParentId || undefined);
+            dispatch({ type: 'ADD_ITEM', payload: { itemType: state.formType, values: values as AddItemValues, parentId: state.formParentId || undefined } });
         }
         hideForm();
-    }, [state, addItem, updateItem, hideForm]);
+    }, [state, dispatch, hideForm]);
 
     const value = useMemo(() => ({
         ...state,

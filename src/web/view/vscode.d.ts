@@ -4,7 +4,13 @@ declare module '*.module.css' {
 }
 
 declare const acquireVsCodeApi: () => {
-    getState: () => any;
-    setState: (newState: any) => void;
-    postMessage: (message: any) => void;
+    getState: () => unknown;
+    setState: (newState: unknown) => void;
+    postMessage: (message: { command: string; [key: string]: unknown; }) => void;
 };
+
+declare global {
+    interface Window {
+        acquireVsCodeApi: typeof acquireVsCodeApi;
+    }
+}

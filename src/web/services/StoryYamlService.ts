@@ -1,34 +1,8 @@
 import * as yaml from 'js-yaml';
-import { StoryFile, Item, Story, SubTask, YamlParseError, Epic, Task } from '../types';
-import { initializeAndAssignIds } from './idGenerator';
+import { StoryFile, Item, Story, SubTask, YamlParseError } from '../types';
 import { StoryModel } from './StoryModel';
 
 export class StoryYamlService {
-
-    private assignTypes(epics: Epic[], tasks: Task[]): void {
-        epics.forEach(epic => {
-            epic.type = 'Epic';
-            if (epic.stories) {
-                epic.stories.forEach(story => {
-                    story.type = 'Story';
-                    if (story.subtasks) {
-                        story.subtasks.forEach(subtask => {
-                            subtask.type = 'SubTask';
-                        });
-                    }
-                });
-            }
-        });
-        tasks.forEach(task => {
-            task.type = 'Task';
-            if (task.subtasks) {
-                task.subtasks.forEach(subtask => {
-                    subtask.type = 'SubTask';
-                });
-            }
-        });
-    }
-
     public load(content: string): StoryModel {
         try {
             const doc = yaml.load(content) as StoryFile | null;
@@ -39,10 +13,6 @@ export class StoryYamlService {
             if (!validatedDoc.tasks) {
                 validatedDoc.tasks = [];
             }
-            
-            this.assignTypes(validatedDoc.epics, validatedDoc.tasks);
-            const allItems = [...validatedDoc.epics, ...validatedDoc.tasks];
-            initializeAndAssignIds(allItems);
             
             return new StoryModel(validatedDoc);
         } catch (e) {
@@ -55,6 +25,7 @@ export class StoryYamlService {
 
     private cleanItemsForSave(items: Item[]): Omit<Item, 'id' | 'type'>[] {
         return items.map(item => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { id: _id, type: _type, ...rest } = item;
             if ('stories' in rest && rest.stories) {
                 rest.stories = this.cleanItemsForSave(rest.stories) as Story[];

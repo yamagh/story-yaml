@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { useStoryData } from '../contexts/StoryDataContext';
 import { useUIState } from '../contexts/UIStateContext';
 import { useStoryFilter } from '../hooks/useStoryFilter';
@@ -8,11 +8,16 @@ import { TableHeaderFilter } from './TableHeaderFilter';
 import { Status, Epic, Story, Task } from '../../types';
 
 export const MainLayout = () => {
-    const { storyData, handleDragEnd } = useStoryData();
+    const { state, dispatch, findItemAndParent } = useStoryData();
+    const { storyData } = state;
     const { selectItem, showAddItemForm } = useUIState();
     const { filteredData, setFilterStatus, setFilterSprint, setFilterKeyword, filterStatus, filterSprint, filterKeyword } = useStoryFilter(storyData);
 
     const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor));
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        dispatch({ type: 'HANDLE_DRAG_END', payload: event, findItem: findItemAndParent });
+    };
 
     const sprints = useMemo(() => {
         if (!storyData) return [];

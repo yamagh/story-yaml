@@ -6,12 +6,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ItemDetails } from './ItemDetails';
 import { Epic, Story, Task, Item } from '../../types';
-import { StoryDataContext } from '../contexts/StoryDataContext';
-import { UIStateContext } from '../contexts/UIStateContext';
+import { useStoryData } from '../contexts/StoryDataContext';
+import { useUIState } from '../contexts/UIStateContext';
 import { Sidebar } from './Sidebar';
 import { SidebarContent } from './SidebarContent';
 
 vi.mock('../hooks/useVscode');
+vi.mock('../contexts/StoryDataContext');
+vi.mock('../contexts/UIStateContext');
 
 const mockEpic: Epic = {
     id: 'epic-1',
@@ -60,169 +62,147 @@ const mockStory: Story = {
 };
 
 describe('ItemDetails (Unit)', () => {
+    const mockDispatch = vi.fn();
     const mockShowEditItemForm = vi.fn();
-    const mockDeleteItem = vi.fn();
     const mockSelectItem = vi.fn();
-
-    const renderComponent = (selectedItem: Item | null, selectedItemParent: Epic | Story | Task | null = null) => {
-        const storyDataContextValue = {
-            storyData: { epics: [mockEpic], tasks: [] },
-            error: null,
-            setError: vi.fn(),
-            addItem: vi.fn(),
-            updateItem: vi.fn(),
-            deleteItem: mockDeleteItem,
-            handleDragEnd: vi.fn(),
-            findItemAndParent: vi.fn().mockReturnValue({ item: selectedItem, parent: selectedItemParent }),
-        };
-
-        const uiStateContextValue = {
-            selectedItem,
-            selectedItemParent,
-            formVisible: false,
-            isEditing: false,
-            formType: null,
-            formParentId: null,
-            selectItem: mockSelectItem,
-            showAddItemForm: vi.fn(),
-            showEditItemForm: mockShowEditItemForm,
-            hideForm: vi.fn(),
-            handleFormSubmit: vi.fn(),
-        };
-
-        return render(
-            <StoryDataContext.Provider value={storyDataContextValue}>
-                <UIStateContext.Provider value={uiStateContextValue}>
-                    <ItemDetails />
-                </UIStateContext.Provider>
-            </StoryDataContext.Provider>
-        );
-    };
 
     beforeEach(() => {
         vi.clearAllMocks();
+        (useStoryData as vi.Mock).mockReturnValue({
+            state: {
+                storyData: { epics: [mockEpic], tasks: [] },
+                error: null,
+            },
+            dispatch: mockDispatch,
+            findItemAndParent: vi.fn((_items, id) => {
+                if (id === mockStory.id) return { item: mockStory, parent: mockEpic };
+                if (id === mockEpic.id) return { item: mockEpic, parent: null };
+                return null;
+            }),
+        });
     });
 
+    const setup = (selectedItem: Item | null, selectedItemParent: Epic | Story | Task | null = null) => {
+        (useUIState as vi.Mock).mockReturnValue({
+            selectedItem,
+            selectedItemParent,
+            showEditItemForm: mockShowEditItemForm,
+            selectItem: mockSelectItem,
+        });
+        return render(<ItemDetails />);
+    };
+
     it('displays an info message when no item is selected', () => {
-        renderComponent(null);
+        setup(null);
         expect(screen.getByText('Click on an item to see details or add a new item.')).toBeInTheDocument();
     });
 
     it('displays parent info card when a parent exists', () => {
-        renderComponent(mockStory, mockEpic);
+        setup(mockStory, mockEpic);
         expect(screen.getByText(/Parent/i)).toBeInTheDocument();
         expect(screen.getByText(mockEpic.title)).toBeInTheDocument();
     });
 
     it('does not display parent info card when there is no parent', () => {
-        renderComponent(mockEpic);
+        setup(mockEpic);
         expect(screen.queryByText(/Parent:/)).not.toBeInTheDocument();
     });
 
     it('calls showEditItemForm when the Edit button is clicked', () => {
-        renderComponent(mockStory);
+        setup(mockStory);
         fireEvent.click(screen.getByText('Edit'));
         expect(mockShowEditItemForm).toHaveBeenCalledTimes(1);
     });
 
     it('opens confirm dialog when Delete button is clicked', () => {
-        renderComponent(mockStory);
+        setup(mockStory);
         fireEvent.click(screen.getByText('Delete'));
         expect(screen.getByText('Delete Story')).toBeInTheDocument();
     });
 
-    it('calls deleteItem with id when deletion is confirmed', () => {
-        renderComponent(mockStory);
+    it('calls dispatch with delete action when deletion is confirmed', () => {
+        setup(mockStory);
         fireEvent.click(screen.getByText('Delete'));
         fireEvent.click(screen.getByText('Confirm'));
-        expect(mockDeleteItem).toHaveBeenCalledWith(mockStory.id);
+        expect(mockDispatch).toHaveBeenCalledWith({ type: 'DELETE_ITEM', payload: { id: mockStory.id } });
     });
 });
 
 describe('ItemDetails (Integration with ItemForm)', () => {
-    const mockSelectItem = vi.fn();
-    const mockDeleteItem = vi.fn();
+    const mockDispatch = vi.fn();
     const mockUpdateItem = vi.fn();
-    const mockAddItem = vi.fn();
-
-    let uiState: any;
-
-    const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-        const [innerState, setInnerState] = React.useState(uiState);
-
-        const storyDataContextValue = {
-            storyData: { epics: [mockEpic], tasks: [] },
-            error: null,
-            setError: vi.fn(),
-            addItem: mockAddItem,
-            updateItem: mockUpdateItem,
-            deleteItem: mockDeleteItem,
-            handleDragEnd: vi.fn(),
-            findItemAndParent: vi.fn().mockImplementation((items, id) => {
-                if (id === mockStory.id) return { item: mockStory, parent: mockEpic };
-                if (id === mockEpic.id) return { item: mockEpic, parent: null };
-                return null;
-            }),
-        };
-
-        const uiStateContextValue = {
-            ...innerState,
-            selectItem: (item: Item) => setInnerState((s: any) => ({ ...s, selectedItem: item, formVisible: false })),
-            showEditItemForm: () => setInnerState((s: any) => ({ ...s, formVisible: true, isEditing: true, formType: 'stories', formItemData: s.selectedItem })),
-            hideForm: () => setInnerState((s: any) => ({ ...s, formVisible: false, isEditing: false })),
-            handleFormSubmit: (e: React.FormEvent) => {
-                e.preventDefault();
-                const formData = new FormData(e.target as HTMLFormElement);
-                const title = formData.get('title') as string;
-                const updatedItem = { ...innerState.selectedItem, title };
-                mockUpdateItem(innerState.selectedItem.id, { title });
-                setInnerState((s: any) => ({ ...s, selectedItem: updatedItem, formVisible: false, isEditing: false }));
-            },
-        };
-
-        return (
-            <StoryDataContext.Provider value={storyDataContextValue}>
-                <UIStateContext.Provider value={uiStateContextValue}>
-                    {children}
-                </UIStateContext.Provider>
-            </StoryDataContext.Provider>
-        );
-    };
 
     beforeEach(() => {
         vi.clearAllMocks();
-        uiState = {
-            selectedItem: mockStory,
-            selectedItemParent: mockEpic,
+        mockDispatch.mockImplementation((action) => {
+            if (action.type === 'UPDATE_ITEM') {
+                mockUpdateItem(action.payload.id, action.payload.updatedData);
+            }
+        });
+
+        (useStoryData as vi.Mock).mockReturnValue({
+            state: {
+                storyData: { epics: [mockEpic], tasks: [] },
+                error: null,
+            },
+            dispatch: mockDispatch,
+            findItemAndParent: vi.fn(),
+        });
+    });
+
+    const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+        const [uiState, setUiState] = React.useState({
+            selectedItem: mockStory as Item | null,
+            selectedItemParent: mockEpic as Epic | Story | Task | null,
             formVisible: false,
             isEditing: false,
             formType: null,
             formParentId: null,
             formItemData: undefined,
-        };
-    });
+        });
+
+        const showEditItemForm = () => setUiState(s => ({ ...s, formVisible: true, isEditing: true, formType: 'stories' as const, formItemData: s.selectedItem! }));
+        
+        (useUIState as vi.Mock).mockReturnValue({
+            ...uiState,
+            selectItem: (item: Item | null) => setUiState(s => ({ ...s, selectedItem: item, formVisible: false })),
+            showEditItemForm,
+            hideForm: () => setUiState(s => ({ ...s, formVisible: false, isEditing: false })),
+            handleFormSubmit: (e: React.FormEvent) => {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                const title = formData.get('title') as string;
+                mockDispatch({ type: 'UPDATE_ITEM', payload: { id: uiState.selectedItem!.id, updatedData: { title } } });
+                setUiState(s => ({ ...s, selectedItem: { ...s.selectedItem!, title }, formVisible: false, isEditing: false }));
+            },
+        });
+
+        return (
+            <Sidebar>
+                <SidebarContent />
+            </Sidebar>
+        );
+    };
 
     it('updates item details after editing and saving', async () => {
-        const { getByText, getByRole, getByLabelText } = render(
-            <TestWrapper>
-                <Sidebar>
-                    <SidebarContent />
-                </Sidebar>
-            </TestWrapper>
-        );
+        render(<TestWrapper />);
 
-        expect(getByText('Test Story')).toBeInTheDocument();
+        expect(screen.getByText('Test Story')).toBeInTheDocument();
 
-        fireEvent.click(getByRole('button', { name: /edit/i }));
+        fireEvent.click(screen.getByRole('button', { name: /edit/i }));
 
-        expect(getByLabelText(/title/i)).toHaveValue('Test Story');
+        const titleInput = screen.getByLabelText(/title/i);
+        expect(titleInput).toHaveValue('Test Story');
 
-        fireEvent.change(getByLabelText(/title/i), { target: { value: 'Updated Test Story' } });
+        fireEvent.change(titleInput, { target: { value: 'Updated Test Story' } });
 
-        fireEvent.submit(getByRole('button', { name: /save/i }));
+        // Find the form and submit it
+        const form = titleInput.closest('form');
+        expect(form).not.toBeNull();
+        fireEvent.submit(form!);
 
         expect(mockUpdateItem).toHaveBeenCalledWith(mockStory.id, { title: 'Updated Test Story' });
         
-        expect(getByText('Updated Test Story')).toBeInTheDocument();
+        expect(screen.getByText('Updated Test Story')).toBeInTheDocument();
     });
 });

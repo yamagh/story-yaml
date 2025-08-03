@@ -8,7 +8,8 @@ import { SidebarContent } from './components/SidebarContent';
 import { ResizableBox } from 'react-resizable';
 
 const AppContent = () => {
-    const { storyData, error, setError } = useStoryData();
+    const { state, dispatch } = useStoryData();
+    const { storyData, error } = state;
     const [sidebarWidth, setSidebarWidth] = useState(500);
 
     if (!storyData) {
@@ -26,7 +27,7 @@ const AppContent = () => {
             {error && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
                     <strong>YAML Parse Error:</strong> {error}
-                    <button type="button" className="btn-close" onClick={() => setError(null)} aria-label="Close"></button>
+                    <button type="button" className="btn-close" onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} aria-label="Close"></button>
                 </div>
             )}
             <div className="contentWrapper">
