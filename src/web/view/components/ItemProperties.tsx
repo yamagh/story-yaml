@@ -14,8 +14,13 @@ export const ItemProperties: React.FC<ItemPropertiesProps> = ({ selectedItem }) 
     const sprint = 'sprint' in selectedItem ? selectedItem.sprint : undefined;
     const dod = 'definition of done' in selectedItem ? selectedItem['definition of done'] : undefined;
 
+    // 何も表示するものがない場合はnullを返す
+    if (!description && !status && points === undefined && !sprint && !isStory(selectedItem) && (!dod || dod.length === 0)) {
+        return null;
+    }
+
     return (
-        <>
+        <div className="card p-3 shadow-sm">
             {description && <p style={{ whiteSpace: 'pre-wrap' }}>{description}</p>}
             <div className='d-flex gap-2 mb-3'>
                 {status && <Badge type="status" value={status} />}
@@ -39,6 +44,6 @@ export const ItemProperties: React.FC<ItemPropertiesProps> = ({ selectedItem }) 
                     </ul>
                 </div>
             )}
-        </>
+        </div>
     );
 };

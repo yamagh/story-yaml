@@ -150,7 +150,7 @@ describe('ItemDetails (Integration with ItemForm)', () => {
         });
     });
 
-    const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const TestWrapper: React.FC = () => {
         const [uiState, setUiState] = React.useState({
             selectedItem: mockStory as Item | null,
             selectedItemParent: mockEpic as Epic | Story | Task | null,

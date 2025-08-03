@@ -4,9 +4,9 @@ import { ParentInfoCard } from './ParentInfoCard';
 import { ChildrenList } from './ChildrenList';
 import { ItemProperties } from './ItemProperties';
 import { isEpic, isStory } from '../../typeGuards';
-import Badge from './Badge';
 import { useUIState } from '../contexts/UIStateContext';
 import { useStoryData } from '../contexts/StoryDataContext';
+import { ItemHeader } from './ItemHeader';
 
 const ItemDetailsFC: React.FC = () => {
     const { selectedItem, selectedItemParent, showEditItemForm, selectItem } = useUIState();
@@ -33,7 +33,7 @@ const ItemDetailsFC: React.FC = () => {
         return <div className="alert alert-info">Click on an item to see details or add a new item.</div>;
     }
 
-    const { type, title } = selectedItem;
+    const { type } = selectedItem;
 
     const confirmMessage = isEpic(selectedItem) || isStory(selectedItem)
         ? 'All nested items will also be deleted.'
@@ -42,22 +42,21 @@ const ItemDetailsFC: React.FC = () => {
     return (
         <>
             {selectedItemParent && <ParentInfoCard parent={selectedItemParent} onSelect={handleSelectParent} />}
-            <div className='card p-3 shadow-sm'>
-                <div className="d-flex justify-content-between mb-3">
-                    <div>
-                        <Badge type="type" value={type} />
-                    </div>
-                    <div>
-                        <button className="btn btn-sm btn-primary me-2" onClick={showEditItemForm}>Edit</button>
-                        <button className="btn btn-sm btn-danger" onClick={handleDelete}>Delete</button>
-                    </div>
-                </div>
-                <h4 className="mb-3">{title}</h4>
+            
+            <ItemHeader 
+                item={selectedItem}
+                onEdit={showEditItemForm}
+                onDelete={handleDelete}
+            />
+
+            <div className="mt-3">
                 <ItemProperties selectedItem={selectedItem} />
             </div>
+
             <div className='mt-3'>
               {selectedItem.type.toLowerCase() !== 'subtask' && <ChildrenList selectedItem={selectedItem} />}
             </div>
+
             <ConfirmDialog
                 isOpen={isConfirmOpen}
                 onClose={() => setConfirmOpen(false)}
