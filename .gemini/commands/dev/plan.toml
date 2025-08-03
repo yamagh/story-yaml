@@ -4,7 +4,7 @@ prompt = """
 
 手順:
 1. @.story/story.yaml の中から「{{args}}」に該当するユーザーストーリーを探す。もし見つからなければここで終了する。
-2. @.story/tmp/dev-plan.md が存在する場合、中身をクリアする。
+2. @.story/tmp/dev-plan.md が存在する場合、中身をクリアする（`echo "" > @.story/tmp/dev-plan.md`）。
 3. 該当するストーリーの実装計画を次の観点で検討して @.story/tmp/dev-plan.md に出力する
 
 実装観点:

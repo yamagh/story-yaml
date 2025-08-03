@@ -16,7 +16,7 @@ prompt = """
 - ベストプラクティスの適用
 
 手順:
-1. @.story/tmp/refactoring-plan.md が存在する場合、中身をクリアする。
+1. @.story/tmp/refactoring-plan.md が存在する場合、中身をクリアする（`echo "" > @.story/tmp/refactoring-plan.md`）。
 2. コードベース全体に対してレビューを行う。リファクタリングすべきことが無ければここで終了する。
 3. リファクタリングの計画を @.story/tmp/refactoring-plan.md に出力する。
 """
