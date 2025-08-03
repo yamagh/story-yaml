@@ -1,5 +1,15 @@
+.appContainer {
+    height: calc(100vh - 1rem);
+}
+
+.contentWrapper {
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    display: flex;
+}
+
 /* Resizable Box Styles */
-.resizable-box {
+.resizableBox {
     position: relative;
     background-clip: padding-box;
 }

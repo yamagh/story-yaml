@@ -20,14 +20,14 @@ const AppContent = () => {
     }
 
     return (
-        <div className="container-fluid mt-3 d-flex flex-column" style={{ height: 'calc(100vh - 1rem)' }}>
+        <div className={`appContainer container-fluid mt-3 d-flex flex-column`}>
             {error && (
                 <div className="alert alert-danger alert-dismissible fade show" role="alert">
                     <strong>YAML Parse Error:</strong> {error}
                     <button type="button" className="btn-close" onClick={() => setError(null)} aria-label="Close"></button>
                 </div>
             )}
-            <div className="d-flex" style={{ overflowY: 'hidden', flexWrap: 'nowrap' }}>
+            <div className="contentWrapper">
                 <MainLayout />
                 <ResizableBox
                     width={sidebarWidth}
@@ -36,7 +36,7 @@ const AppContent = () => {
                     minConstraints={[300, Infinity]}
                     maxConstraints={[800, Infinity]}
                     onResize={(e, data) => setSidebarWidth(data.size.width)}
-                    className="resizable-box"
+                    className="resizableBox"
                     resizeHandles={['w']}
                 >
                     <Sidebar />
