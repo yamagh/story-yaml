@@ -49,50 +49,67 @@ export class WebviewPanelManager {
 
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
-        this._panel.webview.onDidReceiveMessage(
-            async (message: WebviewMessage) => {
-                if (!this._document) { return; }
-                try {
-                    switch (message.command) {
-                        case 'ready':
-                            this.update();
-                            return;
-                        case 'addItem': {
-                            const { storyFile, newId } = await this.storyEditorService.addItem(this._document, message.item);
-                            this.postMessage({ command: 'update', storyFile, newId });
-                            return;
-                        }
-                        case 'updateItem': {
-                            const storyFile = await this.storyEditorService.updateItem(this._document, message.item);
-                            this.postMessage({ command: 'update', storyFile });
-                            return;
-                        }
-                        case 'deleteItem': {
-                            const storyFile = await this.storyEditorService.deleteItem(this._document, message.item);
-                            this.postMessage({ command: 'update', storyFile });
-                            return;
-                        }
-                        case 'updateStoryFile': {
-                            await this.storyEditorService.updateStory(this._document, message.storyFile);
-                            return;
-                        }
-                    }
-                } catch (e) {
-                    if (e instanceof YamlParseError) {
-                        vscode.window.showErrorMessage(e.message);
-                        this.postMessage({ command: 'yamlError', error: e.message });
-                    } else if (e instanceof FileUpdateError) {
-                        vscode.window.showErrorMessage(e.message);
-                    } else {
-                        console.error(e);
-                        const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
-                        vscode.window.showErrorMessage(`An unexpected error occurred: ${errorMessage}`);
-                    }
-                }
-            },
-            null,
-            this._disposables
-        );
+        this._panel.webview.onDidReceiveMessage(this.handleMessage, this, this._disposables);
+    }
+
+    private async handleMessage(message: WebviewMessage) {
+        if (!this._document) { return; }
+        try {
+            switch (message.command) {
+                case 'ready':
+                    return this.handleReady();
+                case 'addItem':
+                    return await this.handleAddItem(message);
+                case 'updateItem':
+                    return await this.handleUpdateItem(message);
+                case 'deleteItem':
+                    return await this.handleDeleteItem(message);
+                case 'updateStoryFile':
+                    return await this.handleUpdateStoryFile(message);
+            }
+        } catch (e) {
+            this.handleError(e);
+        }
+    }
+
+    private handleReady() {
+        this.update();
+    }
+
+    private async handleAddItem(message: WebviewMessage & { command: 'addItem' }) {
+        if (!this._document) { return; }
+        const { storyFile, newId } = await this.storyEditorService.addItem(this._document, message.item);
+        this.postMessage({ command: 'update', storyFile, newId });
+    }
+
+    private async handleUpdateItem(message: WebviewMessage & { command: 'updateItem' }) {
+        if (!this._document) { return; }
+        const storyFile = await this.storyEditorService.updateItem(this._document, message.item);
+        this.postMessage({ command: 'update', storyFile });
+    }
+
+    private async handleDeleteItem(message: WebviewMessage & { command: 'deleteItem' }) {
+        if (!this._document) { return; }
+        const storyFile = await this.storyEditorService.deleteItem(this._document, message.item);
+        this.postMessage({ command: 'update', storyFile });
+    }
+
+    private async handleUpdateStoryFile(message: WebviewMessage & { command: 'updateStoryFile' }) {
+        if (!this._document) { return; }
+        await this.storyEditorService.updateStory(this._document, message.storyFile);
+    }
+
+    private handleError(e: unknown) {
+        if (e instanceof YamlParseError) {
+            vscode.window.showErrorMessage(e.message);
+            this.postMessage({ command: 'yamlError', error: e.message });
+        } else if (e instanceof FileUpdateError) {
+            vscode.window.showErrorMessage(e.message);
+        } else {
+            console.error(e);
+            const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred';
+            vscode.window.showErrorMessage(`An unexpected error occurred: ${errorMessage}`);
+        }
     }
 
     public update() {
